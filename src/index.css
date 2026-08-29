@@ -1,0 +1,1777 @@
+@import "tailwindcss";
+
+/* =========================================================
+   AI FUTURE TAMIL
+   PREMIUM NEON HOME SYSTEM
+   ========================================================= */
+
+:root {
+  --neon-cyan: #00f5ff;
+  --neon-blue: #3b82f6;
+  --neon-purple: #8b5cf6;
+  --neon-pink: #ff2bd6;
+  --neon-magenta: #ff00a8;
+  --neon-green: #00ff9d;
+  --neon-orange: #ff9d00;
+
+  --dark-0: #02030a;
+  --dark-1: #050816;
+  --dark-2: #090b1a;
+  --dark-3: #0d1024;
+
+  --text-main: #ffffff;
+  --text-soft: #a8b0c7;
+}
+
+
+/* =========================================================
+   GLOBAL RESET
+   ========================================================= */
+
+html {
+  background: #02030a;
+  scroll-behavior: smooth;
+}
+
+body {
+  margin: 0;
+  min-width: 320px;
+  min-height: 100vh;
+
+  background:
+    radial-gradient(
+      circle at 15% 10%,
+      rgba(0, 245, 255, 0.08),
+      transparent 25%
+    ),
+    radial-gradient(
+      circle at 85% 20%,
+      rgba(255, 0, 168, 0.08),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 50% 90%,
+      rgba(139, 92, 246, 0.10),
+      transparent 30%
+    ),
+    linear-gradient(
+      135deg,
+      #02030a 0%,
+      #050816 45%,
+      #09051a 100%
+    );
+
+  color: var(--text-main);
+
+  overflow-x: hidden;
+}
+
+
+/* =========================================================
+   ROOT
+   ========================================================= */
+
+#root {
+  min-height: 100vh;
+
+  background:
+    radial-gradient(
+      circle at 50% -10%,
+      rgba(59, 130, 246, 0.08),
+      transparent 30%
+    );
+}
+
+
+/* =========================================================
+   HOME PAGE
+   ========================================================= */
+
+.home-page {
+  position: relative;
+  isolation: isolate;
+
+  min-height: 100vh;
+  width: 100%;
+
+  overflow: hidden;
+
+  background:
+    radial-gradient(
+      circle at 10% 20%,
+      rgba(0, 245, 255, 0.06),
+      transparent 22%
+    ),
+    radial-gradient(
+      circle at 90% 25%,
+      rgba(255, 43, 214, 0.08),
+      transparent 25%
+    ),
+    radial-gradient(
+      circle at 50% 70%,
+      rgba(139, 92, 246, 0.07),
+      transparent 28%
+    ),
+    linear-gradient(
+      180deg,
+      #03040b 0%,
+      #060819 32%,
+      #080a20 65%,
+      #05050f 100%
+    );
+}
+
+
+/* =========================================================
+   IMPORTANT
+   REMOVE BLACK BLOCKS FROM CHILD SECTIONS
+   ========================================================= */
+
+.home-page > * {
+  position: relative;
+  z-index: 1;
+
+  background: transparent !important;
+}
+
+
+/* =========================================================
+   SECTION SYSTEM
+   ========================================================= */
+
+.home-section {
+  position: relative;
+
+  width: 100%;
+
+  background: transparent !important;
+}
+
+
+/* =========================================================
+   SECTION AMBIENT GLOW
+   ========================================================= */
+
+.home-section::before {
+  content: "";
+
+  position: absolute;
+
+  pointer-events: none;
+
+  width: 600px;
+  height: 600px;
+
+  border-radius: 50%;
+
+  filter: blur(100px);
+
+  opacity: 0.12;
+
+  z-index: -1;
+
+  animation:
+    sectionFloat 14s ease-in-out infinite alternate;
+}
+
+
+/* HERO GLOW */
+
+.home-hero-section::before {
+  top: -250px;
+  left: 10%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(0, 245, 255, 0.55),
+      transparent 65%
+    );
+}
+
+
+/* TOOLS GLOW */
+
+.home-tools-section::before {
+  top: 10%;
+  right: -250px;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(255, 0, 168, 0.55),
+      transparent 65%
+    );
+
+  animation-delay: -4s;
+}
+
+
+/* FEATURES GLOW */
+
+.home-features-section::before {
+  top: 15%;
+  left: -250px;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(139, 92, 246, 0.55),
+      transparent 65%
+    );
+
+  animation-delay: -7s;
+}
+
+
+/* NEWS GLOW */
+
+.home-news-section::before {
+  top: 10%;
+  right: 10%;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(0, 255, 157, 0.40),
+      transparent 65%
+    );
+
+  animation-delay: -10s;
+}
+
+
+@keyframes sectionFloat {
+  0% {
+    transform:
+      translate3d(-30px, -20px, 0)
+      scale(1);
+  }
+
+  50% {
+    transform:
+      translate3d(40px, 30px, 0)
+      scale(1.12);
+  }
+
+  100% {
+    transform:
+      translate3d(-10px, 60px, 0)
+      scale(0.95);
+  }
+}
+
+
+/* =========================================================
+   HERO TYPOGRAPHY
+   ========================================================= */
+
+.home-page h1 {
+  color: #ffffff;
+
+  background:
+    linear-gradient(
+      90deg,
+      #ffffff 0%,
+      #67e8f9 20%,
+      #818cf8 40%,
+      #c084fc 60%,
+      #f472b6 80%,
+      #ffffff 100%
+    );
+
+  background-size: 300% auto;
+
+  -webkit-background-clip: text;
+  background-clip: text;
+
+  -webkit-text-fill-color: transparent;
+
+  animation:
+    heroTextGradient 7s linear infinite;
+
+  filter:
+    drop-shadow(0 0 20px rgba(99, 102, 241, 0.16));
+}
+
+
+@keyframes heroTextGradient {
+  0% {
+    background-position: 0% center;
+  }
+
+  100% {
+    background-position: 300% center;
+  }
+}
+
+
+/* =========================================================
+   ALL HOME HEADINGS
+   ========================================================= */
+
+.home-page h2,
+.home-page h3 {
+  background:
+    linear-gradient(
+      90deg,
+      #ffffff,
+      #d8b4fe,
+      #67e8f9,
+      #f9a8d4,
+      #ffffff
+    );
+
+  background-size: 250% auto;
+
+  -webkit-background-clip: text;
+  background-clip: text;
+
+  -webkit-text-fill-color: transparent;
+
+  animation:
+    headingGradient 8s ease-in-out infinite;
+
+  text-shadow:
+    0 0 25px rgba(139, 92, 246, 0.12);
+}
+
+
+@keyframes headingGradient {
+  0% {
+    background-position: 0% center;
+  }
+
+  50% {
+    background-position: 100% center;
+  }
+
+  100% {
+    background-position: 0% center;
+  }
+}
+
+
+/* =========================================================
+   HOME PARAGRAPH
+   ========================================================= */
+
+.home-page p {
+  color: #a7afc5;
+}
+
+
+/* =========================================================
+   GRADIENT TEXT UTILITY
+   ========================================================= */
+
+.neon-gradient-text {
+  background:
+    linear-gradient(
+      90deg,
+      #00f5ff,
+      #3b82f6,
+      #8b5cf6,
+      #ff2bd6,
+      #00f5ff
+    );
+
+  background-size: 300% auto;
+
+  -webkit-background-clip: text;
+  background-clip: text;
+
+  -webkit-text-fill-color: transparent;
+
+  animation:
+    neonTextFlow 5s linear infinite;
+}
+
+
+@keyframes neonTextFlow {
+  0% {
+    background-position: 0% center;
+  }
+
+  100% {
+    background-position: 300% center;
+  }
+}
+
+
+/* =========================================================
+   UNIVERSAL CARD SYSTEM
+   Applies to existing cards without deleting content
+   ========================================================= */
+
+.home-page .premium-card,
+.home-page .inner-premium-card,
+.home-page .inner-card,
+.home-page .dashboard-section {
+  position: relative;
+
+  isolation: isolate;
+
+  overflow: hidden;
+
+  background:
+    linear-gradient(
+      145deg,
+      rgba(11, 15, 31, 0.94),
+      rgba(4, 6, 16, 0.97)
+    ) !important;
+
+  border:
+    1px solid rgba(99, 102, 241, 0.28) !important;
+
+  box-shadow:
+    0 20px 60px rgba(0, 0, 0, 0.42),
+    inset 0 1px 0 rgba(255, 255, 255, 0.05);
+
+  transition:
+    transform 0.4s cubic-bezier(0.2, 0.8, 0.2, 1),
+    border-color 0.4s ease,
+    box-shadow 0.4s ease,
+    background 0.4s ease;
+}
+
+
+/* =========================================================
+   CARD AMBIENT LIGHT
+   ========================================================= */
+
+.home-page .premium-card::before,
+.home-page .inner-premium-card::before,
+.home-page .inner-card::before,
+.home-page .dashboard-section::before {
+  content: "";
+
+  position: absolute;
+
+  inset: -80px;
+
+  pointer-events: none;
+
+  z-index: -2;
+
+  background:
+    radial-gradient(
+      circle at 20% 20%,
+      rgba(0, 245, 255, 0.12),
+      transparent 24%
+    ),
+    radial-gradient(
+      circle at 80% 30%,
+      rgba(255, 43, 214, 0.12),
+      transparent 25%
+    ),
+    radial-gradient(
+      circle at 55% 90%,
+      rgba(139, 92, 246, 0.13),
+      transparent 25%
+    );
+
+  filter: blur(35px);
+
+  animation:
+    cardGlowMove 11s ease-in-out infinite alternate;
+}
+
+
+@keyframes cardGlowMove {
+  0% {
+    transform:
+      translate3d(-2%, -2%, 0)
+      scale(1);
+  }
+
+  50% {
+    transform:
+      translate3d(4%, 3%, 0)
+      scale(1.08);
+  }
+
+  100% {
+    transform:
+      translate3d(-3%, 5%, 0)
+      scale(1.03);
+  }
+}
+
+
+/* =========================================================
+   CARD LIGHT SWEEP
+   ========================================================= */
+
+.home-page .premium-card::after,
+.home-page .inner-premium-card::after,
+.home-page .inner-card::after,
+.home-page .dashboard-section::after {
+  content: "";
+
+  position: absolute;
+
+  top: -100%;
+  left: -40%;
+
+  width: 30%;
+  height: 300%;
+
+  pointer-events: none;
+
+  z-index: -1;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(255, 255, 255, 0.025),
+      rgba(103, 232, 249, 0.08),
+      rgba(255, 255, 255, 0.025),
+      transparent
+    );
+
+  transform: rotate(18deg);
+
+  filter: blur(7px);
+
+  animation:
+    neonSweep 9s ease-in-out infinite;
+}
+
+
+@keyframes neonSweep {
+  0% {
+    transform:
+      translateX(-30%)
+      rotate(18deg);
+
+    opacity: 0;
+  }
+
+  20% {
+    opacity: 0.25;
+  }
+
+  50% {
+    transform:
+      translateX(300%)
+      rotate(18deg);
+
+    opacity: 0.75;
+  }
+
+  75% {
+    opacity: 0.2;
+  }
+
+  100% {
+    transform:
+      translateX(550%)
+      rotate(18deg);
+
+    opacity: 0;
+  }
+}
+
+
+/* =========================================================
+   CARD HOVER
+   ========================================================= */
+
+.home-page .premium-card:hover,
+.home-page .inner-premium-card:hover,
+.home-page .inner-card:hover,
+.home-page .dashboard-section:hover {
+  transform:
+    translateY(-7px);
+
+  border-color:
+    rgba(0, 245, 255, 0.65) !important;
+
+  box-shadow:
+    0 25px 70px rgba(0, 0, 0, 0.55),
+    0 0 25px rgba(0, 245, 255, 0.12),
+    0 0 60px rgba(139, 92, 246, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08);
+}
+
+
+/* =========================================================
+   CARD ACTIVE
+   ========================================================= */
+
+.home-page .premium-card:active,
+.home-page .inner-premium-card:active,
+.home-page .inner-card:active {
+  transform:
+    translateY(-2px)
+    scale(0.985);
+
+  transition:
+    transform 0.08s ease;
+}
+
+
+/* =========================================================
+   NEON ZONES
+   ========================================================= */
+
+
+/* CYAN */
+
+.home-page .cyan-zone {
+  border-color:
+    rgba(0, 245, 255, 0.32) !important;
+}
+
+.home-page .cyan-zone:hover {
+  border-color:
+    rgba(0, 245, 255, 0.9) !important;
+
+  box-shadow:
+    0 0 25px rgba(0, 245, 255, 0.22),
+    0 25px 60px rgba(0, 0, 0, 0.5);
+}
+
+
+/* PINK */
+
+.home-page .pink-zone {
+  border-color:
+    rgba(255, 43, 214, 0.32) !important;
+}
+
+.home-page .pink-zone:hover {
+  border-color:
+    rgba(255, 43, 214, 0.9) !important;
+
+  box-shadow:
+    0 0 30px rgba(255, 43, 214, 0.25),
+    0 25px 60px rgba(0, 0, 0, 0.5);
+}
+
+
+/* PURPLE */
+
+.home-page .purple-zone {
+  border-color:
+    rgba(139, 92, 246, 0.38) !important;
+}
+
+.home-page .purple-zone:hover {
+  border-color:
+    rgba(167, 139, 250, 0.95) !important;
+
+  box-shadow:
+    0 0 30px rgba(139, 92, 246, 0.28),
+    0 25px 60px rgba(0, 0, 0, 0.5);
+}
+
+
+/* BLUE */
+
+.home-page .blue-zone {
+  border-color:
+    rgba(59, 130, 246, 0.35) !important;
+}
+
+.home-page .blue-zone:hover {
+  border-color:
+    rgba(59, 130, 246, 0.9) !important;
+
+  box-shadow:
+    0 0 30px rgba(59, 130, 246, 0.24),
+    0 25px 60px rgba(0, 0, 0, 0.5);
+}
+
+
+/* GREEN */
+
+.home-page .green-zone {
+  border-color:
+    rgba(0, 255, 157, 0.35) !important;
+}
+
+.home-page .green-zone:hover {
+  border-color:
+    rgba(0, 255, 157, 0.9) !important;
+
+  box-shadow:
+    0 0 30px rgba(0, 255, 157, 0.22),
+    0 25px 60px rgba(0, 0, 0, 0.5);
+}
+
+
+/* =========================================================
+   CARD ICONS
+   ========================================================= */
+
+.home-page .card-icon {
+  position: relative;
+
+  transition:
+    transform 0.4s ease,
+    filter 0.4s ease,
+    box-shadow 0.4s ease;
+}
+
+
+.home-page .premium-card:hover .card-icon,
+.home-page .inner-card:hover .card-icon,
+.home-page .inner-premium-card:hover .card-icon {
+  transform:
+    translateY(-4px)
+    scale(1.08);
+
+  filter:
+    drop-shadow(0 0 12px rgba(0, 245, 255, 0.55))
+    drop-shadow(0 0 22px rgba(139, 92, 246, 0.25));
+}
+
+
+/* =========================================================
+   STAT NUMBERS
+   ========================================================= */
+
+.home-page .stat-number {
+  background:
+    linear-gradient(
+      90deg,
+      #ffffff,
+      #00f5ff,
+      #8b5cf6,
+      #ff2bd6,
+      #ffffff
+    );
+
+  background-size: 300% auto;
+
+  -webkit-background-clip: text;
+  background-clip: text;
+
+  -webkit-text-fill-color: transparent;
+
+  animation:
+    statGradient 4s linear infinite;
+
+  filter:
+    drop-shadow(0 0 10px rgba(0, 245, 255, 0.2));
+}
+
+
+@keyframes statGradient {
+  0% {
+    background-position: 0% center;
+  }
+
+  100% {
+    background-position: 300% center;
+  }
+}
+
+
+/* =========================================================
+   BUTTON SYSTEM
+   ========================================================= */
+
+.home-page button,
+.home-page a[class*="button"],
+.home-page a[class*="btn"] {
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease,
+    background 0.3s ease;
+}
+
+
+/* =========================================================
+   ALL LINK HOVER
+   ========================================================= */
+
+.home-page a {
+  transition:
+    color 0.3s ease,
+    transform 0.3s ease,
+    box-shadow 0.3s ease;
+}
+
+
+/* =========================================================
+   NEON BUTTON EFFECT
+   ========================================================= */
+
+.home-page button:hover,
+.home-page a:hover {
+  text-decoration: none;
+}
+
+
+/* =========================================================
+   SEARCH INPUT
+   ========================================================= */
+
+.home-page input,
+.home-page textarea,
+.home-page select {
+  color: #ffffff !important;
+
+  background:
+    rgba(5, 8, 22, 0.86) !important;
+
+  border:
+    1px solid rgba(99, 102, 241, 0.32) !important;
+
+  outline: none;
+
+  transition:
+    border-color 0.3s ease,
+    box-shadow 0.3s ease,
+    background 0.3s ease;
+}
+
+
+.home-page input::placeholder,
+.home-page textarea::placeholder {
+  color:
+    rgba(168, 176, 199, 0.65);
+}
+
+
+.home-page input:focus,
+.home-page textarea:focus,
+.home-page select:focus {
+  border-color:
+    rgba(0, 245, 255, 0.85) !important;
+
+  background:
+    rgba(3, 8, 24, 0.95) !important;
+
+  box-shadow:
+    0 0 0 3px rgba(0, 245, 255, 0.08),
+    0 0 30px rgba(0, 245, 255, 0.12);
+}
+
+
+/* =========================================================
+   HERO BUTTONS
+   ========================================================= */
+
+.home-page .hero-button,
+.home-page .primary-button {
+  position: relative;
+
+  overflow: hidden;
+
+  border:
+    1px solid rgba(0, 245, 255, 0.7) !important;
+
+  background:
+    linear-gradient(
+      100deg,
+      rgba(0, 245, 255, 0.18),
+      rgba(59, 130, 246, 0.18),
+      rgba(255, 43, 214, 0.18)
+    ) !important;
+
+  color: #ffffff !important;
+
+  box-shadow:
+    0 0 18px rgba(0, 245, 255, 0.14);
+
+  backdrop-filter:
+    blur(14px);
+}
+
+
+.home-page .hero-button:hover,
+.home-page .primary-button:hover {
+  transform:
+    translateY(-3px);
+
+  border-color:
+    rgba(255, 43, 214, 0.9) !important;
+
+  box-shadow:
+    0 0 20px rgba(0, 245, 255, 0.22),
+    0 0 45px rgba(255, 43, 214, 0.14);
+}
+
+
+.home-page .hero-button:active,
+.home-page .primary-button:active {
+  transform:
+    translateY(0)
+    scale(0.97);
+}
+
+
+/* =========================================================
+   NAV-LIKE TABS / FILTERS
+   ========================================================= */
+
+.home-page [role="tab"],
+.home-page .tab,
+.home-page .filter-button,
+.home-page .category-button {
+  position: relative;
+
+  color: #b9c1d8 !important;
+
+  background:
+    rgba(7, 10, 24, 0.78) !important;
+
+  border:
+    1px solid rgba(99, 102, 241, 0.28) !important;
+
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+
+  transition:
+    all 0.3s ease;
+}
+
+
+.home-page [role="tab"]:hover,
+.home-page .tab:hover,
+.home-page .filter-button:hover,
+.home-page .category-button:hover {
+  color: #ffffff !important;
+
+  transform:
+    translateY(-2px);
+
+  border-color:
+    rgba(0, 245, 255, 0.8) !important;
+
+  box-shadow:
+    0 0 18px rgba(0, 245, 255, 0.18),
+    inset 0 0 20px rgba(0, 245, 255, 0.05);
+}
+
+
+.home-page [role="tab"][aria-selected="true"],
+.home-page .tab.active,
+.home-page .filter-button.active,
+.home-page .category-button.active {
+  color: #ffffff !important;
+
+  border-color:
+    rgba(255, 43, 214, 0.9) !important;
+
+  background:
+    linear-gradient(
+      100deg,
+      rgba(0, 245, 255, 0.12),
+      rgba(139, 92, 246, 0.15),
+      rgba(255, 43, 214, 0.12)
+    ) !important;
+
+  box-shadow:
+    0 0 22px rgba(255, 43, 214, 0.18),
+    inset 0 0 25px rgba(139, 92, 246, 0.07);
+}
+
+
+/* =========================================================
+   HORIZONTAL NEON LINE
+   ========================================================= */
+
+.home-page hr {
+  border: none;
+
+  height: 1px;
+
+  background:
+    linear-gradient(
+      90deg,
+      transparent,
+      rgba(0, 245, 255, 0.7),
+      rgba(139, 92, 246, 0.7),
+      rgba(255, 43, 214, 0.7),
+      transparent
+    );
+
+  box-shadow:
+    0 0 15px rgba(0, 245, 255, 0.18);
+}
+
+
+/* =========================================================
+   IMAGE GLOW
+   ========================================================= */
+
+.home-page img {
+  transition:
+    transform 0.5s ease,
+    filter 0.5s ease;
+}
+
+
+.home-page .premium-card:hover img,
+.home-page .inner-card:hover img {
+  transform:
+    scale(1.025);
+
+  filter:
+    drop-shadow(
+      0 0 20px rgba(0, 245, 255, 0.16)
+    );
+}
+
+
+/* =========================================================
+   EMOJI / ICON FLOAT
+   ========================================================= */
+
+.home-page .text-4xl,
+.home-page .text-5xl {
+  transition:
+    transform 0.4s ease,
+    filter 0.4s ease;
+}
+
+
+.home-page .premium-card:hover .text-4xl,
+.home-page .inner-card:hover .text-4xl {
+  transform:
+    translateY(-4px)
+    scale(1.06);
+
+  filter:
+    drop-shadow(
+      0 0 15px rgba(255, 43, 214, 0.28)
+    );
+}
+
+
+/* =========================================================
+   FEATURE / TOOL CARDS
+   ========================================================= */
+
+.home-page .group {
+  transition:
+    transform 0.35s ease,
+    border-color 0.35s ease,
+    box-shadow 0.35s ease;
+}
+
+
+.home-page .group:hover {
+  transform:
+    translateY(-5px);
+}
+
+
+/* =========================================================
+   GLASS EFFECT
+   ========================================================= */
+
+.home-page .glass,
+.home-page .glass-card {
+  background:
+    linear-gradient(
+      135deg,
+      rgba(255, 255, 255, 0.055),
+      rgba(255, 255, 255, 0.015)
+    ) !important;
+
+  border:
+    1px solid rgba(255, 255, 255, 0.10) !important;
+
+  backdrop-filter:
+    blur(20px);
+
+  -webkit-backdrop-filter:
+    blur(20px);
+}
+
+
+/* =========================================================
+   FLOATING ORB
+   ========================================================= */
+
+.home-page::before {
+  content: "";
+
+  position: fixed;
+
+  width: 350px;
+  height: 350px;
+
+  top: 25%;
+  left: -180px;
+
+  border-radius: 50%;
+
+  pointer-events: none;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(0, 245, 255, 0.08),
+      transparent 70%
+    );
+
+  filter: blur(35px);
+
+  z-index: -1;
+
+  animation:
+    orbMove 18s ease-in-out infinite alternate;
+}
+
+
+.home-page::after {
+  content: "";
+
+  position: fixed;
+
+  width: 400px;
+  height: 400px;
+
+  right: -220px;
+  bottom: 10%;
+
+  border-radius: 50%;
+
+  pointer-events: none;
+
+  background:
+    radial-gradient(
+      circle,
+      rgba(255, 43, 214, 0.08),
+      transparent 70%
+    );
+
+  filter: blur(40px);
+
+  z-index: -1;
+
+  animation:
+    orbMoveRight 20s ease-in-out infinite alternate;
+}
+
+
+@keyframes orbMove {
+  from {
+    transform:
+      translate3d(0, 0, 0);
+  }
+
+  to {
+    transform:
+      translate3d(180px, 160px, 0);
+  }
+}
+
+
+@keyframes orbMoveRight {
+  from {
+    transform:
+      translate3d(0, 0, 0);
+  }
+
+  to {
+    transform:
+      translate3d(-160px, -120px, 0);
+  }
+}
+
+
+/* =========================================================
+   SCROLL REVEAL SUPPORT
+   ========================================================= */
+
+.home-page .reveal,
+.home-page .animate-reveal {
+  animation:
+    homeReveal 0.8s ease both;
+}
+
+
+@keyframes homeReveal {
+  from {
+    opacity: 0;
+    transform:
+      translateY(25px);
+  }
+
+  to {
+    opacity: 1;
+    transform:
+      translateY(0);
+  }
+}
+
+
+/* =========================================================
+   SELECTION
+   ========================================================= */
+
+.home-page ::selection {
+  color: #ffffff;
+
+  background:
+    rgba(139, 92, 246, 0.45);
+}
+
+
+/* =========================================================
+   SCROLLBAR
+   ========================================================= */
+
+::-webkit-scrollbar {
+  width: 9px;
+}
+
+
+::-webkit-scrollbar-track {
+  background:
+    #03040b;
+}
+
+
+::-webkit-scrollbar-thumb {
+  border-radius: 20px;
+
+  background:
+    linear-gradient(
+      180deg,
+      #00f5ff,
+      #8b5cf6,
+      #ff2bd6
+    );
+
+  box-shadow:
+    0 0 10px rgba(0, 245, 255, 0.3);
+}
+
+
+::-webkit-scrollbar-thumb:hover {
+  background:
+    linear-gradient(
+      180deg,
+      #67e8f9,
+      #a78bfa,
+      #f472b6
+    );
+}
+
+
+/* =========================================================
+   MOBILE
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+  .home-page h1 {
+    background-size: 220% auto;
+  }
+
+  .home-page h2,
+  .home-page h3 {
+    background-size: 220% auto;
+  }
+
+  .home-page .premium-card:hover,
+  .home-page .inner-premium-card:hover,
+  .home-page .inner-card:hover {
+    transform:
+      translateY(-3px);
+  }
+
+  .home-section::before {
+    width: 350px;
+    height: 350px;
+
+    filter: blur(75px);
+  }
+
+}
+
+
+/* =========================================================
+   SMALL MOBILE
+   ========================================================= */
+
+@media (max-width: 480px) {
+
+  .home-page h1 {
+    filter:
+      drop-shadow(
+        0 0 12px rgba(99, 102, 241, 0.14)
+      );
+  }
+
+  .home-page .premium-card,
+  .home-page .inner-card {
+    border-radius: 20px;
+  }
+
+}
+
+
+/* =========================================================
+   ACCESSIBILITY
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  html {
+    scroll-behavior: auto;
+  }
+
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+
+    transition-duration: 0.01ms !important;
+  }
+
+}
+/* =========================================================
+   🌌 AI FUTURE TAMIL — FULL WEBSITE BACKGROUND
+   FINAL BACKGROUND OVERRIDE
+   ========================================================= */
+
+/* ---------- ROOT ---------- */
+
+html,
+body,
+#root {
+  min-height: 100%;
+  width: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+
+/* ---------- BODY BACKGROUND ---------- */
+
+html,
+body {
+  background:
+    radial-gradient(
+      circle at 15% 15%,
+      rgba(0, 229, 255, 0.12),
+      transparent 28%
+    ),
+    radial-gradient(
+      circle at 85% 20%,
+      rgba(255, 0, 200, 0.12),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 50% 80%,
+      rgba(120, 70, 255, 0.14),
+      transparent 35%
+    ),
+    linear-gradient(
+      135deg,
+      #020617 0%,
+      #070b1f 25%,
+      #100b2d 55%,
+      #16091f 78%,
+      #020617 100%
+    ) !important;
+
+  color: #ffffff;
+}
+
+
+/* ---------- ROOT ---------- */
+
+#root {
+  position: relative;
+  min-height: 100vh;
+  isolation: isolate;
+
+  background:
+    linear-gradient(
+      135deg,
+      rgba(2, 6, 23, 0.92),
+      rgba(10, 8, 35, 0.94),
+      rgba(20, 5, 30, 0.92)
+    ) !important;
+}
+
+
+/* =========================================================
+   ✨ GLOBAL AMBIENT LIGHT
+   ========================================================= */
+
+#root::before {
+  content: "";
+
+  position: fixed;
+  inset: 0;
+
+  pointer-events: none;
+
+  z-index: -2;
+
+  background:
+    radial-gradient(
+      circle at 10% 20%,
+      rgba(0, 238, 255, 0.12),
+      transparent 25%
+    ),
+    radial-gradient(
+      circle at 90% 15%,
+      rgba(255, 0, 200, 0.12),
+      transparent 25%
+    ),
+    radial-gradient(
+      circle at 50% 55%,
+      rgba(120, 70, 255, 0.10),
+      transparent 30%
+    ),
+    radial-gradient(
+      circle at 30% 90%,
+      rgba(0, 255, 180, 0.08),
+      transparent 25%
+    );
+
+  filter: blur(20px);
+
+  animation: globalAmbient 14s ease-in-out infinite alternate;
+}
+
+
+/* =========================================================
+   🌌 MOVING GRADIENT
+   ========================================================= */
+
+#root::after {
+  content: "";
+
+  position: fixed;
+  inset: -20%;
+
+  pointer-events: none;
+
+  z-index: -3;
+
+  background:
+    linear-gradient(
+      120deg,
+      rgba(0, 229, 255, 0.045),
+      rgba(110, 70, 255, 0.06),
+      rgba(255, 0, 200, 0.045),
+      rgba(0, 255, 180, 0.035)
+    );
+
+  background-size: 300% 300%;
+
+  animation: backgroundFlow 18s ease infinite;
+}
+
+
+@keyframes globalAmbient {
+  0% {
+    transform: translate3d(-2%, -1%, 0) scale(1);
+  }
+
+  50% {
+    transform: translate3d(2%, 2%, 0) scale(1.06);
+  }
+
+  100% {
+    transform: translate3d(-1%, 3%, 0) scale(1.02);
+  }
+}
+
+
+@keyframes backgroundFlow {
+  0% {
+    background-position: 0% 50%;
+  }
+
+  50% {
+    background-position: 100% 50%;
+  }
+
+  100% {
+    background-position: 0% 50%;
+  }
+}
+
+
+/* =========================================================
+   🚫 REMOVE HERO BLACK BACKGROUND
+   ========================================================= */
+
+/*
+   IMPORTANT:
+   Tailwind's bg-black / bg-[#000] / bg-slate-950
+   can create the black screen seen in your screenshot.
+*/
+
+#root > div > section:first-child,
+#root > div > main > section:first-child,
+#root > main > section:first-child {
+  background:
+    radial-gradient(
+      circle at 50% 10%,
+      rgba(120, 70, 255, 0.10),
+      transparent 35%
+    ),
+    linear-gradient(
+      135deg,
+      rgba(2, 6, 23, 0.35),
+      rgba(10, 8, 35, 0.30),
+      rgba(20, 5, 30, 0.35)
+    ) !important;
+}
+
+
+/* =========================================================
+   🖤 REMOVE COMMON BLACK HERO BACKGROUNDS
+   ========================================================= */
+
+.hero,
+.hero-section,
+.home-hero,
+.hero-container {
+  background:
+    radial-gradient(
+      circle at 50% 15%,
+      rgba(120, 80, 255, 0.12),
+      transparent 40%
+    ),
+    transparent !important;
+}
+
+
+/* =========================================================
+   ✨ HERO CONTENT GLOW
+   ========================================================= */
+
+.hero h1,
+.hero-section h1,
+.home-hero h1 {
+  text-shadow:
+    0 0 10px rgba(129, 140, 248, 0.35),
+    0 0 25px rgba(168, 85, 247, 0.22),
+    0 0 45px rgba(236, 72, 153, 0.12);
+}
+
+
+/* =========================================================
+   🌈 GRADIENT HERO TEXT
+   ========================================================= */
+
+.hero h1,
+.hero-section h1,
+.home-hero h1 {
+  background:
+    linear-gradient(
+      90deg,
+      #67e8f9,
+      #818cf8,
+      #a78bfa,
+      #d946ef,
+      #f472b6,
+      #67e8f9
+    );
+
+  background-size: 300% auto;
+
+  -webkit-background-clip: text;
+  background-clip: text;
+
+  -webkit-text-fill-color: transparent;
+
+  animation: heroTextGradient 6s linear infinite;
+}
+
+
+@keyframes heroTextGradient {
+  0% {
+    background-position: 0% center;
+  }
+
+  100% {
+    background-position: 300% center;
+  }
+}
+
+
+/* =========================================================
+   💎 HERO DESCRIPTION
+   ========================================================= */
+
+.hero p,
+.hero-section p,
+.home-hero p {
+  color: #cbd5e1 !important;
+
+  text-shadow:
+    0 0 15px rgba(96, 165, 250, 0.15);
+}
+
+
+/* =========================================================
+   🚀 HERO BUTTONS
+   ========================================================= */
+
+.hero button,
+.hero a,
+.hero-section button,
+.hero-section a,
+.home-hero button,
+.home-hero a {
+  transition:
+    transform 0.3s ease,
+    box-shadow 0.3s ease,
+    border-color 0.3s ease;
+}
+
+
+/* PRIMARY BUTTON */
+
+.hero button:first-child,
+.hero a:first-child,
+.hero-section button:first-child,
+.hero-section a:first-child {
+  background:
+    linear-gradient(
+      135deg,
+      #22d3ee,
+      #6366f1,
+      #a855f7
+    ) !important;
+
+  color: #ffffff !important;
+
+  border: 1px solid rgba(103, 232, 249, 0.65) !important;
+
+  box-shadow:
+    0 0 15px rgba(34, 211, 238, 0.35),
+    0 0 35px rgba(139, 92, 246, 0.18);
+}
+
+
+.hero button:first-child:hover,
+.hero a:first-child:hover,
+.hero-section button:first-child:hover,
+.hero-section a:first-child:hover {
+  transform: translateY(-4px) scale(1.03);
+
+  box-shadow:
+    0 0 20px rgba(34, 211, 238, 0.65),
+    0 0 45px rgba(168, 85, 247, 0.40);
+}
+
+
+/* SECONDARY BUTTON */
+
+.hero button:nth-child(2),
+.hero a:nth-child(2),
+.hero-section button:nth-child(2),
+.hero-section a:nth-child(2) {
+  background:
+    rgba(10, 15, 35, 0.55) !important;
+
+  color: #e0e7ff !important;
+
+  border: 1px solid rgba(129, 140, 248, 0.45) !important;
+
+  box-shadow:
+    inset 0 0 15px rgba(99, 102, 241, 0.06),
+    0 0 15px rgba(99, 102, 241, 0.08);
+}
+
+
+.hero button:nth-child(2):hover,
+.hero a:nth-child(2):hover,
+.hero-section button:nth-child(2):hover,
+.hero-section a:nth-child(2):hover {
+  transform: translateY(-4px);
+
+  border-color: #22d3ee !important;
+
+  color: #67e8f9 !important;
+
+  box-shadow:
+    0 0 18px rgba(34, 211, 238, 0.35),
+    inset 0 0 20px rgba(34, 211, 238, 0.08);
+}
+
+
+/* =========================================================
+   🌌 SECTION TRANSITION
+   ========================================================= */
+
+section {
+  position: relative;
+}
+
+
+/*
+   Prevent unwanted solid black blocks between sections.
+*/
+
+#root section {
+  background-color: transparent;
+}
+
+
+/* =========================================================
+   ⚠️ KEEP CARDS DARK
+   ========================================================= */
+
+/*
+   We DON'T remove dark backgrounds from cards.
+   Only the page background becomes transparent/gradient.
+*/
+
+.premium-card,
+.inner-premium-card,
+.dashboard-section {
+  background-color: transparent;
+}
+
+
+/* =========================================================
+   📱 MOBILE
+   ========================================================= */
+
+@media (max-width: 768px) {
+
+  #root::before {
+    filter: blur(30px);
+  }
+
+  #root::after {
+    animation-duration: 25s;
+  }
+
+  .hero h1,
+  .hero-section h1,
+  .home-hero h1 {
+    text-shadow:
+      0 0 15px rgba(129, 140, 248, 0.3);
+  }
+}
+
+
+/* =========================================================
+   ♿ REDUCED MOTION
+   ========================================================= */
+
+@media (prefers-reduced-motion: reduce) {
+
+  #root::before,
+  #root::after,
+  .hero h1,
+  .hero-section h1,
+  .home-hero h1 {
+    animation: none !important;
+  }
+
+}
