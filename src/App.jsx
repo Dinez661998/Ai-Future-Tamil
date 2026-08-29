@@ -106,6 +106,11 @@ const PromotionHub = lazy(() =>
   import("./pages/PromotionHub")
 );
 
+const InnovationLab = lazy(() =>
+  import("./pages/InnovationLab/InnovationLab")
+);
+
+
 const PremiumHub = lazy(() =>
   import("./pages/PremiumHub")
 );
@@ -614,6 +619,11 @@ function WebsiteRoutes() {
         path="/"
         element={<Home />}
       />
+
+      <Route
+  path="/innovation-lab"
+  element={<InnovationLab />}
+/>
 
       {/* AI */}
 
