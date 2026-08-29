@@ -7,7 +7,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 
-import { useState } from "react";
+import { lazy, Suspense, useState } from "react";
 
 /* =========================================================
    GLOBAL COMPONENTS
@@ -21,36 +21,32 @@ import CommandCenter from "./components/CommandCenter";
 import Footer from "./components/Footer";
 
 /* =========================================================
-   MAIN PAGES
+   LAZY LOADED PAGES
 ========================================================= */
 
-import Home from "./pages/Home";
-import AITools from "./pages/AITools";
-import AINews from "./pages/AINews";
-import Prompts from "./pages/Prompts";
-import Pricing from "./pages/Pricing";
-import Login from "./pages/Login";
-import Signup from "./pages/Signup";
-import Dashboard from "./pages/Dashboard";
+const Home = lazy(() => import("./pages/Home"));
+const AITools = lazy(() => import("./pages/AITools"));
+const AINews = lazy(() => import("./pages/AINews"));
+const Prompts = lazy(() => import("./pages/Prompts"));
+const Pricing = lazy(() => import("./pages/Pricing"));
+const Login = lazy(() => import("./pages/Login"));
+const Signup = lazy(() => import("./pages/Signup"));
+const Dashboard = lazy(() => import("./pages/Dashboard"));
 
-import ToolDetails from "./pages/ToolDetails";
-import NewsDetails from "./pages/NewsDetails";
-import Courses from "./pages/Courses";
-import Contact from "./pages/Contact";
-import NotFound from "./pages/NotFound";
+const ToolDetails = lazy(() => import("./pages/ToolDetails"));
+const NewsDetails = lazy(() => import("./pages/NewsDetails"));
+const Courses = lazy(() => import("./pages/Courses"));
+const Contact = lazy(() => import("./pages/Contact"));
+const NotFound = lazy(() => import("./pages/NotFound"));
 
-/* =========================================================
-   HUB PAGES
-========================================================= */
+const AIHubPage = lazy(() => import("./pages/AIHubPage"));
+const CreatorHubPage = lazy(() => import("./pages/CreatorHubPage"));
+const TechnologyHubPage = lazy(() => import("./pages/TechnologyHubPage"));
+const ProductsHubPage = lazy(() => import("./pages/ProductsHubPage"));
 
-import AIHubPage from "./pages/AIHubPage";
-import CreatorHubPage from "./pages/CreatorHubPage";
-import TechnologyHubPage from "./pages/TechnologyHubPage";
-import ProductsHubPage from "./pages/ProductsHubPage";
-
-import Community from "./pages/Community";
-import PromotionHub from "./pages/PromotionHub";
-import PremiumHub from "./pages/PremiumHub";
+const Community = lazy(() => import("./pages/Community"));
+const PromotionHub = lazy(() => import("./pages/PromotionHub"));
+const PremiumHub = lazy(() => import("./pages/PremiumHub"));
 
 /* =========================================================
    SIDEBAR DATA
@@ -1098,6 +1094,23 @@ function TermsPage() {
 }
 
 /* =========================================================
+   PAGE LOADER
+========================================================= */
+
+function PageLoader() {
+  return (
+    <div className="flex min-h-[60vh] items-center justify-center px-6 py-16">
+      <div className="flex flex-col items-center gap-4 text-center">
+        <div className="h-11 w-11 animate-spin rounded-full border-4 border-white/10 border-t-cyan-400" />
+        <p className="text-sm font-bold text-gray-400">
+          Loading AI Future Tamil...
+        </p>
+      </div>
+    </div>
+  );
+}
+
+/* =========================================================
    WEBSITE ROUTES
 ========================================================= */
 
@@ -1512,7 +1525,9 @@ function WebsiteLayout() {
           }
         `}
       >
-        <WebsiteRoutes />
+        <Suspense fallback={<PageLoader />}>
+          <WebsiteRoutes />
+        </Suspense>
 
         {!authPage && (
           <Footer />
