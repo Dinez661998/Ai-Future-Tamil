@@ -110,6 +110,10 @@ const PremiumHub = lazy(() =>
   import("./pages/PremiumHub")
 );
 
+const SmartHub = lazy(() =>
+  import("./pages/SmartHub")
+);
+
 /* =========================================================
    INFO PAGE
 ========================================================= */
@@ -849,6 +853,11 @@ function WebsiteRoutes() {
         path="/premium"
         element={<PremiumHub />}
       />
+
+      <Route
+  path="/smart-hub"
+  element={<SmartHub />}
+/>
 
       {/* AI TOOLS */}
 
