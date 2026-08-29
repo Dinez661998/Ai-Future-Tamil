@@ -4,10 +4,12 @@ import {
   Route,
   Link,
   useLocation,
-  useNavigate,
 } from "react-router-dom";
 
-import { lazy, Suspense, useState } from "react";
+import {
+  lazy,
+  Suspense,
+} from "react";
 
 /* =========================================================
    GLOBAL COMPONENTS
@@ -20,638 +22,96 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import CommandCenter from "./components/CommandCenter";
 import Footer from "./components/Footer";
 
+import AppSidebar, {
+  getSidebarSection,
+} from "./components/AppSidebar";
+
 /* =========================================================
    LAZY LOADED PAGES
 ========================================================= */
 
-const Home = lazy(() => import("./pages/Home"));
-const AITools = lazy(() => import("./pages/AITools"));
-const AINews = lazy(() => import("./pages/AINews"));
-const Prompts = lazy(() => import("./pages/Prompts"));
-const Pricing = lazy(() => import("./pages/Pricing"));
-const Login = lazy(() => import("./pages/Login"));
-const Signup = lazy(() => import("./pages/Signup"));
-const Dashboard = lazy(() => import("./pages/Dashboard"));
+const Home = lazy(() =>
+  import("./pages/Home")
+);
 
-const ToolDetails = lazy(() => import("./pages/ToolDetails"));
-const NewsDetails = lazy(() => import("./pages/NewsDetails"));
-const Courses = lazy(() => import("./pages/Courses"));
-const Contact = lazy(() => import("./pages/Contact"));
-const NotFound = lazy(() => import("./pages/NotFound"));
+const AITools = lazy(() =>
+  import("./pages/AITools")
+);
 
-const AIHubPage = lazy(() => import("./pages/AIHubPage"));
-const CreatorHubPage = lazy(() => import("./pages/CreatorHubPage"));
-const TechnologyHubPage = lazy(() => import("./pages/TechnologyHubPage"));
-const ProductsHubPage = lazy(() => import("./pages/ProductsHubPage"));
+const AINews = lazy(() =>
+  import("./pages/AINews")
+);
 
-const Community = lazy(() => import("./pages/Community"));
-const PromotionHub = lazy(() => import("./pages/PromotionHub"));
-const PremiumHub = lazy(() => import("./pages/PremiumHub"));
+const Prompts = lazy(() =>
+  import("./pages/Prompts")
+);
 
-/* =========================================================
-   SIDEBAR DATA
-========================================================= */
+const Pricing = lazy(() =>
+  import("./pages/Pricing")
+);
 
-const menus = {
-  ai: {
-    icon: "🤖",
-    title: "AI Hub",
-    items: [
-      ["🏠", "Home", "/"],
-      ["🤖", "AI Tools", "/ai-tools"],
-      ["✨", "Prompts", "/prompts"],
-      ["🎓", "Courses", "/courses"],
-      ["📰", "AI News", "/ai-news"],
-      ["📱", "AI Apps", "/ai-apps"],
-      ["🎨", "AI Images", "/ai-images"],
-      ["🎬", "AI Videos", "/ai-videos"],
-      ["🧠", "AI Models", "/ai-models"],
-      ["📊", "AI Datasets", "/ai-datasets"],
-      ["💻", "Source Code", "/source-code"],
-      ["🧩", "AI Templates", "/ai-templates"],
-      ["🌌", "Wallpapers", "/wallpapers"],
-    ],
-  },
+const Login = lazy(() =>
+  import("./pages/Login")
+);
 
-  creators: {
-    icon: "🎬",
-    title: "Creator Hub",
-    items: [
-      ["🏠", "Home", "/"],
-      ["▶️", "YouTube Resources", "/creators/youtube"],
-      ["📸", "Instagram Resources", "/creators/instagram"],
-      ["🎞️", "Video Editing", "/creators/video-editing"],
-      ["🖼️", "Thumbnail Packs", "/creators/thumbnails"],
-      ["🎵", "Music & SFX", "/creators/music-sfx"],
-      ["✂️", "CapCut Templates", "/creators/capcut"],
-      ["🎬", "Premiere Pro", "/creators/premiere"],
-      ["🎨", "Canva Templates", "/creators/canva"],
-      ["💫", "Motion Graphics", "/creators/motion-graphics"],
-      ["🟢", "Green Screen", "/creators/green-screen"],
-      ["🧷", "PNG Packs", "/creators/png-packs"],
-      ["🚀", "Intro / Outro", "/creators/intro-outro"],
-    ],
-  },
+const Signup = lazy(() =>
+  import("./pages/Signup")
+);
 
-  technology: {
-    icon: "💻",
-    title: "Technology",
-    items: [
-      ["🏠", "Home", "/"],
-      ["📱", "Android Apps", "/technology/android"],
-      ["🖥️", "Windows Software", "/technology/windows"],
-      ["🤖", "AI Software", "/technology/ai-software"],
-      ["📲", "Mobile Tips", "/technology/mobile-tips"],
-      ["📰", "Tech News", "/technology/news"],
-      ["🧩", "Chrome Extensions", "/technology/chrome"],
-      ["💻", "Laptop Tips", "/technology/laptop-tips"],
-      ["🛡️", "Cyber Security", "/technology/cyber-security"],
-      ["👨‍💻", "Programming", "/technology/programming"],
-      ["⚙️", "Coding Resources", "/technology/coding-resources"],
-    ],
-  },
+const Dashboard = lazy(() =>
+  import("./pages/Dashboard")
+);
 
-  products: {
-    icon: "🛍️",
-    title: "Digital Products",
-    items: [
-      ["🏠", "Home", "/"],
-      ["🎁", "Free Products", "/products/free"],
-      ["💎", "Premium Products", "/products/premium"],
-      ["✨", "AI Prompt Packs", "/products/prompts"],
-      ["📚", "eBooks & PDFs", "/products/ebooks"],
-      ["📦", "Templates", "/products/templates"],
-      ["🔤", "Icons & Fonts", "/products/icons-fonts"],
-      ["🖌️", "UI Kits", "/products/ui-kits"],
-      ["💻", "Source Code", "/products/source-code"],
-      ["🖼️", "Photoshop Files", "/products/photoshop"],
-      ["✂️", "CapCut Templates", "/products/capcut"],
-      ["🎛️", "LUTs & Presets", "/products/luts"],
-      ["🎞️", "Animation Packs", "/products/animations"],
-    ],
-  },
+const ToolDetails = lazy(() =>
+  import("./pages/ToolDetails")
+);
 
-  community: {
-    icon: "👥",
-    title: "Community",
-    items: [
-      ["🏠", "Home", "/"],
-      ["👥", "Community Home", "/community"],
-      ["🤖", "AI Tools", "/ai-tools"],
-      ["✨", "Prompts", "/prompts"],
-      ["🎓", "Courses", "/courses"],
-      ["📰", "AI News", "/ai-news"],
-      ["💎", "Premium", "/premium"],
-    ],
-  },
+const NewsDetails = lazy(() =>
+  import("./pages/NewsDetails")
+);
 
-  promotion: {
-    icon: "📣",
-    title: "Promotion Hub",
-    items: [
-      ["🏠", "Home", "/"],
-      ["📣", "Promotion Home", "/promotion"],
-      ["📸", "Instagram Promotion", "/promotion"],
-      ["▶️", "YouTube Promotion", "/promotion"],
-      ["🌐", "Website Promotion", "/promotion"],
-      ["✈️", "Telegram Promotion", "/promotion"],
-      ["🚀", "Social Promotion", "/promotion"],
-      ["⭐", "Featured Homepage", "/promotion"],
-      ["📰", "Sponsored Article", "/promotion"],
-    ],
-  },
+const Courses = lazy(() =>
+  import("./pages/Courses")
+);
 
-  premium: {
-    icon: "💎",
-    title: "Premium",
-    items: [
-      ["🏠", "Home", "/"],
-      ["💎", "Premium Home", "/premium"],
-      ["⬇️", "Premium Downloads", "/products/premium"],
-      ["✨", "Premium Prompts", "/products/prompts"],
-      ["🎓", "Premium Courses", "/courses"],
-      ["📦", "Premium Templates", "/products/templates"],
-      ["💻", "Source Code", "/products/source-code"],
-      ["👥", "Private Community", "/community"],
-      ["💰", "Pricing", "/pricing"],
-    ],
-  },
+const Contact = lazy(() =>
+  import("./pages/Contact")
+);
 
-  info: {
-    icon: "ℹ️",
-    title: "Information",
-    items: [
-      ["🏠", "Home", "/"],
-      ["ℹ️", "About Us", "/about"],
-      ["📩", "Contact", "/contact"],
-      ["🔒", "Privacy Policy", "/privacy"],
-      ["📜", "Terms & Conditions", "/terms"],
-      ["💎", "Premium", "/premium"],
-    ],
-  },
+const NotFound = lazy(() =>
+  import("./pages/NotFound")
+);
 
-  general: {
-    icon: "⚡",
-    title: "AI Future Tamil",
-    items: [
-      ["🏠", "Home", "/"],
-      ["🤖", "AI Tools", "/ai-tools"],
-      ["✨", "Prompts", "/prompts"],
-      ["🎓", "Courses", "/courses"],
-      ["📰", "AI News", "/ai-news"],
-      ["👥", "Community", "/community"],
-      ["📣", "Promotion Hub", "/promotion"],
-      ["💎", "Premium", "/premium"],
-      ["💰", "Pricing", "/pricing"],
-      ["📊", "Dashboard", "/dashboard"],
-    ],
-  },
-};
+const AIHubPage = lazy(() =>
+  import("./pages/AIHubPage")
+);
+
+const CreatorHubPage = lazy(() =>
+  import("./pages/CreatorHubPage")
+);
+
+const TechnologyHubPage = lazy(() =>
+  import("./pages/TechnologyHubPage")
+);
+
+const ProductsHubPage = lazy(() =>
+  import("./pages/ProductsHubPage")
+);
+
+const Community = lazy(() =>
+  import("./pages/Community")
+);
+
+const PromotionHub = lazy(() =>
+  import("./pages/PromotionHub")
+);
+
+const PremiumHub = lazy(() =>
+  import("./pages/PremiumHub")
+);
 
 /* =========================================================
-   DETECT SECTION
-========================================================= */
-
-function detectSection(path) {
-  if (path.startsWith("/creators")) return "creators";
-
-  if (path.startsWith("/technology")) return "technology";
-
-  if (path.startsWith("/products")) return "products";
-
-  if (path.startsWith("/community")) return "community";
-
-  if (path.startsWith("/promotion")) return "promotion";
-
-  if (path.startsWith("/premium")) return "premium";
-
-  if (
-    path === "/about" ||
-    path === "/privacy" ||
-    path === "/terms" ||
-    path === "/contact"
-  ) {
-    return "info";
-  }
-
-  if (
-    path.startsWith("/ai-") ||
-    path === "/prompts" ||
-    path === "/courses" ||
-    path.startsWith("/courses/") ||
-    path === "/source-code" ||
-    path === "/wallpapers"
-  ) {
-    return "ai";
-  }
-
-  return "general";
-}
-
-/* =========================================================
-   SIDEBAR
-========================================================= */
-
-function AppSidebar() {
-  const location = useLocation();
-  const navigate = useNavigate();
-
-  const [mobileOpen, setMobileOpen] =
-    useState(false);
-
-  const section =
-    detectSection(location.pathname);
-
-  const menu =
-    menus[section];
-
-  const isActive = (path) => {
-    if (path === "/") {
-      return location.pathname === "/";
-    }
-
-    return (
-      location.pathname === path ||
-      location.pathname.startsWith(
-        `${path}/`
-      )
-    );
-  };
-
-  const goBack = () => {
-    if (window.history.length > 1) {
-      navigate(-1);
-    } else {
-      navigate("/");
-    }
-  };
-
-  const SidebarContent = ({
-    mobile = false,
-  }) => (
-    <div
-      className={`
-        flex
-        h-full
-        min-h-0
-        flex-col
-        bg-[#070914]
-
-        ${mobile ? "" : "pt-[104px]"}
-      `}
-    >
-      {/* BACK */}
-
-      <div
-        className="
-          shrink-0
-          border-b
-          border-white/[0.08]
-          p-4
-        "
-      >
-        <button
-          type="button"
-          onClick={goBack}
-          className="
-            group
-            flex
-            w-full
-            items-center
-            gap-3
-            rounded-2xl
-            border
-            border-purple-400/30
-            bg-purple-400/[0.07]
-            px-5
-            py-4
-            font-black
-            text-white
-            transition-all
-            duration-300
-            hover:border-purple-300
-            hover:bg-purple-400/[0.12]
-          "
-        >
-          <span className="text-xl transition-transform group-hover:-translate-x-1">
-            ←
-          </span>
-
-          Back
-        </button>
-      </div>
-
-      {/* HEADER */}
-
-      <div
-        className="
-          shrink-0
-          border-b
-          border-white/[0.08]
-          px-5
-          py-5
-        "
-      >
-        <p
-          className="
-            mb-3
-            text-[11px]
-            font-bold
-            uppercase
-            tracking-[0.22em]
-            text-gray-600
-          "
-        >
-          Explore
-        </p>
-
-        <div className="flex items-center gap-4">
-
-          <div
-            className="
-              flex
-              h-12
-              w-12
-              shrink-0
-              items-center
-              justify-center
-              rounded-2xl
-              border
-              border-white/[0.08]
-              bg-white/[0.04]
-              text-2xl
-            "
-          >
-            {menu.icon}
-          </div>
-
-          <div className="min-w-0">
-            <h2 className="truncate text-xl font-black">
-              {menu.title}
-            </h2>
-
-            <p className="mt-1 text-xs text-gray-600">
-              Explore resources
-            </p>
-          </div>
-
-        </div>
-      </div>
-
-      {/* LINKS */}
-
-      <div
-        className="
-          min-h-0
-          flex-1
-          overflow-y-auto
-          overflow-x-hidden
-          px-3
-          py-4
-        "
-      >
-        <div className="space-y-1">
-
-          {menu.items.map(
-            ([icon, label, path], index) => {
-
-              const selected =
-                isActive(path);
-
-              return (
-                <Link
-                  key={`${path}-${index}`}
-                  to={path}
-                  onClick={() =>
-                    setMobileOpen(false)
-                  }
-                  className={`
-                    group
-                    flex
-                    items-center
-                    gap-3
-                    rounded-2xl
-                    border
-                    px-3
-                    py-3
-                    text-sm
-                    font-semibold
-                    transition-all
-
-                    ${
-                      selected
-                        ? `
-                          border-cyan-400/30
-                          bg-cyan-400/[0.09]
-                          text-cyan-300
-                        `
-                        : `
-                          border-transparent
-                          text-gray-400
-                          hover:border-white/[0.08]
-                          hover:bg-white/[0.035]
-                          hover:text-white
-                        `
-                    }
-                  `}
-                >
-                  <span
-                    className="
-                      flex
-                      h-10
-                      w-10
-                      shrink-0
-                      items-center
-                      justify-center
-                      rounded-xl
-                      border
-                      border-white/[0.04]
-                      bg-white/[0.035]
-                      text-lg
-                    "
-                  >
-                    {icon}
-                  </span>
-
-                  <span className="flex-1 truncate">
-                    {label}
-                  </span>
-
-                  {selected && (
-                    <span
-                      className="
-                        h-2
-                        w-2
-                        rounded-full
-                        bg-cyan-300
-                        shadow-[0_0_12px_#67e8f9]
-                      "
-                    />
-                  )}
-
-                </Link>
-              );
-            }
-          )}
-
-        </div>
-
-        {/* PREMIUM CARD */}
-
-        <div
-          className="
-            mt-7
-            rounded-3xl
-            border
-            border-purple-400/20
-            bg-gradient-to-br
-            from-purple-500/[0.08]
-            via-transparent
-            to-cyan-500/[0.05]
-            p-5
-          "
-        >
-          <div className="text-3xl">
-            💎
-          </div>
-
-          <h3 className="mt-3 font-black">
-            Premium Access
-          </h3>
-
-          <p
-            className="
-              mt-2
-              text-xs
-              leading-5
-              text-gray-500
-            "
-          >
-            Premium prompts, courses,
-            files and exclusive resources.
-          </p>
-
-          <Link
-            to="/premium"
-            className="
-              mt-4
-              inline-block
-              text-sm
-              font-bold
-              text-purple-300
-            "
-          >
-            Explore Premium →
-          </Link>
-        </div>
-
-        <div className="h-5" />
-
-      </div>
-    </div>
-  );
-
-  return (
-    <>
-      {/* DESKTOP */}
-
-      <aside
-        className="
-          fixed
-          bottom-0
-          left-0
-          top-0
-          z-[9000]
-          hidden
-          w-[320px]
-          border-r
-          border-white/[0.08]
-          bg-[#070914]
-          lg:block
-        "
-      >
-        <SidebarContent />
-      </aside>
-
-      {/* MOBILE BUTTON */}
-
-      <button
-        type="button"
-        onClick={() =>
-          setMobileOpen(true)
-        }
-        className="
-          fixed
-          bottom-6
-          left-4
-          z-[9990]
-          flex
-          h-14
-          w-14
-          items-center
-          justify-center
-          rounded-2xl
-          border
-          border-cyan-400/30
-          bg-[#080a13]
-          text-xl
-          lg:hidden
-        "
-      >
-        ☰
-      </button>
-
-      {/* MOBILE BACKDROP */}
-
-      {mobileOpen && (
-        <div
-          onClick={() =>
-            setMobileOpen(false)
-          }
-          className="
-            fixed
-            inset-0
-            z-[9970]
-            bg-black/75
-            backdrop-blur-sm
-            lg:hidden
-          "
-        />
-      )}
-
-      {/* MOBILE SIDEBAR */}
-
-      <aside
-        className={`
-          fixed
-          bottom-0
-          left-0
-          top-0
-          z-[9980]
-          w-[310px]
-          max-w-[88vw]
-          border-r
-          border-white/[0.08]
-          bg-[#070914]
-          transition-transform
-          duration-300
-          lg:hidden
-
-          ${
-            mobileOpen
-              ? "translate-x-0"
-              : "-translate-x-full"
-          }
-        `}
-      >
-        <SidebarContent mobile />
-      </aside>
-    </>
-  );
-}
-
-/* =========================================================
-   REUSABLE INFO PAGE
+   INFO PAGE
 ========================================================= */
 
 function InfoPage({
@@ -675,8 +135,6 @@ function InfoPage({
     >
       <div className="mx-auto max-w-[1300px]">
 
-        {/* HERO */}
-
         <section
           className="
             relative
@@ -692,6 +150,7 @@ function InfoPage({
         >
           <div
             className="
+              pointer-events-none
               absolute
               -right-20
               -top-20
@@ -760,8 +219,6 @@ function InfoPage({
 
           </div>
         </section>
-
-        {/* SECTIONS */}
 
         <section
           className="
@@ -839,14 +296,11 @@ function InfoPage({
                       )}
                     </div>
                   </div>
-
                 </div>
               </article>
             )
           )}
         </section>
-
-        {/* CONTACT CARD */}
 
         <section
           className="
@@ -910,7 +364,7 @@ function InfoPage({
 }
 
 /* =========================================================
-   ABOUT PAGE
+   ABOUT
 ========================================================= */
 
 function AboutPage() {
@@ -962,7 +416,7 @@ function AboutPage() {
 }
 
 /* =========================================================
-   PRIVACY PAGE
+   PRIVACY
 ========================================================= */
 
 function PrivacyPage() {
@@ -1028,7 +482,7 @@ function PrivacyPage() {
 }
 
 /* =========================================================
-   TERMS PAGE
+   TERMS
 ========================================================= */
 
 function TermsPage() {
@@ -1094,15 +548,49 @@ function TermsPage() {
 }
 
 /* =========================================================
-   PAGE LOADER
+   LOADER
 ========================================================= */
 
 function PageLoader() {
   return (
-    <div className="flex min-h-[60vh] items-center justify-center px-6 py-16">
-      <div className="flex flex-col items-center gap-4 text-center">
-        <div className="h-11 w-11 animate-spin rounded-full border-4 border-white/10 border-t-cyan-400" />
-        <p className="text-sm font-bold text-gray-400">
+    <div
+      className="
+        flex
+        min-h-[60vh]
+        items-center
+        justify-center
+        px-6
+        py-16
+      "
+    >
+      <div
+        className="
+          flex
+          flex-col
+          items-center
+          gap-4
+          text-center
+        "
+      >
+        <div
+          className="
+            h-11
+            w-11
+            animate-spin
+            rounded-full
+            border-4
+            border-white/10
+            border-t-cyan-400
+          "
+        />
+
+        <p
+          className="
+            text-sm
+            font-bold
+            text-gray-400
+          "
+        >
           Loading AI Future Tamil...
         </p>
       </div>
@@ -1111,21 +599,19 @@ function PageLoader() {
 }
 
 /* =========================================================
-   WEBSITE ROUTES
+   ROUTES
 ========================================================= */
 
 function WebsiteRoutes() {
   return (
     <Routes>
 
-      {/* HOME */}
-
       <Route
         path="/"
         element={<Home />}
       />
 
-      {/* AI HUB */}
+      {/* AI */}
 
       <Route
         path="/ai-apps"
@@ -1167,7 +653,7 @@ function WebsiteRoutes() {
         element={<AIHubPage />}
       />
 
-      {/* CREATOR HUB */}
+      {/* CREATORS */}
 
       <Route
         path="/creators/youtube"
@@ -1376,7 +862,7 @@ function WebsiteRoutes() {
         element={<ToolDetails />}
       />
 
-      {/* AI NEWS */}
+      {/* NEWS */}
 
       <Route
         path="/ai-news"
@@ -1414,28 +900,22 @@ function WebsiteRoutes() {
         element={<Pricing />}
       />
 
-      {/* ABOUT */}
+      {/* INFORMATION */}
 
       <Route
         path="/about"
         element={<AboutPage />}
       />
 
-      {/* PRIVACY */}
-
       <Route
         path="/privacy"
         element={<PrivacyPage />}
       />
 
-      {/* TERMS */}
-
       <Route
         path="/terms"
         element={<TermsPage />}
       />
-
-      {/* CONTACT */}
 
       <Route
         path="/contact"
@@ -1487,6 +967,21 @@ function WebsiteLayout() {
     location.pathname === "/login" ||
     location.pathname === "/signup";
 
+  /*
+    Sidebar appears ONLY when current page belongs
+    to a section with sub-options.
+
+    Home / Dashboard / Pricing / Community /
+    About etc do NOT get unnecessary sidebar.
+  */
+
+  const sidebarSection =
+    getSidebarSection(location.pathname);
+
+  const hasSidebar =
+    !authPage &&
+    Boolean(sidebarSection);
+
   return (
     <div
       className="
@@ -1504,11 +999,11 @@ function WebsiteLayout() {
 
       {/* SIDEBAR */}
 
-      {!authPage && (
+      {hasSidebar && (
         <AppSidebar />
       )}
 
-      {/* MAIN WEBSITE */}
+      {/* MAIN */}
 
       <main
         className={`
@@ -1517,25 +1012,28 @@ function WebsiteLayout() {
           min-h-screen
           min-w-0
           overflow-x-hidden
+          transition-[margin]
+          duration-300
 
           ${
-            authPage
-              ? ""
-              : "lg:ml-[320px]"
+            hasSidebar
+              ? "lg:ml-[320px]"
+              : ""
           }
         `}
       >
-        <Suspense fallback={<PageLoader />}>
+        <Suspense
+          fallback={<PageLoader />}
+        >
           <WebsiteRoutes />
         </Suspense>
 
         {!authPage && (
           <Footer />
         )}
-
       </main>
 
-      {/* GLOBAL FLOATING UI */}
+      {/* FLOATING UI */}
 
       {!authPage && (
         <>
