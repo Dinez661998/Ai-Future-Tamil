@@ -1,12 +1,14 @@
 import { useEffect, useState } from "react";
+
 import {
   Link,
   useLocation,
   useNavigate,
 } from "react-router-dom";
 
-import { supabase } from "../../supabase/client";
-import { useLanguage } from "../../context/LanguageContext.jsx";
+import {
+  supabase,
+} from "../../supabase/client";
 
 /* =========================================================
    MEGA MENU DATA
@@ -14,78 +16,66 @@ import { useLanguage } from "../../context/LanguageContext.jsx";
 
 const megaMenus = {
   AI: {
-    en: "AI",
-    ta: "AI",
+    label: "AI",
+
     items: [
       {
-        en: "AI Tools",
-        ta: "AI கருவிகள்",
+        label: "AI Tools",
         icon: "🤖",
         path: "/ai-tools",
       },
       {
-        en: "AI News",
-        ta: "AI செய்திகள்",
+        label: "AI News",
         icon: "📰",
         path: "/ai-news",
       },
       {
-        en: "AI Apps",
-        ta: "AI செயலிகள்",
+        label: "AI Apps",
         icon: "📱",
         path: "/ai-apps",
       },
       {
-        en: "AI Prompts",
-        ta: "AI பிராம்ப்ட்கள்",
+        label: "AI Prompts",
         icon: "✨",
         path: "/prompts",
       },
       {
-        en: "AI Images",
-        ta: "AI படங்கள்",
+        label: "AI Images",
         icon: "🎨",
         path: "/ai-images",
       },
       {
-        en: "AI Videos",
-        ta: "AI வீடியோக்கள்",
+        label: "AI Videos",
         icon: "🎬",
         path: "/ai-videos",
       },
       {
-        en: "AI Courses",
-        ta: "AI பாடநெறிகள்",
+        label: "AI Courses",
         icon: "🎓",
         path: "/courses",
       },
       {
-        en: "AI Models",
-        ta: "AI மாடல்கள்",
+        label: "AI Models",
         icon: "🧠",
         path: "/ai-models",
       },
       {
-        en: "AI Datasets",
-        ta: "AI தரவுத்தொகுப்புகள்",
+        label: "AI Datasets",
         icon: "📊",
         path: "/ai-datasets",
       },
       {
-        en: "Source Code",
-        ta: "சோர்ஸ் கோடு",
+        label: "Source Code",
         icon: "💻",
         path: "/source-code",
       },
       {
-        en: "AI Templates",
-        ta: "AI டெம்ப்ளேட்கள்",
+        label: "AI Templates",
         icon: "🧩",
         path: "/ai-templates",
       },
       {
-        en: "Wallpapers",
-        ta: "வால்பேப்பர்கள்",
+        label: "Wallpapers",
         icon: "🌌",
         path: "/wallpapers",
       },
@@ -93,78 +83,66 @@ const megaMenus = {
   },
 
   Creators: {
-    en: "Creators",
-    ta: "கிரியேட்டர்கள்",
+    label: "Creators",
+
     items: [
       {
-        en: "YouTube Resources",
-        ta: "YouTube வளங்கள்",
+        label: "YouTube Resources",
         icon: "▶️",
         path: "/creators/youtube",
       },
       {
-        en: "Instagram Resources",
-        ta: "Instagram வளங்கள்",
+        label: "Instagram Resources",
         icon: "📸",
         path: "/creators/instagram",
       },
       {
-        en: "Video Editing",
-        ta: "வீடியோ எடிட்டிங்",
+        label: "Video Editing",
         icon: "🎞️",
         path: "/creators/video-editing",
       },
       {
-        en: "Thumbnail Packs",
-        ta: "தம்ப்நெயில் பேக்குகள்",
+        label: "Thumbnail Packs",
         icon: "🖼️",
         path: "/creators/thumbnails",
       },
       {
-        en: "Music & SFX",
-        ta: "மியூசிக் & SFX",
+        label: "Music & SFX",
         icon: "🎵",
         path: "/creators/music-sfx",
       },
       {
-        en: "CapCut Templates",
-        ta: "CapCut டெம்ப்ளேட்கள்",
+        label: "CapCut Templates",
         icon: "✂️",
         path: "/creators/capcut",
       },
       {
-        en: "Premiere Pro",
-        ta: "Premiere Pro",
+        label: "Premiere Pro",
         icon: "🎬",
         path: "/creators/premiere",
       },
       {
-        en: "Canva Templates",
-        ta: "Canva டெம்ப்ளேட்கள்",
+        label: "Canva Templates",
         icon: "🎨",
         path: "/creators/canva",
       },
       {
-        en: "Motion Graphics",
-        ta: "மோஷன் கிராஃபிக்ஸ்",
+        label: "Motion Graphics",
         icon: "💫",
         path: "/creators/motion-graphics",
       },
       {
-        en: "Green Screen",
-        ta: "கிரீன் ஸ்கிரீன்",
+        label: "Green Screen",
         icon: "🟢",
         path: "/creators/green-screen",
       },
       {
-        en: "PNG Packs",
-        ta: "PNG பேக்குகள்",
+        label: "PNG Packs",
         icon: "🧷",
         path: "/creators/png-packs",
       },
       {
-        en: "Intro / Outro",
-        ta: "இன்ட்ரோ / அவுட்ரோ",
+        label: "Intro / Outro",
         icon: "🚀",
         path: "/creators/intro-outro",
       },
@@ -172,66 +150,56 @@ const megaMenus = {
   },
 
   Technology: {
-    en: "Technology",
-    ta: "தொழில்நுட்பம்",
+    label: "Technology",
+
     items: [
       {
-        en: "Android Apps",
-        ta: "Android செயலிகள்",
+        label: "Android Apps",
         icon: "📱",
         path: "/technology/android",
       },
       {
-        en: "Windows Software",
-        ta: "Windows மென்பொருள்",
+        label: "Windows Software",
         icon: "🖥️",
         path: "/technology/windows",
       },
       {
-        en: "AI Software",
-        ta: "AI மென்பொருள்",
+        label: "AI Software",
         icon: "🤖",
         path: "/technology/ai-software",
       },
       {
-        en: "Mobile Tips",
-        ta: "மொபைல் குறிப்புகள்",
+        label: "Mobile Tips",
         icon: "📲",
         path: "/technology/mobile-tips",
       },
       {
-        en: "Tech News",
-        ta: "டெக் செய்திகள்",
+        label: "Tech News",
         icon: "📰",
         path: "/technology/news",
       },
       {
-        en: "Chrome Extensions",
-        ta: "Chrome Extensions",
+        label: "Chrome Extensions",
         icon: "🧩",
         path: "/technology/chrome",
       },
       {
-        en: "Laptop Tips",
-        ta: "லேப்டாப் குறிப்புகள்",
+        label: "Laptop Tips",
         icon: "💻",
         path: "/technology/laptop-tips",
       },
       {
-        en: "Cyber Security",
-        ta: "சைபர் பாதுகாப்பு",
+        label: "Cyber Security",
         icon: "🛡️",
         path: "/technology/cyber-security",
       },
       {
-        en: "Programming",
-        ta: "புரோகிராமிங்",
+        label: "Programming",
         icon: "👨‍💻",
         path: "/technology/programming",
       },
       {
-        en: "Coding Resources",
-        ta: "கோடிங் வளங்கள்",
+        label: "Coding Resources",
         icon: "⚙️",
         path: "/technology/coding-resources",
       },
@@ -239,78 +207,66 @@ const megaMenus = {
   },
 
   Products: {
-    en: "Products",
-    ta: "பொருட்கள்",
+    label: "Products",
+
     items: [
       {
-        en: "Free Products",
-        ta: "இலவச பொருட்கள்",
+        label: "Free Products",
         icon: "🎁",
         path: "/products/free",
       },
       {
-        en: "Premium Products",
-        ta: "பிரீமியம் பொருட்கள்",
+        label: "Premium Products",
         icon: "💎",
         path: "/products/premium",
       },
       {
-        en: "AI Prompts",
-        ta: "AI பிராம்ப்ட்கள்",
+        label: "AI Prompts",
         icon: "✨",
         path: "/products/prompts",
       },
       {
-        en: "eBooks & PDFs",
-        ta: "eBooks & PDFs",
+        label: "eBooks & PDFs",
         icon: "📚",
         path: "/products/ebooks",
       },
       {
-        en: "Templates",
-        ta: "டெம்ப்ளேட்கள்",
+        label: "Templates",
         icon: "📦",
         path: "/products/templates",
       },
       {
-        en: "Icons & Fonts",
-        ta: "ஐகான்கள் & எழுத்துருக்கள்",
+        label: "Icons & Fonts",
         icon: "🔤",
         path: "/products/icons-fonts",
       },
       {
-        en: "UI Kits",
-        ta: "UI கிட்கள்",
+        label: "UI Kits",
         icon: "🖌️",
         path: "/products/ui-kits",
       },
       {
-        en: "Source Code",
-        ta: "சோர்ஸ் கோடு",
+        label: "Source Code",
         icon: "💻",
         path: "/products/source-code",
       },
       {
-        en: "Photoshop Files",
-        ta: "Photoshop கோப்புகள்",
-        icon: "🧠",
+        label: "Photoshop Files",
+        icon: "🖼️",
         path: "/products/photoshop",
       },
       {
-        en: "CapCut Templates",
-        ta: "CapCut டெம்ப்ளேட்கள்",
+        label: "CapCut Templates",
         icon: "✂️",
         path: "/products/capcut",
       },
       {
-        en: "LUTs & Presets",
-        ta: "LUTs & Presets",
+        label: "LUTs & Presets",
         icon: "🎛️",
         path: "/products/luts",
       },
       {
-        en: "Animation Packs",
-        ta: "அனிமேஷன் பேக்குகள்",
+        label: "Animation Packs",
         icon: "🎞️",
         path: "/products/animations",
       },
@@ -323,28 +279,29 @@ const megaMenus = {
 ========================================================= */
 
 function Navbar() {
-  const [user, setUser] = useState(null);
-  const [activeMegaMenu, setActiveMegaMenu] =
+  const [user, setUser] =
     useState(null);
 
-  const [mobileOpen, setMobileOpen] =
-    useState(false);
+  const [
+    activeMegaMenu,
+    setActiveMegaMenu,
+  ] = useState(null);
 
-  const [mobileSection, setMobileSection] =
-    useState(null);
+  const [
+    mobileOpen,
+    setMobileOpen,
+  ] = useState(false);
 
-  const location = useLocation();
-  const navigate = useNavigate();
+  const [
+    mobileSection,
+    setMobileSection,
+  ] = useState(null);
 
-  const {
-    language,
-    changeLanguage,
-  } = useLanguage();
+  const location =
+    useLocation();
 
-  const isTamil = language === "ta";
-
-  const text = (english, tamil) =>
-    isTamil ? tamil : english;
+  const navigate =
+    useNavigate();
 
   /* =========================================================
      AUTH
@@ -353,77 +310,103 @@ function Navbar() {
   useEffect(() => {
     let mounted = true;
 
-    const getUser = async () => {
-      const {
-        data: { user },
-      } = await supabase.auth.getUser();
+    const getUser =
+      async () => {
+        const {
+          data: {
+            user,
+          },
+        } =
+          await supabase.auth.getUser();
 
-      if (mounted) {
-        setUser(user);
-      }
-    };
+        if (mounted) {
+          setUser(user);
+        }
+      };
 
     getUser();
 
     const {
-      data: { subscription },
-    } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        if (mounted) {
-          setUser(session?.user ?? null);
+      data: {
+        subscription,
+      },
+    } =
+      supabase.auth.onAuthStateChange(
+        (
+          _event,
+          session
+        ) => {
+          if (mounted) {
+            setUser(
+              session?.user ??
+                null
+            );
+          }
         }
-      }
-    );
+      );
 
     return () => {
       mounted = false;
+
       subscription.unsubscribe();
     };
   }, []);
 
   /* =========================================================
-     ROUTE CHANGE
+     CLOSE MENU ON ROUTE CHANGE
   ========================================================= */
 
   useEffect(() => {
     setActiveMegaMenu(null);
     setMobileOpen(false);
     setMobileSection(null);
-  }, [location.pathname]);
+  }, [
+    location.pathname,
+  ]);
 
   /* =========================================================
      LOGOUT
   ========================================================= */
 
-  const handleLogout = async () => {
-    const { error } =
-      await supabase.auth.signOut();
+  const handleLogout =
+    async () => {
+      const {
+        error,
+      } =
+        await supabase.auth.signOut();
 
-    if (error) {
-      alert(error.message);
-      return;
-    }
+      if (error) {
+        alert(
+          error.message
+        );
 
-    setUser(null);
-    navigate("/");
-  };
+        return;
+      }
+
+      setUser(null);
+
+      navigate("/");
+    };
 
   /* =========================================================
      USER NAME
   ========================================================= */
 
   const displayName =
-    user?.user_metadata?.full_name ||
-    user?.email?.split("@")[0] ||
+    user?.user_metadata
+      ?.full_name ||
+    user?.email?.split(
+      "@"
+    )[0] ||
     "User";
 
   /* =========================================================
-     DESKTOP BUTTON STYLE
+     NAV STYLE
   ========================================================= */
 
   const navButtonClass = `
-    h-10
     inline-flex
+    h-10
     items-center
     justify-center
     whitespace-nowrap
@@ -449,13 +432,13 @@ function Navbar() {
           border-b
           border-white/10
           bg-[#05060b]/95
-          backdrop-blur-2xl
           text-white
+          backdrop-blur-2xl
         "
       >
-        {/* =====================================================
+        {/* =================================================
             MAIN NAVBAR
-        ===================================================== */}
+        ================================================= */}
 
         <div
           className="
@@ -471,64 +454,81 @@ function Navbar() {
             xl:px-6
           "
         >
-          {/* =================================================
+          {/* ===============================================
               LOGO
-          ================================================= */}
+          =============================================== */}
 
           <Link
             to="/"
             className="
               shrink-0
               whitespace-nowrap
-              text-[22px]
-              font-black
-              tracking-tight
               bg-gradient-to-r
               from-cyan-300
               via-white
               to-purple-400
               bg-clip-text
+              text-[22px]
+              font-black
+              tracking-tight
               text-transparent
             "
           >
             AI Future Tamil
           </Link>
 
-          {/* =================================================
-              DESKTOP CENTER MENU
-          ================================================= */}
+          {/* ===============================================
+              DESKTOP MENU
+          =============================================== */}
 
           <div
             className="
               hidden
-              xl:flex
               min-w-0
               flex-1
               items-center
               justify-center
               gap-1
+              xl:flex
             "
           >
             <Link
               to="/"
-              className={navButtonClass}
+              className={
+                navButtonClass
+              }
             >
-              {text("Home", "முகப்பு")}
+              Home
             </Link>
 
-            {Object.keys(megaMenus).map(
-              (menuKey) => {
+            {Object.keys(
+              megaMenus
+            ).map(
+              (
+                menuKey
+              ) => {
                 const menu =
-                  megaMenus[menuKey];
+                  megaMenus[
+                    menuKey
+                  ];
+
+                const open =
+                  activeMegaMenu ===
+                  menuKey;
 
                 return (
                   <button
-                    key={menuKey}
+                    key={
+                      menuKey
+                    }
                     type="button"
                     onClick={() =>
                       setActiveMegaMenu(
-                        (current) =>
-                          current === menuKey
+                        (
+                          current
+                        ) =>
+                          current ===
+                          menuKey
                             ? null
                             : menuKey
                       )
@@ -537,17 +537,22 @@ function Navbar() {
                       ${navButtonClass}
 
                       ${
-                        activeMegaMenu ===
-                        menuKey
+                        open
                           ? "bg-cyan-400/[0.07] text-cyan-300"
                           : ""
                       }
                     `}
                   >
-                    <span className="flex items-center gap-1.5">
-                      {isTamil
-                        ? menu.ta
-                        : menu.en}
+                    <span
+                      className="
+                        flex
+                        items-center
+                        gap-1.5
+                      "
+                    >
+                      {
+                        menu.label
+                      }
 
                       <span
                         className={`
@@ -556,8 +561,7 @@ function Navbar() {
                           duration-200
 
                           ${
-                            activeMegaMenu ===
-                            menuKey
+                            open
                               ? "rotate-180"
                               : ""
                           }
@@ -573,29 +577,27 @@ function Navbar() {
 
             <Link
               to="/community"
-              className={navButtonClass}
+              className={
+                navButtonClass
+              }
             >
-              {text(
-                "Community",
-                "சமூகம்"
-              )}
+              Community
             </Link>
 
             <Link
               to="/promotion"
-              className={navButtonClass}
+              className={
+                navButtonClass
+              }
             >
-              {text(
-                "Promotion",
-                "ப்ரமோஷன்"
-              )}
+              Promotion
             </Link>
 
             <Link
               to="/premium"
               className="
-                h-10
                 inline-flex
+                h-10
                 shrink-0
                 items-center
                 justify-center
@@ -614,27 +616,22 @@ function Navbar() {
                 hover:bg-purple-400/[0.12]
               "
             >
-              💎{" "}
-              {text(
-                "Premium",
-                "பிரீமியம்"
-              )}
+              💎 Premium
             </Link>
 
             <Link
               to="/pricing"
-              className={navButtonClass}
+              className={
+                navButtonClass
+              }
             >
-              {text(
-                "Pricing",
-                "விலை"
-              )}
+              Pricing
             </Link>
           </div>
 
-          {/* =================================================
-              RIGHT AREA
-          ================================================= */}
+          {/* ===============================================
+              RIGHT SIDE
+          =============================================== */}
 
           <div
             className="
@@ -645,75 +642,9 @@ function Navbar() {
               gap-2
             "
           >
-            {/* ===============================================
-                LANGUAGE DESKTOP
-            =============================================== */}
-
-            <div
-              className="
-                hidden
-                xl:flex
-                h-10
-                shrink-0
-                items-center
-                rounded-xl
-                border
-                border-white/10
-                bg-white/[0.035]
-                p-1
-              "
-            >
-              <button
-                type="button"
-                onClick={() =>
-                  changeLanguage("en")
-                }
-                className={`
-                  h-8
-                  min-w-[38px]
-                  rounded-lg
-                  px-2
-                  text-xs
-                  font-black
-                  transition-all
-
-                  ${
-                    language === "en"
-                      ? "bg-cyan-400 text-black"
-                      : "text-gray-400 hover:text-white"
-                  }
-                `}
-              >
-                EN
-              </button>
-
-              <button
-                type="button"
-                onClick={() =>
-                  changeLanguage("ta")
-                }
-                className={`
-                  h-8
-                  rounded-lg
-                  px-2.5
-                  text-xs
-                  font-bold
-                  transition-all
-
-                  ${
-                    language === "ta"
-                      ? "bg-cyan-400 text-black"
-                      : "text-gray-400 hover:text-white"
-                  }
-                `}
-              >
-                தமிழ்
-              </button>
-            </div>
-
-            {/* ===============================================
-                LOGGED IN
-            =============================================== */}
+            {/* =============================================
+                USER LOGGED IN
+            ============================================= */}
 
             {user ? (
               <>
@@ -722,19 +653,25 @@ function Navbar() {
                 <div
                   className="
                     hidden
-                    2xl:block
-                    max-w-[115px]
+                    max-w-[120px]
                     text-right
+                    2xl:block
                   "
                 >
-                  <p className="text-[10px] leading-none text-gray-500">
-                    {text(
-                      "Welcome",
-                      "வரவேற்கிறோம்"
-                    )}
+                  <p
+                    className="
+                      text-[10px]
+                      leading-none
+                      text-gray-500
+                    "
+                  >
+                    Welcome
                   </p>
 
                   <p
+                    title={
+                      displayName
+                    }
                     className="
                       mt-1
                       truncate
@@ -742,9 +679,10 @@ function Navbar() {
                       font-bold
                       text-gray-200
                     "
-                    title={displayName}
                   >
-                    {displayName}
+                    {
+                      displayName
+                    }
                   </p>
                 </div>
 
@@ -754,7 +692,6 @@ function Navbar() {
                   to="/dashboard"
                   className="
                     hidden
-                    sm:inline-flex
                     h-10
                     shrink-0
                     items-center
@@ -772,22 +709,21 @@ function Navbar() {
                     duration-200
                     hover:border-cyan-300
                     hover:bg-cyan-400/[0.12]
+                    sm:inline-flex
                   "
                 >
-                  {text(
-                    "Dashboard",
-                    "டாஷ்போர்டு"
-                  )}
+                  Dashboard
                 </Link>
 
                 {/* LOGOUT */}
 
                 <button
                   type="button"
-                  onClick={handleLogout}
+                  onClick={
+                    handleLogout
+                  }
                   className="
                     hidden
-                    xl:inline-flex
                     h-10
                     shrink-0
                     items-center
@@ -805,13 +741,10 @@ function Navbar() {
                     duration-200
                     hover:border-red-400
                     hover:bg-red-500/[0.14]
+                    xl:inline-flex
                   "
                 >
-                  🚪{" "}
-                  {text(
-                    "Logout",
-                    "வெளியேறு"
-                  )}
+                  🚪 Logout
                 </button>
               </>
             ) : (
@@ -819,7 +752,6 @@ function Navbar() {
                 to="/login"
                 className="
                   hidden
-                  sm:inline-flex
                   h-10
                   shrink-0
                   items-center
@@ -832,29 +764,29 @@ function Navbar() {
                   text-black
                   transition
                   hover:bg-gray-200
+                  sm:inline-flex
                 "
               >
-                {text(
-                  "Login",
-                  "உள்நுழை"
-                )}
+                Login
               </Link>
             )}
 
-            {/* ===============================================
-                MOBILE / TABLET MENU BUTTON
-            =============================================== */}
+            {/* =============================================
+                MOBILE BUTTON
+            ============================================= */}
 
             <button
               type="button"
               onClick={() =>
                 setMobileOpen(
-                  (current) => !current
+                  (
+                    current
+                  ) =>
+                    !current
                 )
               }
               aria-label="Toggle navigation menu"
               className="
-                xl:hidden
                 flex
                 h-10
                 w-10
@@ -868,16 +800,19 @@ function Navbar() {
                 text-xl
                 transition
                 hover:border-cyan-400/40
+                xl:hidden
               "
             >
-              {mobileOpen ? "✕" : "☰"}
+              {mobileOpen
+                ? "✕"
+                : "☰"}
             </button>
           </div>
         </div>
 
-        {/* =====================================================
+        {/* =================================================
             DESKTOP MEGA MENU
-        ===================================================== */}
+        ================================================= */}
 
         {activeMegaMenu && (
           <div
@@ -903,6 +838,8 @@ function Navbar() {
                 py-8
               "
             >
+              {/* HEADER */}
+
               <div
                 className="
                   mb-6
@@ -920,10 +857,7 @@ function Navbar() {
                       text-cyan-400
                     "
                   >
-                    {text(
-                      "Explore",
-                      "ஆராயுங்கள்"
-                    )}
+                    Explore
                   </p>
 
                   <h2
@@ -932,21 +866,22 @@ function Navbar() {
                       font-black
                     "
                   >
-                    {isTamil
-                      ? megaMenus[
-                          activeMegaMenu
-                        ].ta
-                      : megaMenus[
-                          activeMegaMenu
-                        ].en}
+                    {
+                      megaMenus[
+                        activeMegaMenu
+                      ].label
+                    }
                   </h2>
                 </div>
 
                 <button
                   type="button"
                   onClick={() =>
-                    setActiveMegaMenu(null)
+                    setActiveMegaMenu(
+                      null
+                    )
                   }
+                  aria-label="Close menu"
                   className="
                     flex
                     h-10
@@ -966,6 +901,8 @@ function Navbar() {
                 </button>
               </div>
 
+              {/* GRID */}
+
               <div
                 className="
                   grid
@@ -976,84 +913,95 @@ function Navbar() {
               >
                 {megaMenus[
                   activeMegaMenu
-                ].items.map((item) => (
-                  <Link
-                    key={item.path}
-                    to={item.path}
-                    className="
-                      group
-                      flex
-                      min-h-[82px]
-                      items-center
-                      gap-4
-                      rounded-2xl
-                      border
-                      border-white/[0.07]
-                      bg-white/[0.025]
-                      p-4
-                      transition-all
-                      duration-300
-                      hover:-translate-y-1
-                      hover:border-cyan-400/30
-                      hover:bg-cyan-400/[0.05]
-                    "
-                  >
-                    <div
+                ].items.map(
+                  (
+                    item
+                  ) => (
+                    <Link
+                      key={
+                        item.path
+                      }
+                      to={
+                        item.path
+                      }
                       className="
+                        group
                         flex
-                        h-12
-                        w-12
-                        shrink-0
+                        min-h-[82px]
                         items-center
-                        justify-center
-                        rounded-xl
+                        gap-4
+                        rounded-2xl
                         border
-                        border-white/10
-                        bg-black/30
-                        text-2xl
-                        transition
-                        group-hover:border-cyan-400/30
+                        border-white/[0.07]
+                        bg-white/[0.025]
+                        p-4
+                        transition-all
+                        duration-300
+                        hover:-translate-y-1
+                        hover:border-cyan-400/30
+                        hover:bg-cyan-400/[0.05]
                       "
                     >
-                      {item.icon}
-                    </div>
-
-                    <div className="min-w-0">
-                      <p
+                      <div
                         className="
-                          truncate
-                          font-semibold
-                          text-white
+                          flex
+                          h-12
+                          w-12
+                          shrink-0
+                          items-center
+                          justify-center
+                          rounded-xl
+                          border
+                          border-white/10
+                          bg-black/30
+                          text-2xl
+                          transition
+                          group-hover:border-cyan-400/30
                         "
                       >
-                        {isTamil
-                          ? item.ta
-                          : item.en}
-                      </p>
+                        {
+                          item.icon
+                        }
+                      </div>
 
-                      <p
+                      <div
                         className="
-                          mt-1
-                          text-xs
-                          text-gray-500
+                          min-w-0
                         "
                       >
-                        {text(
-                          "Open section →",
-                          "பகுதியை திறக்க →"
-                        )}
-                      </p>
-                    </div>
-                  </Link>
-                ))}
+                        <p
+                          className="
+                            truncate
+                            font-semibold
+                            text-white
+                          "
+                        >
+                          {
+                            item.label
+                          }
+                        </p>
+
+                        <p
+                          className="
+                            mt-1
+                            text-xs
+                            text-gray-500
+                          "
+                        >
+                          Open section →
+                        </p>
+                      </div>
+                    </Link>
+                  )
+                )}
               </div>
             </div>
           </div>
         )}
 
-        {/* =====================================================
-            MOBILE / TABLET MENU
-        ===================================================== */}
+        {/* =================================================
+            MOBILE MENU
+        ================================================= */}
 
         {mobileOpen && (
           <div
@@ -1076,90 +1024,6 @@ function Navbar() {
                 space-y-2
               "
             >
-              {/* LANGUAGE */}
-
-              <div
-                className="
-                  mb-4
-                  rounded-2xl
-                  border
-                  border-cyan-400/20
-                  bg-cyan-400/[0.04]
-                  p-3
-                "
-              >
-                <p
-                  className="
-                    mb-2
-                    text-xs
-                    font-bold
-                    text-gray-500
-                  "
-                >
-                  🌐{" "}
-                  {text(
-                    "Language",
-                    "மொழி"
-                  )}
-                </p>
-
-                <div
-                  className="
-                    grid
-                    grid-cols-2
-                    gap-2
-                  "
-                >
-                  <button
-                    type="button"
-                    onClick={() =>
-                      changeLanguage("en")
-                    }
-                    className={`
-                      rounded-xl
-                      border
-                      px-4
-                      py-3
-                      text-sm
-                      font-bold
-                      transition
-
-                      ${
-                        language === "en"
-                          ? "border-cyan-400 bg-cyan-400 text-black"
-                          : "border-white/10 bg-white/[0.03] text-gray-300"
-                      }
-                    `}
-                  >
-                    English
-                  </button>
-
-                  <button
-                    type="button"
-                    onClick={() =>
-                      changeLanguage("ta")
-                    }
-                    className={`
-                      rounded-xl
-                      border
-                      px-4
-                      py-3
-                      text-sm
-                      font-bold
-                      transition
-
-                      ${
-                        language === "ta"
-                          ? "border-cyan-400 bg-cyan-400 text-black"
-                          : "border-white/10 bg-white/[0.03] text-gray-300"
-                      }
-                    `}
-                  >
-                    தமிழ்
-                  </button>
-                </div>
-              </div>
-
               {/* HOME */}
 
               <Link
@@ -1175,27 +1039,41 @@ function Navbar() {
                   font-semibold
                 "
               >
-                🏠{" "}
-                {text(
-                  "Home",
-                  "முகப்பு"
-                )}
+                🏠 Home
               </Link>
 
-              {/* MEGA MENUS */}
+              {/* ===========================================
+                  MOBILE MEGA MENUS
+              =========================================== */}
 
-              {Object.keys(megaMenus).map(
-                (menuKey) => {
+              {Object.keys(
+                megaMenus
+              ).map(
+                (
+                  menuKey
+                ) => {
                   const menu =
-                    megaMenus[menuKey];
+                    megaMenus[
+                      menuKey
+                    ];
+
+                  const open =
+                    mobileSection ===
+                    menuKey;
 
                   return (
-                    <div key={menuKey}>
+                    <div
+                      key={
+                        menuKey
+                      }
+                    >
                       <button
                         type="button"
                         onClick={() =>
                           setMobileSection(
-                            (current) =>
+                            (
+                              current
+                            ) =>
                               current ===
                               menuKey
                                 ? null
@@ -1217,9 +1095,9 @@ function Navbar() {
                         "
                       >
                         <span>
-                          {isTamil
-                            ? menu.ta
-                            : menu.en}
+                          {
+                            menu.label
+                          }
                         </span>
 
                         <span
@@ -1228,8 +1106,7 @@ function Navbar() {
                             transition-transform
 
                             ${
-                              mobileSection ===
-                              menuKey
+                              open
                                 ? "rotate-180"
                                 : ""
                             }
@@ -1239,8 +1116,7 @@ function Navbar() {
                         </span>
                       </button>
 
-                      {mobileSection ===
-                        menuKey && (
+                      {open && (
                         <div
                           className="
                             mt-2
@@ -1251,7 +1127,9 @@ function Navbar() {
                           "
                         >
                           {menu.items.map(
-                            (item) => (
+                            (
+                              item
+                            ) => (
                               <Link
                                 key={
                                   item.path
@@ -1271,18 +1149,25 @@ function Navbar() {
                                   py-3
                                   text-sm
                                   text-gray-300
+                                  transition
+                                  hover:border-cyan-400/20
+                                  hover:text-white
                                 "
                               >
-                                <span className="text-xl">
+                                <span
+                                  className="
+                                    text-xl
+                                  "
+                                >
                                   {
                                     item.icon
                                   }
                                 </span>
 
                                 <span>
-                                  {isTamil
-                                    ? item.ta
-                                    : item.en}
+                                  {
+                                    item.label
+                                  }
                                 </span>
                               </Link>
                             )
@@ -1309,11 +1194,7 @@ function Navbar() {
                   font-semibold
                 "
               >
-                👥{" "}
-                {text(
-                  "Community",
-                  "சமூகம்"
-                )}
+                👥 Community
               </Link>
 
               {/* PROMOTION */}
@@ -1331,11 +1212,7 @@ function Navbar() {
                   font-semibold
                 "
               >
-                📣{" "}
-                {text(
-                  "Promotion",
-                  "ப்ரமோஷன்"
-                )}
+                📣 Promotion
               </Link>
 
               {/* PREMIUM */}
@@ -1354,11 +1231,7 @@ function Navbar() {
                   text-purple-300
                 "
               >
-                💎{" "}
-                {text(
-                  "Premium",
-                  "பிரீமியம்"
-                )}
+                💎 Premium
               </Link>
 
               {/* PRICING */}
@@ -1376,14 +1249,12 @@ function Navbar() {
                   font-semibold
                 "
               >
-                💰{" "}
-                {text(
-                  "Pricing",
-                  "விலை திட்டங்கள்"
-                )}
+                💰 Pricing
               </Link>
 
-              {/* AUTH */}
+              {/* ===========================================
+                  MOBILE AUTH
+              =========================================== */}
 
               <div
                 className="
@@ -1394,7 +1265,13 @@ function Navbar() {
                 "
               >
                 {user ? (
-                  <div className="space-y-2">
+                  <div
+                    className="
+                      space-y-2
+                    "
+                  >
+                    {/* USER */}
+
                     <div
                       className="
                         rounded-xl
@@ -1411,10 +1288,7 @@ function Navbar() {
                           text-gray-500
                         "
                       >
-                        {text(
-                          "Logged in as",
-                          "உள்நுழைந்தவர்"
-                        )}
+                        Logged in as
                       </p>
 
                       <p
@@ -1425,9 +1299,13 @@ function Navbar() {
                           text-white
                         "
                       >
-                        {displayName}
+                        {
+                          displayName
+                        }
                       </p>
                     </div>
+
+                    {/* DASHBOARD */}
 
                     <Link
                       to="/dashboard"
@@ -1443,16 +1321,16 @@ function Navbar() {
                         text-cyan-300
                       "
                     >
-                      📊{" "}
-                      {text(
-                        "Dashboard",
-                        "டாஷ்போர்டு"
-                      )}
+                      📊 Dashboard
                     </Link>
+
+                    {/* LOGOUT */}
 
                     <button
                       type="button"
-                      onClick={handleLogout}
+                      onClick={
+                        handleLogout
+                      }
                       className="
                         w-full
                         rounded-xl
@@ -1466,11 +1344,7 @@ function Navbar() {
                         text-red-300
                       "
                     >
-                      🚪{" "}
-                      {text(
-                        "Logout",
-                        "வெளியேறு"
-                      )}
+                      🚪 Logout
                     </button>
                   </div>
                 ) : (
@@ -1487,10 +1361,7 @@ function Navbar() {
                       text-black
                     "
                   >
-                    {text(
-                      "Login",
-                      "உள்நுழை"
-                    )}
+                    Login
                   </Link>
                 )}
               </div>
@@ -1499,16 +1370,18 @@ function Navbar() {
         )}
       </nav>
 
-      {/* =====================================================
+      {/* ===================================================
           OUTSIDE CLICK LAYER
-      ===================================================== */}
+      =================================================== */}
 
       {activeMegaMenu && (
         <button
           type="button"
           aria-label="Close mega menu"
           onClick={() =>
-            setActiveMegaMenu(null)
+            setActiveMegaMenu(
+              null
+            )
           }
           className="
             fixed

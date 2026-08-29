@@ -6,25 +6,15 @@ import {
 } from "react-router-dom";
 
 /* =========================================================
-   SIDEBAR SUB MENUS
-
-   IMPORTANT:
-   Main navbar options are NOT repeated here.
-
-   Example:
-   AI navbar section
-   -> only AI sub options
-
-   Creators
-   -> only creator sub options
+   SIDEBAR MENUS
 ========================================================= */
 
 const sidebarMenus = {
   ai: {
     icon: "🤖",
-    smallTitle: "AI",
     title: "AI Collection",
     description: "Explore AI resources",
+
     items: [
       ["🤖", "AI Tools", "/ai-tools"],
       ["📰", "AI News", "/ai-news"],
@@ -43,287 +33,99 @@ const sidebarMenus = {
 
   creators: {
     icon: "🎬",
-    smallTitle: "CREATORS",
     title: "Creator Resources",
     description: "Resources for creators",
+
     items: [
-      [
-        "▶️",
-        "YouTube Resources",
-        "/creators/youtube",
-      ],
-      [
-        "📸",
-        "Instagram Resources",
-        "/creators/instagram",
-      ],
-      [
-        "🎞️",
-        "Video Editing",
-        "/creators/video-editing",
-      ],
-      [
-        "🖼️",
-        "Thumbnail Packs",
-        "/creators/thumbnails",
-      ],
-      [
-        "🎵",
-        "Music & SFX",
-        "/creators/music-sfx",
-      ],
-      [
-        "✂️",
-        "CapCut Templates",
-        "/creators/capcut",
-      ],
-      [
-        "🎬",
-        "Premiere Pro",
-        "/creators/premiere",
-      ],
-      [
-        "🎨",
-        "Canva Templates",
-        "/creators/canva",
-      ],
-      [
-        "💫",
-        "Motion Graphics",
-        "/creators/motion-graphics",
-      ],
-      [
-        "🟢",
-        "Green Screen",
-        "/creators/green-screen",
-      ],
-      [
-        "🧷",
-        "PNG Packs",
-        "/creators/png-packs",
-      ],
-      [
-        "🚀",
-        "Intro / Outro",
-        "/creators/intro-outro",
-      ],
+      ["▶️", "YouTube Resources", "/creators/youtube"],
+      ["📸", "Instagram Resources", "/creators/instagram"],
+      ["🎞️", "Video Editing", "/creators/video-editing"],
+      ["🖼️", "Thumbnail Packs", "/creators/thumbnails"],
+      ["🎵", "Music & SFX", "/creators/music-sfx"],
+      ["✂️", "CapCut Templates", "/creators/capcut"],
+      ["🎬", "Premiere Pro", "/creators/premiere"],
+      ["🎨", "Canva Templates", "/creators/canva"],
+      ["💫", "Motion Graphics", "/creators/motion-graphics"],
+      ["🟢", "Green Screen", "/creators/green-screen"],
+      ["🧷", "PNG Packs", "/creators/png-packs"],
+      ["🚀", "Intro / Outro", "/creators/intro-outro"],
     ],
   },
 
   technology: {
     icon: "💻",
-    smallTitle: "TECHNOLOGY",
     title: "Technology",
     description: "Apps, software and coding",
+
     items: [
-      [
-        "📱",
-        "Android Apps",
-        "/technology/android",
-      ],
-      [
-        "🖥️",
-        "Windows Software",
-        "/technology/windows",
-      ],
-      [
-        "🤖",
-        "AI Software",
-        "/technology/ai-software",
-      ],
-      [
-        "📲",
-        "Mobile Tips",
-        "/technology/mobile-tips",
-      ],
-      [
-        "📰",
-        "Tech News",
-        "/technology/news",
-      ],
-      [
-        "🧩",
-        "Chrome Extensions",
-        "/technology/chrome",
-      ],
-      [
-        "💻",
-        "Laptop Tips",
-        "/technology/laptop-tips",
-      ],
-      [
-        "🛡️",
-        "Cyber Security",
-        "/technology/cyber-security",
-      ],
-      [
-        "👨‍💻",
-        "Programming",
-        "/technology/programming",
-      ],
-      [
-        "⚙️",
-        "Coding Resources",
-        "/technology/coding-resources",
-      ],
+      ["📱", "Android Apps", "/technology/android"],
+      ["🖥️", "Windows Software", "/technology/windows"],
+      ["🤖", "AI Software", "/technology/ai-software"],
+      ["📲", "Mobile Tips", "/technology/mobile-tips"],
+      ["📰", "Tech News", "/technology/news"],
+      ["🧩", "Chrome Extensions", "/technology/chrome"],
+      ["💻", "Laptop Tips", "/technology/laptop-tips"],
+      ["🛡️", "Cyber Security", "/technology/cyber-security"],
+      ["👨‍💻", "Programming", "/technology/programming"],
+      ["⚙️", "Coding Resources", "/technology/coding-resources"],
     ],
   },
 
   products: {
     icon: "🛍️",
-    smallTitle: "PRODUCTS",
     title: "Digital Products",
     description: "Digital resources",
+
     items: [
-      [
-        "🎁",
-        "Free Products",
-        "/products/free",
-      ],
-      [
-        "💎",
-        "Premium Products",
-        "/products/premium",
-      ],
-      [
-        "✨",
-        "AI Prompt Packs",
-        "/products/prompts",
-      ],
-      [
-        "📚",
-        "eBooks & PDFs",
-        "/products/ebooks",
-      ],
-      [
-        "📦",
-        "Templates",
-        "/products/templates",
-      ],
-      [
-        "🔤",
-        "Icons & Fonts",
-        "/products/icons-fonts",
-      ],
-      [
-        "🖌️",
-        "UI Kits",
-        "/products/ui-kits",
-      ],
-      [
-        "💻",
-        "Source Code",
-        "/products/source-code",
-      ],
-      [
-        "🖼️",
-        "Photoshop Files",
-        "/products/photoshop",
-      ],
-      [
-        "✂️",
-        "CapCut Templates",
-        "/products/capcut",
-      ],
-      [
-        "🎛️",
-        "LUTs & Presets",
-        "/products/luts",
-      ],
-      [
-        "🎞️",
-        "Animation Packs",
-        "/products/animations",
-      ],
+      ["🎁", "Free Products", "/products/free"],
+      ["💎", "Premium Products", "/products/premium"],
+      ["✨", "AI Prompt Packs", "/products/prompts"],
+      ["📚", "eBooks & PDFs", "/products/ebooks"],
+      ["📦", "Templates", "/products/templates"],
+      ["🔤", "Icons & Fonts", "/products/icons-fonts"],
+      ["🖌️", "UI Kits", "/products/ui-kits"],
+      ["💻", "Source Code", "/products/source-code"],
+      ["🖼️", "Photoshop Files", "/products/photoshop"],
+      ["✂️", "CapCut Templates", "/products/capcut"],
+      ["🎛️", "LUTs & Presets", "/products/luts"],
+      ["🎞️", "Animation Packs", "/products/animations"],
     ],
   },
 
   promotion: {
     icon: "📣",
-    smallTitle: "PROMOTION",
     title: "Promotion Hub",
     description: "Grow your presence",
+
     items: [
-      [
-        "📸",
-        "Instagram Promotion",
-        "/promotion",
-      ],
-      [
-        "▶️",
-        "YouTube Promotion",
-        "/promotion",
-      ],
-      [
-        "🌐",
-        "Website Promotion",
-        "/promotion",
-      ],
-      [
-        "✈️",
-        "Telegram Promotion",
-        "/promotion",
-      ],
-      [
-        "🚀",
-        "Social Promotion",
-        "/promotion",
-      ],
-      [
-        "⭐",
-        "Featured Homepage",
-        "/promotion",
-      ],
-      [
-        "📰",
-        "Sponsored Article",
-        "/promotion",
-      ],
+      ["📸", "Instagram Promotion", "/promotion"],
+      ["▶️", "YouTube Promotion", "/promotion"],
+      ["🌐", "Website Promotion", "/promotion"],
+      ["✈️", "Telegram Promotion", "/promotion"],
+      ["🚀", "Social Promotion", "/promotion"],
+      ["⭐", "Featured Homepage", "/promotion"],
+      ["📰", "Sponsored Article", "/promotion"],
     ],
   },
 
   premium: {
     icon: "💎",
-    smallTitle: "PREMIUM",
     title: "Premium",
     description: "Exclusive resources",
+
     items: [
-      [
-        "⬇️",
-        "Premium Downloads",
-        "/products/premium",
-      ],
-      [
-        "✨",
-        "Premium Prompts",
-        "/products/prompts",
-      ],
-      [
-        "🎓",
-        "Premium Courses",
-        "/courses",
-      ],
-      [
-        "📦",
-        "Premium Templates",
-        "/products/templates",
-      ],
-      [
-        "💻",
-        "Source Code",
-        "/products/source-code",
-      ],
-      [
-        "👥",
-        "Private Community",
-        "/community",
-      ],
+      ["⬇️", "Premium Downloads", "/products/premium"],
+      ["✨", "Premium Prompts", "/products/prompts"],
+      ["🎓", "Premium Courses", "/courses"],
+      ["📦", "Premium Templates", "/products/templates"],
+      ["💻", "Source Code", "/products/source-code"],
+      ["👥", "Private Community", "/community"],
     ],
   },
 };
 
 /* =========================================================
-   DETECT CURRENT SECTION
+   CURRENT SECTION
 ========================================================= */
 
 export function getSidebarSection(pathname) {
@@ -371,7 +173,7 @@ export function getSidebarSection(pathname) {
 }
 
 /* =========================================================
-   APP SIDEBAR
+   SIDEBAR
 ========================================================= */
 
 function AppSidebar() {
@@ -381,15 +183,19 @@ function AppSidebar() {
   const [mobileOpen, setMobileOpen] =
     useState(false);
 
-  const section = getSidebarSection(
-    location.pathname
-  );
+  const section =
+    getSidebarSection(location.pathname);
 
   if (!section) {
     return null;
   }
 
-  const menu = sidebarMenus[section];
+  const menu =
+    sidebarMenus[section];
+
+  /* =======================================================
+     ACTIVE LINK
+  ======================================================= */
 
   const isActive = (path) => {
     if (path === "/promotion") {
@@ -401,6 +207,10 @@ function AppSidebar() {
       location.pathname.startsWith(`${path}/`)
     );
   };
+
+  /* =======================================================
+     GO BACK
+  ======================================================= */
 
   const goBack = () => {
     if (window.history.length > 1) {
@@ -428,68 +238,15 @@ function AppSidebar() {
           text-white
         "
       >
-        {/* NAVBAR SPACE DESKTOP */}
+        {/* NAVBAR SPACE */}
 
         {!mobile && (
           <div className="h-[76px] shrink-0" />
         )}
 
-        {/* ===============================================
-            BACK
-        =============================================== */}
-
-        <div
-          className="
-            shrink-0
-            border-b
-            border-white/[0.07]
-            p-4
-          "
-        >
-          <button
-            type="button"
-            onClick={goBack}
-            className="
-              group
-              flex
-              h-[56px]
-              w-full
-              items-center
-              gap-3
-              rounded-2xl
-              border
-              border-purple-400/25
-              bg-gradient-to-r
-              from-purple-500/[0.08]
-              to-cyan-500/[0.04]
-              px-5
-              text-sm
-              font-black
-              text-white
-              transition-all
-              duration-300
-              hover:border-purple-300/50
-              hover:bg-purple-400/[0.10]
-            "
-          >
-            <span
-              className="
-                text-lg
-                transition-transform
-                duration-300
-                group-hover:-translate-x-1
-              "
-            >
-              ←
-            </span>
-
-            <span>Back</span>
-          </button>
-        </div>
-
-        {/* ===============================================
-            SECTION BRAND
-        =============================================== */}
+        {/* =================================================
+            SECTION HEADER
+        ================================================= */}
 
         <div
           className="
@@ -497,41 +254,16 @@ function AppSidebar() {
             border-b
             border-white/[0.07]
             px-5
-            py-5
+            py-4
           "
         >
           <div
             className="
-              mb-3
               flex
               items-center
-              gap-2
+              gap-3
             "
           >
-            <span
-              className="
-                h-1.5
-                w-1.5
-                rounded-full
-                bg-cyan-300
-                shadow-[0_0_12px_#22d3ee]
-              "
-            />
-
-            <span
-              className="
-                text-[10px]
-                font-black
-                uppercase
-                tracking-[0.22em]
-                text-cyan-400
-              "
-            >
-              {menu.smallTitle}
-            </span>
-          </div>
-
-          <div className="flex items-center gap-3">
             <div
               className="
                 flex
@@ -542,11 +274,13 @@ function AppSidebar() {
                 justify-center
                 rounded-2xl
                 border
-                border-cyan-400/15
+                border-cyan-400/20
                 bg-gradient-to-br
                 from-cyan-400/[0.09]
+                via-blue-500/[0.06]
                 to-purple-500/[0.09]
                 text-xl
+                shadow-[0_0_18px_rgba(34,211,238,.05)]
               "
             >
               {menu.icon}
@@ -558,6 +292,7 @@ function AppSidebar() {
                   truncate
                   text-[18px]
                   font-black
+                  tracking-tight
                   text-white
                 "
               >
@@ -579,10 +314,9 @@ function AppSidebar() {
           </div>
         </div>
 
-        {/* ===============================================
-            SUB OPTIONS ONLY
-            NO DROPDOWNS
-        =============================================== */}
+        {/* =================================================
+            MENU ITEMS
+        ================================================= */}
 
         <div
           className="
@@ -592,10 +326,11 @@ function AppSidebar() {
             overflow-y-auto
             overflow-x-hidden
             px-3
-            py-4
+            py-3
           "
         >
           <div className="space-y-1.5">
+
             {menu.items.map(
               ([icon, label, path], index) => {
                 const selected =
@@ -634,6 +369,7 @@ function AppSidebar() {
                             via-cyan-400/[0.07]
                             to-purple-500/[0.06]
                             text-cyan-300
+                            shadow-[inset_0_0_20px_rgba(34,211,238,.03)]
                           `
                           : `
                             border-transparent
@@ -646,7 +382,7 @@ function AppSidebar() {
                       }
                     `}
                   >
-                    {/* ACTIVE LINE */}
+                    {/* ACTIVE LEFT LINE */}
 
                     {selected && (
                       <span
@@ -659,6 +395,7 @@ function AppSidebar() {
                           rounded-r-full
                           bg-gradient-to-b
                           from-cyan-300
+                          via-blue-400
                           to-purple-400
                           shadow-[0_0_14px_rgba(34,211,238,.9)]
                         "
@@ -679,6 +416,7 @@ function AppSidebar() {
                         border
                         text-lg
                         transition-all
+                        duration-300
 
                         ${
                           selected
@@ -728,70 +466,220 @@ function AppSidebar() {
                 );
               }
             )}
-          </div>
 
-          <div className="h-5" />
+          </div>
         </div>
 
-        {/* ===============================================
-            BRAND FOOTER
-        =============================================== */}
+        {/* =================================================
+            PREMIUM BRANDED BACK AREA
+        ================================================= */}
 
         <div
           className="
             shrink-0
             border-t
-            border-white/[0.06]
-            bg-black/10
-            px-5
-            py-4
+            border-white/[0.08]
+            bg-[#030409]
+            p-4
           "
         >
-          <div className="flex items-center gap-3">
-            <div
+          <button
+            type="button"
+            onClick={goBack}
+            aria-label="Go back"
+            className="
+              aft-premium-back
+              group
+              relative
+              flex
+              h-[60px]
+              w-full
+              items-center
+              overflow-hidden
+              rounded-2xl
+              border
+              border-fuchsia-400/55
+              bg-[#08070d]
+              px-3
+              text-left
+              transition-all
+              duration-300
+
+              hover:-translate-y-0.5
+              hover:border-pink-300/90
+              hover:bg-[#100914]
+            "
+          >
+            {/* =================================================
+                STATIC BACKGROUND GRADIENT
+            ================================================= */}
+
+            <span
               className="
+                pointer-events-none
+                absolute
+                inset-0
+                bg-gradient-to-r
+                from-pink-500/[0.10]
+                via-purple-500/[0.08]
+                to-cyan-500/[0.05]
+              "
+            />
+
+            {/* =================================================
+                TOP LIGHT
+            ================================================= */}
+
+            <span
+              className="
+                pointer-events-none
+                absolute
+                inset-x-8
+                top-0
+                h-px
+                bg-gradient-to-r
+                from-transparent
+                via-pink-300/80
+                to-transparent
+              "
+            />
+
+            {/* =================================================
+                MOVING SHINE
+            ================================================= */}
+
+            <span
+              className="
+                aft-back-shine
+                pointer-events-none
+                absolute
+                -left-24
+                top-[-30%]
+                h-[160%]
+                w-16
+                rotate-12
+                bg-gradient-to-r
+                from-transparent
+                via-white/15
+                to-transparent
+                blur-[1px]
+              "
+            />
+
+            {/* =================================================
+                ARROW ICON
+            ================================================= */}
+
+            <span
+              className="
+                relative
+                z-10
                 flex
-                h-9
-                w-9
+                h-10
+                w-10
+                shrink-0
                 items-center
                 justify-center
                 rounded-xl
                 border
-                border-purple-400/15
-                bg-purple-400/[0.05]
+                border-pink-300/40
+                bg-gradient-to-br
+                from-pink-500/20
+                via-purple-500/15
+                to-cyan-500/10
+                text-lg
+                font-black
+                text-pink-100
+                shadow-[0_0_18px_rgba(236,72,153,.28)]
+                transition-all
+                duration-300
+
+                group-hover:-translate-x-1
+                group-hover:scale-105
+                group-hover:border-pink-200/70
               "
             >
-              ⚡
-            </div>
+              ←
+            </span>
 
-            <div>
-              <p
+            {/* =================================================
+                TEXT
+            ================================================= */}
+
+            <span
+              className="
+                relative
+                z-10
+                ml-3
+                flex
+                min-w-0
+                flex-1
+                flex-col
+                justify-center
+              "
+            >
+              <span
                 className="
-                  text-[11px]
+                  text-[14px]
                   font-black
-                  text-gray-400
+                  tracking-wide
+                  text-white
                 "
               >
-                AI Future Tamil
-              </p>
+                Go Back
+              </span>
 
-              <p
+              <span
                 className="
                   mt-0.5
                   text-[9px]
-                  font-semibold
+                  font-black
                   uppercase
-                  tracking-[0.13em]
-                  text-gray-700
+                  tracking-[0.16em]
+                  text-pink-300/65
                 "
               >
-                Learn • Create • Grow
-              </p>
-            </div>
-          </div>
+                Previous Page
+              </span>
+            </span>
+
+            {/* =================================================
+                ACTION DOT
+            ================================================= */}
+
+            <span
+              className="
+                relative
+                z-10
+                mr-2
+                flex
+                h-7
+                w-7
+                shrink-0
+                items-center
+                justify-center
+                rounded-full
+                border
+                border-pink-400/25
+                bg-pink-400/[0.07]
+              "
+            >
+              <span
+                className="
+                  h-1.5
+                  w-1.5
+                  rounded-full
+                  bg-pink-300
+                  shadow-[0_0_10px_#f9a8d4]
+                "
+              />
+            </span>
+          </button>
         </div>
 
-        {/* SCROLLBAR */}
+        {/* =================================================
+            STYLES
+        ================================================= */}
 
         <style>{`
           .sidebar-custom-scroll {
@@ -813,10 +701,74 @@ function AppSidebar() {
             background: linear-gradient(
               to bottom,
               #22d3ee,
-              #a855f7,
+              #8b5cf6,
               #ec4899
             );
+
             border-radius: 999px;
+          }
+
+          @keyframes premiumBackPulse {
+            0%,
+            100% {
+              box-shadow:
+                0 0 8px rgba(236, 72, 153, 0.34),
+                0 0 18px rgba(168, 85, 247, 0.14),
+                inset 0 0 12px rgba(236, 72, 153, 0.025);
+            }
+
+            50% {
+              box-shadow:
+                0 0 13px rgba(236, 72, 153, 0.62),
+                0 0 30px rgba(168, 85, 247, 0.24),
+                inset 0 0 18px rgba(236, 72, 153, 0.055);
+            }
+          }
+
+          @keyframes premiumBackShine {
+            0% {
+              transform:
+                translateX(-110px)
+                rotate(12deg);
+            }
+
+            55% {
+              transform:
+                translateX(420px)
+                rotate(12deg);
+            }
+
+            100% {
+              transform:
+                translateX(420px)
+                rotate(12deg);
+            }
+          }
+
+          .aft-premium-back {
+            animation:
+              premiumBackPulse
+              2.4s
+              ease-in-out
+              infinite;
+          }
+
+          .aft-back-shine {
+            animation:
+              premiumBackShine
+              4.8s
+              ease-in-out
+              infinite;
+          }
+
+          @media (
+            prefers-reduced-motion:
+            reduce
+          ) {
+            .aft-premium-back,
+            .aft-back-shine {
+              animation: none;
+            }
           }
         `}</style>
       </div>
@@ -825,9 +777,9 @@ function AppSidebar() {
 
   return (
     <>
-      {/* ===============================================
+      {/* ===================================================
           DESKTOP SIDEBAR
-      =============================================== */}
+      =================================================== */}
 
       <aside
         className="
@@ -848,9 +800,9 @@ function AppSidebar() {
         <SidebarContent />
       </aside>
 
-      {/* ===============================================
-          MOBILE BUTTON
-      =============================================== */}
+      {/* ===================================================
+          MOBILE OPEN BUTTON
+      =================================================== */}
 
       <button
         type="button"
@@ -884,9 +836,9 @@ function AppSidebar() {
         ☰
       </button>
 
-      {/* ===============================================
+      {/* ===================================================
           MOBILE BACKDROP
-      =============================================== */}
+      =================================================== */}
 
       {mobileOpen && (
         <button
@@ -906,9 +858,9 @@ function AppSidebar() {
         />
       )}
 
-      {/* ===============================================
+      {/* ===================================================
           MOBILE SIDEBAR
-      =============================================== */}
+      =================================================== */}
 
       <aside
         className={`
