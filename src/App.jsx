@@ -110,6 +110,9 @@ const InnovationLab = lazy(() =>
   import("./pages/InnovationLab/InnovationLab")
 );
 
+const ExperienceZone = lazy(() =>
+  import("./pages/ExperienceZone/ExperienceZone")
+);
 
 const PremiumHub = lazy(() =>
   import("./pages/PremiumHub")
@@ -623,6 +626,11 @@ function WebsiteRoutes() {
       <Route
   path="/innovation-lab"
   element={<InnovationLab />}
+/>
+
+<Route
+  path="/experience-zone"
+  element={<ExperienceZone />}
 />
 
       {/* AI */}
