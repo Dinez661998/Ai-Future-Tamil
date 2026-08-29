@@ -14,18 +14,15 @@ import {
   getNewsRead,
   getCompletedCourses,
   getRecentlyVisitedTools,
+  addRecentActivity,
 } from "../utils/dashboardStorage";
-
-import {
-  useLanguage,
-} from "../context/LanguageContext.jsx";
 
 /* =========================================================
    STORAGE
 ========================================================= */
 
-const CHALLENGE_KEY =
-  "aft_daily_challenge";
+const MISSION_KEY =
+  "aft_mission_center_v1";
 
 const BONUS_XP_KEY =
   "aft_bonus_xp";
@@ -39,7 +36,7 @@ const tools = [
     id: "chatgpt",
     name: "ChatGPT",
     icon: "🤖",
-    category: "Chat",
+    category: "AI Chat",
     description:
       "Writing, coding, learning and productivity.",
     path: "/ai-tools/chatgpt",
@@ -49,7 +46,6 @@ const tools = [
       "study",
       "research",
       "productivity",
-      "chat",
     ],
   },
 
@@ -57,16 +53,15 @@ const tools = [
     id: "gemini",
     name: "Gemini",
     icon: "💎",
-    category: "Chat",
+    category: "AI Chat",
     description:
-      "Research, writing and everyday AI tasks.",
+      "Research, learning and everyday AI tasks.",
     path: "/ai-tools/gemini",
     skills: [
       "writing",
       "study",
       "research",
       "productivity",
-      "chat",
     ],
   },
 
@@ -74,7 +69,7 @@ const tools = [
     id: "claude",
     name: "Claude",
     icon: "🧠",
-    category: "Chat",
+    category: "AI Chat",
     description:
       "Writing, analysis and coding.",
     path: "/ai-tools/claude",
@@ -83,7 +78,6 @@ const tools = [
       "coding",
       "research",
       "analysis",
-      "chat",
     ],
   },
 
@@ -91,7 +85,7 @@ const tools = [
     id: "midjourney",
     name: "Midjourney",
     icon: "🎨",
-    category: "Image",
+    category: "AI Image",
     description:
       "Professional AI image generation.",
     path: "/ai-tools/midjourney",
@@ -99,7 +93,7 @@ const tools = [
       "image",
       "design",
       "thumbnail",
-      "art",
+      "creator",
     ],
   },
 
@@ -107,7 +101,7 @@ const tools = [
     id: "runway",
     name: "Runway",
     icon: "🎬",
-    category: "Video",
+    category: "AI Video",
     description:
       "AI video generation and editing.",
     path: "/ai-tools/runway",
@@ -123,7 +117,7 @@ const tools = [
     id: "suno",
     name: "Suno AI",
     icon: "🎵",
-    category: "Music",
+    category: "AI Music",
     description:
       "Generate music and songs using AI.",
     path: "/ai-tools/suno",
@@ -144,43 +138,37 @@ const promptTypes = [
   {
     id: "youtube",
     icon: "🎬",
-    en: "YouTube Script",
-    ta: "YouTube ஸ்கிரிப்ட்",
+    label: "YouTube Script",
   },
 
   {
     id: "image",
     icon: "🎨",
-    en: "AI Image",
-    ta: "AI படம்",
+    label: "AI Image",
   },
 
   {
     id: "coding",
     icon: "💻",
-    en: "Coding",
-    ta: "கோடிங்",
+    label: "Coding",
   },
 
   {
     id: "study",
     icon: "📚",
-    en: "Study",
-    ta: "படிப்பு",
+    label: "Study",
   },
 
   {
     id: "marketing",
     icon: "📢",
-    en: "Marketing",
-    ta: "மார்க்கெட்டிங்",
+    label: "Marketing",
   },
 
   {
     id: "business",
     icon: "💡",
-    en: "Business",
-    ta: "பிஸினஸ்",
+    label: "Business",
   },
 ];
 
@@ -209,6 +197,234 @@ const courseNames = {
 };
 
 /* =========================================================
+   DAILY MISSIONS
+========================================================= */
+
+const dailyMissions = [
+  {
+    id: "chatgpt-titles",
+    icon: "🤖",
+    title:
+      "Create 5 YouTube Titles with AI",
+    tamil:
+      "AI பயன்படுத்தி 5 YouTube title உருவாக்குங்கள்",
+    description:
+      "Open an AI chat tool and create five engaging YouTube video titles.",
+    xp: 100,
+    time: "10 min",
+    path: "/ai-tools/chatgpt",
+    button: "Open ChatGPT",
+  },
+
+  {
+    id: "prompt-explorer",
+    icon: "✨",
+    title:
+      "Try One Professional Prompt",
+    tamil:
+      "ஒரு professional AI prompt முயற்சி செய்யுங்கள்",
+    description:
+      "Explore the prompt library and try one useful prompt.",
+    xp: 80,
+    time: "8 min",
+    path: "/prompts",
+    button: "Explore Prompts",
+  },
+
+  {
+    id: "image-mission",
+    icon: "🎨",
+    title:
+      "Create an AI Image Idea",
+    tamil:
+      "ஒரு AI image idea உருவாக்குங்கள்",
+    description:
+      "Explore an AI image tool and create one creative image concept.",
+    xp: 120,
+    time: "12 min",
+    path: "/ai-images",
+    button: "Explore AI Images",
+  },
+
+  {
+    id: "course-mission",
+    icon: "🎓",
+    title:
+      "Learn One AI Lesson",
+    tamil:
+      "ஒரு AI lesson கற்றுக்கொள்ளுங்கள்",
+    description:
+      "Open any AI course and complete or study one lesson.",
+    xp: 120,
+    time: "15 min",
+    path: "/courses",
+    button: "Open Courses",
+  },
+
+  {
+    id: "video-mission",
+    icon: "🎬",
+    title:
+      "Discover an AI Video Tool",
+    tamil:
+      "ஒரு AI video tool-ஐ கண்டுபிடியுங்கள்",
+    description:
+      "Explore AI video creation and learn what one tool can do.",
+    xp: 100,
+    time: "10 min",
+    path: "/ai-videos",
+    button: "Explore AI Video",
+  },
+
+  {
+    id: "news-mission",
+    icon: "📰",
+    title:
+      "Read One AI Update",
+    tamil:
+      "ஒரு AI செய்தியை படியுங்கள்",
+    description:
+      "Read one AI news article and learn something new.",
+    xp: 70,
+    time: "5 min",
+    path: "/ai-news",
+    button: "Read AI News",
+  },
+
+  {
+    id: "creator-mission",
+    icon: "🚀",
+    title:
+      "Build One Creator Idea",
+    tamil:
+      "ஒரு content creator idea உருவாக்குங்கள்",
+    description:
+      "Use an AI tool or prompt to create one new content idea.",
+    xp: 130,
+    time: "15 min",
+    path: "/prompts",
+    button: "Start Creating",
+  },
+];
+
+/* =========================================================
+   MYSTERY MISSIONS
+========================================================= */
+
+const mysteryMissions = [
+  {
+    id: "mystery-suno",
+    icon: "🎵",
+    title:
+      "Create a Song Concept",
+    tamil:
+      "ஒரு song concept உருவாக்குங்கள்",
+    description:
+      "Think of a song title, mood and theme. Then explore Suno AI.",
+    xp: 150,
+    time: "12 min",
+    path: "/ai-tools/suno",
+  },
+
+  {
+    id: "mystery-code",
+    icon: "💻",
+    title:
+      "Ask AI to Improve Code",
+    tamil:
+      "AI மூலம் code improve செய்யுங்கள்",
+    description:
+      "Take a small piece of code and ask an AI coding assistant to improve it.",
+    xp: 160,
+    time: "15 min",
+    path: "/prompts",
+  },
+
+  {
+    id: "mystery-thumbnail",
+    icon: "🖼️",
+    title:
+      "Design a Thumbnail Idea",
+    tamil:
+      "ஒரு thumbnail idea உருவாக்குங்கள்",
+    description:
+      "Create one clickable thumbnail concept using an AI image idea.",
+    xp: 150,
+    time: "12 min",
+    path: "/creators/thumbnails",
+  },
+
+  {
+    id: "mystery-productivity",
+    icon: "⚡",
+    title:
+      "Save 15 Minutes with AI",
+    tamil:
+      "AI மூலம் 15 நிமிடம் நேரம் சேமியுங்கள்",
+    description:
+      "Find one repetitive task and use AI to make it faster.",
+    xp: 180,
+    time: "15 min",
+    path: "/ai-tools",
+  },
+];
+
+/* =========================================================
+   7 DAY CHALLENGE
+========================================================= */
+
+const sevenDayChallenge = [
+  {
+    day: 1,
+    icon: "🤖",
+    title: "Explore an AI Tool",
+    path: "/ai-tools",
+  },
+
+  {
+    day: 2,
+    icon: "✨",
+    title: "Try an AI Prompt",
+    path: "/prompts",
+  },
+
+  {
+    day: 3,
+    icon: "🎨",
+    title: "Explore AI Images",
+    path: "/ai-images",
+  },
+
+  {
+    day: 4,
+    icon: "🎬",
+    title: "Explore AI Videos",
+    path: "/ai-videos",
+  },
+
+  {
+    day: 5,
+    icon: "📚",
+    title: "Study an AI Lesson",
+    path: "/courses",
+  },
+
+  {
+    day: 6,
+    icon: "📰",
+    title: "Read AI News",
+    path: "/ai-news",
+  },
+
+  {
+    day: 7,
+    icon: "🏆",
+    title: "Build Something with AI",
+    path: "/smart-hub",
+  },
+];
+
+/* =========================================================
    HELPERS
 ========================================================= */
 
@@ -230,19 +446,146 @@ function readJSON(
   }
 }
 
-function todayKey() {
+function saveJSON(
+  key,
+  value
+) {
+  localStorage.setItem(
+    key,
+    JSON.stringify(value)
+  );
+}
+
+function getDateKey(
+  date = new Date()
+) {
+  const year =
+    date.getFullYear();
+
+  const month =
+    String(
+      date.getMonth() + 1
+    ).padStart(2, "0");
+
+  const day =
+    String(
+      date.getDate()
+    ).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
+}
+
+function getYesterdayKey() {
   const date =
     new Date();
 
-  return [
-    date.getFullYear(),
-    String(
-      date.getMonth() + 1
-    ).padStart(2, "0"),
-    String(
-      date.getDate()
-    ).padStart(2, "0"),
-  ].join("-");
+  date.setDate(
+    date.getDate() - 1
+  );
+
+  return getDateKey(date);
+}
+
+function getDayNumber() {
+  const now =
+    new Date();
+
+  const start =
+    new Date(
+      now.getFullYear(),
+      0,
+      0
+    );
+
+  const difference =
+    now - start;
+
+  return Math.floor(
+    difference /
+      (1000 *
+        60 *
+        60 *
+        24)
+  );
+}
+
+function defaultMissionState() {
+  return {
+    totalXP: 0,
+
+    streak: 0,
+
+    bestStreak: 0,
+
+    lastMissionDate: "",
+
+    completedMissionIds: [],
+
+    completedDates: [],
+
+    mysteryCompletedIds: [],
+
+    mysteryRevealDate: "",
+
+    mysteryRevealed: false,
+
+    sevenDayStartDate: "",
+
+    sevenDayCompleted:
+      [],
+
+    badges: [],
+  };
+}
+
+/* =========================================================
+   JOURNEY
+========================================================= */
+
+function getJourney(
+  xp
+) {
+  if (xp >= 2500) {
+    return {
+      level: 4,
+      icon: "👑",
+      title: "AI Pro",
+      next: "Master",
+      minimum: 2500,
+      maximum: 4000,
+    };
+  }
+
+  if (xp >= 1200) {
+    return {
+      level: 3,
+      icon: "⚡",
+      title: "AI Creator",
+      next: "AI Pro",
+      minimum: 1200,
+      maximum: 2500,
+    };
+  }
+
+  if (xp >= 500) {
+    return {
+      level: 2,
+      icon: "🚀",
+      title: "AI Explorer",
+      next: "AI Creator",
+      minimum: 500,
+      maximum: 1200,
+    };
+  }
+
+  return {
+    level: 1,
+    icon: "🌱",
+    title: "AI Beginner",
+    next: "AI Explorer",
+    minimum: 0,
+    maximum: 500,
+  };
 }
 
 /* =========================================================
@@ -250,23 +593,25 @@ function todayKey() {
 ========================================================= */
 
 function SmartHub() {
-  const {
-    language,
-  } = useLanguage();
-
-  const tamil =
-    language === "ta";
-
-  const t = (
-    en,
-    ta
-  ) =>
-    tamil ? ta : en;
-
   const [
     activeTab,
     setActiveTab,
-  ] = useState("finder");
+  ] =
+    useState("missions");
+
+  const [
+    missionState,
+    setMissionState,
+  ] =
+    useState(
+      defaultMissionState()
+    );
+
+  const [
+    celebration,
+    setCelebration,
+  ] =
+    useState("");
 
   /* =======================================================
      TOOL FINDER
@@ -275,12 +620,8 @@ function SmartHub() {
   const [
     toolGoal,
     setToolGoal,
-  ] = useState("writing");
-
-  const [
-    pricing,
-    setPricing,
-  ] = useState("any");
+  ] =
+    useState("writing");
 
   /* =======================================================
      PROMPT
@@ -289,22 +630,26 @@ function SmartHub() {
   const [
     promptType,
     setPromptType,
-  ] = useState("youtube");
+  ] =
+    useState("youtube");
 
   const [
     topic,
     setTopic,
-  ] = useState("");
+  ] =
+    useState("");
 
   const [
     tone,
     setTone,
-  ] = useState("professional");
+  ] =
+    useState("professional");
 
   const [
     generatedPrompt,
     setGeneratedPrompt,
-  ] = useState("");
+  ] =
+    useState("");
 
   /* =======================================================
      LIBRARY
@@ -313,41 +658,54 @@ function SmartHub() {
   const [
     favorites,
     setFavorites,
-  ] = useState([]);
+  ] =
+    useState([]);
 
   const [
     savedPrompts,
     setSavedPrompts,
-  ] = useState([]);
+  ] =
+    useState([]);
 
   const [
     readNews,
     setReadNews,
-  ] = useState([]);
+  ] =
+    useState([]);
 
   const [
     completedCourses,
     setCompletedCourses,
-  ] = useState([]);
+  ] =
+    useState([]);
 
   const [
     recentTools,
     setRecentTools,
-  ] = useState([]);
+  ] =
+    useState([]);
 
   /* =======================================================
-     CHALLENGE
+     TODAY
   ======================================================= */
 
-  const [
-    challengeData,
-    setChallengeData,
-  ] = useState({});
+  const today =
+    getDateKey();
 
-  const [
-    bonusXP,
-    setBonusXP,
-  ] = useState(0);
+  const dayNumber =
+    getDayNumber();
+
+  const dailyMission =
+    dailyMissions[
+      dayNumber %
+        dailyMissions.length
+    ];
+
+  const mysteryMission =
+    mysteryMissions[
+      dayNumber %
+        mysteryMissions.length
+    ];
 
   /* =======================================================
      LOAD
@@ -355,40 +713,40 @@ function SmartHub() {
 
   const loadData = () => {
     try {
+      const stored =
+        readJSON(
+          MISSION_KEY,
+          defaultMissionState()
+        );
+
+      setMissionState({
+        ...defaultMissionState(),
+        ...stored,
+      });
+
       setFavorites(
-        getFavoriteTools() || []
+        getFavoriteTools() ||
+          []
       );
 
       setSavedPrompts(
-        getSavedPrompts() || []
+        getSavedPrompts() ||
+          []
       );
 
       setReadNews(
-        getNewsRead() || []
+        getNewsRead() ||
+          []
       );
 
       setCompletedCourses(
-        getCompletedCourses() || []
+        getCompletedCourses() ||
+          []
       );
 
       setRecentTools(
         getRecentlyVisitedTools() ||
           []
-      );
-
-      setChallengeData(
-        readJSON(
-          CHALLENGE_KEY,
-          {}
-        )
-      );
-
-      setBonusXP(
-        Number(
-          localStorage.getItem(
-            BONUS_XP_KEY
-          )
-        ) || 0
       );
     } catch (error) {
       console.error(
@@ -401,31 +759,367 @@ function SmartHub() {
   useEffect(() => {
     loadData();
 
-    const update = () =>
-      loadData();
+    const handleUpdate =
+      () => {
+        loadData();
+      };
 
     window.addEventListener(
       "dashboard-data-updated",
-      update
+      handleUpdate
     );
 
     window.addEventListener(
       "storage",
-      update
+      handleUpdate
     );
 
     return () => {
       window.removeEventListener(
         "dashboard-data-updated",
-        update
+        handleUpdate
       );
 
       window.removeEventListener(
         "storage",
-        update
+        handleUpdate
       );
     };
   }, []);
+
+  /* =======================================================
+     SAVE MISSION
+  ======================================================= */
+
+  const saveMissionState = (
+    state
+  ) => {
+    saveJSON(
+      MISSION_KEY,
+      state
+    );
+
+    localStorage.setItem(
+      BONUS_XP_KEY,
+      String(
+        state.totalXP ||
+          0
+      )
+    );
+
+    setMissionState(
+      state
+    );
+
+    window.dispatchEvent(
+      new Event(
+        "dashboard-data-updated"
+      )
+    );
+  };
+
+  /* =======================================================
+     CELEBRATION
+  ======================================================= */
+
+  const showCelebration = (
+    message
+  ) => {
+    setCelebration(message);
+
+    setTimeout(() => {
+      setCelebration("");
+    }, 3000);
+  };
+
+  /* =======================================================
+     DAILY MISSION COMPLETE
+  ======================================================= */
+
+  const dailyCompleted =
+    missionState
+      .completedDates
+      ?.includes(today);
+
+  const completeDailyMission =
+    () => {
+      if (dailyCompleted) {
+        return;
+      }
+
+      const yesterday =
+        getYesterdayKey();
+
+      let nextStreak = 1;
+
+      if (
+        missionState
+          .lastMissionDate ===
+        yesterday
+      ) {
+        nextStreak =
+          (missionState.streak ||
+            0) + 1;
+      }
+
+      if (
+        missionState
+          .lastMissionDate ===
+        today
+      ) {
+        nextStreak =
+          missionState.streak ||
+          1;
+      }
+
+      const nextXP =
+        (missionState.totalXP ||
+          0) +
+        dailyMission.xp;
+
+      const nextState = {
+        ...missionState,
+
+        totalXP:
+          nextXP,
+
+        streak:
+          nextStreak,
+
+        bestStreak:
+          Math.max(
+            nextStreak,
+            missionState.bestStreak ||
+              0
+          ),
+
+        lastMissionDate:
+          today,
+
+        completedMissionIds:
+          Array.from(
+            new Set([
+              ...(
+                missionState
+                  .completedMissionIds ||
+                []
+              ),
+
+              dailyMission.id,
+            ])
+          ),
+
+        completedDates:
+          Array.from(
+            new Set([
+              ...(
+                missionState
+                  .completedDates ||
+                []
+              ),
+
+              today,
+            ])
+          ),
+      };
+
+      saveMissionState(
+        nextState
+      );
+
+      try {
+        addRecentActivity({
+          icon: "⚡",
+          title:
+            "Daily AI Mission Completed",
+          description:
+            `${dailyMission.title} • +${dailyMission.xp} XP`,
+          type: "mission",
+        });
+      } catch {
+        // Keep mission working
+      }
+
+      showCelebration(
+        `🎉 Mission Complete! +${dailyMission.xp} XP`
+      );
+    };
+
+  /* =======================================================
+     MYSTERY REVEAL
+  ======================================================= */
+
+  const mysteryRevealed =
+    missionState
+      .mysteryRevealDate ===
+      today &&
+    missionState
+      .mysteryRevealed ===
+      true;
+
+  const mysteryCompleted =
+    missionState
+      .mysteryCompletedIds
+      ?.includes(
+        `${today}-${mysteryMission.id}`
+      );
+
+  const revealMystery =
+    () => {
+      const nextState = {
+        ...missionState,
+
+        mysteryRevealDate:
+          today,
+
+        mysteryRevealed:
+          true,
+      };
+
+      saveMissionState(
+        nextState
+      );
+    };
+
+  const completeMystery =
+    () => {
+      if (
+        !mysteryRevealed ||
+        mysteryCompleted
+      ) {
+        return;
+      }
+
+      const mysteryKey =
+        `${today}-${mysteryMission.id}`;
+
+      const nextState = {
+        ...missionState,
+
+        totalXP:
+          (missionState.totalXP ||
+            0) +
+          mysteryMission.xp,
+
+        mysteryCompletedIds:
+          Array.from(
+            new Set([
+              ...(
+                missionState
+                  .mysteryCompletedIds ||
+                []
+              ),
+
+              mysteryKey,
+            ])
+          ),
+      };
+
+      saveMissionState(
+        nextState
+      );
+
+      showCelebration(
+        `🎁 Mystery Mission Complete! +${mysteryMission.xp} XP`
+      );
+    };
+
+  /* =======================================================
+     7 DAY CHALLENGE
+  ======================================================= */
+
+  const sevenCompleted =
+    missionState
+      .sevenDayCompleted ||
+    [];
+
+  const sevenProgress =
+    sevenCompleted.length;
+
+  const startSevenDay =
+    () => {
+      if (
+        missionState
+          .sevenDayStartDate
+      ) {
+        return;
+      }
+
+      saveMissionState({
+        ...missionState,
+
+        sevenDayStartDate:
+          today,
+
+        sevenDayCompleted:
+          [],
+      });
+
+      showCelebration(
+        "🔥 7-Day AI Challenge Started!"
+      );
+    };
+
+  const completeSevenDay =
+    (day) => {
+      if (
+        !missionState
+          .sevenDayStartDate
+      ) {
+        return;
+      }
+
+      if (
+        sevenCompleted.includes(
+          day
+        )
+      ) {
+        return;
+      }
+
+      const expectedDay =
+        sevenCompleted.length +
+        1;
+
+      if (
+        day !== expectedDay
+      ) {
+        showCelebration(
+          `🔒 Complete Day ${expectedDay} first`
+        );
+
+        return;
+      }
+
+      const reward =
+        day === 7
+          ? 300
+          : 75;
+
+      const updatedDays =
+        [
+          ...sevenCompleted,
+          day,
+        ];
+
+      saveMissionState({
+        ...missionState,
+
+        totalXP:
+          (missionState.totalXP ||
+            0) +
+          reward,
+
+        sevenDayCompleted:
+          updatedDays,
+      });
+
+      showCelebration(
+        day === 7
+          ? "🏆 7-Day Challenge Complete! +300 XP"
+          : `🔥 Day ${day} Complete! +75 XP`
+      );
+    };
 
   /* =======================================================
      TOOL RECOMMENDATIONS
@@ -446,12 +1140,15 @@ function SmartHub() {
           }
 
           if (
-            toolGoal === "creator" &&
+            toolGoal ===
+              "creator" &&
             [
               "midjourney",
               "runway",
               "suno",
-            ].includes(tool.id)
+            ].includes(
+              tool.id
+            )
           ) {
             score += 80;
           }
@@ -467,301 +1164,185 @@ function SmartHub() {
         )
         .sort(
           (a, b) =>
-            b.score - a.score
+            b.score -
+            a.score
         );
     }, [
       toolGoal,
-      pricing,
     ]);
 
   /* =======================================================
-     GENERATE PROMPT
+     PROMPT GENERATOR
   ======================================================= */
 
-  const generatePrompt = () => {
-    const subject =
-      topic.trim() ||
-      (tamil
-        ? "[உங்கள் தலைப்பு]"
-        : "[YOUR TOPIC]");
+  const generatePrompt =
+    () => {
+      const subject =
+        topic.trim() ||
+        "[YOUR TOPIC]";
 
-    const templates = {
-      youtube: tamil
-        ? `நீங்கள் ஒரு professional YouTube script writer ஆக செயல்படுங்கள். "${subject}" பற்றி ஒரு engaging YouTube video script உருவாக்குங்கள். Tone: ${tone}. Powerful hook, introduction, main content, curiosity points, examples, conclusion மற்றும் CTA சேர்க்கவும்.`
-        : `Act as a professional YouTube script writer. Create an engaging YouTube video script about "${subject}". Tone: ${tone}. Include a powerful hook, introduction, main content, curiosity points, examples, conclusion and CTA.`,
+      const templates = {
+        youtube:
+          `Act as a professional YouTube script writer. Create an engaging YouTube video script about "${subject}". Tone: ${tone}. Include a powerful hook, introduction, main content, curiosity points, examples, conclusion and CTA.`,
 
-      image: tamil
-        ? `"${subject}" க்கான highly detailed cinematic AI image prompt உருவாக்குங்கள். Subject, environment, lighting, camera angle, composition, colors, mood மற்றும் realistic details சேர்க்கவும். Tone/style: ${tone}.`
-        : `Create a highly detailed cinematic AI image prompt for "${subject}". Include subject, environment, lighting, camera angle, composition, colors, mood and realistic details. Style: ${tone}.`,
+        image:
+          `Create a highly detailed cinematic AI image prompt for "${subject}". Include subject, environment, lighting, camera angle, composition, colors, mood and realistic details. Style: ${tone}.`,
 
-      coding: tamil
-        ? `நீங்கள் ஒரு expert software developer ஆக செயல்படுங்கள். "${subject}" தொடர்பான coding task-ஐ analyze செய்து, solution-ஐ simple step-by-step explanation உடன் கொடுக்கவும். Clean code, error handling, best practices மற்றும் improved final code சேர்க்கவும்.`
-        : `Act as an expert software developer. Solve the following coding task: "${subject}". Explain the solution simply, then provide clean final code with error handling and best practices.`,
+        coding:
+          `Act as an expert software developer. Solve the following coding task: "${subject}". Explain the solution simply, then provide clean final code with error handling and best practices.`,
 
-      study: tamil
-        ? `"${subject}" என்னும் topic-ஐ ஒரு beginner student-க்கு மிகவும் simple-ஆ explain செய்யுங்கள். Key points, examples, important terms, short summary மற்றும் 5 practice questions கொடுக்கவும்.`
-        : `Explain "${subject}" in very simple beginner-friendly language. Include key points, examples, important terms, a short summary and 5 practice questions.`,
+        study:
+          `Explain "${subject}" in very simple beginner-friendly language. Include key points, examples, important terms, a short summary and 5 practice questions.`,
 
-      marketing: tamil
-        ? `"${subject}" க்காக engaging marketing content உருவாக்குங்கள். 10 hooks, short captions, CTA, content ideas மற்றும் suitable hashtags கொடுக்கவும். Tone: ${tone}.`
-        : `Create engaging marketing content for "${subject}". Include 10 hooks, short captions, CTA, content ideas and suitable hashtags. Tone: ${tone}.`,
+        marketing:
+          `Create engaging marketing content for "${subject}". Include 10 hooks, short captions, CTA, content ideas and suitable hashtags. Tone: ${tone}.`,
 
-      business: tamil
-        ? `"${subject}" அடிப்படையில் practical online business ideas உருவாக்குங்கள். Target audience, earning model, startup cost, tools needed மற்றும் first 7 steps-ஐ கொடுக்கவும்.`
-        : `Generate practical online business ideas based on "${subject}". Explain the target audience, earning model, startup cost, tools needed and first 7 steps.`,
+        business:
+          `Generate practical online business ideas based on "${subject}". Explain the target audience, earning model, startup cost, tools needed and first 7 steps.`,
+      };
+
+      setGeneratedPrompt(
+        templates[promptType]
+      );
     };
 
-    setGeneratedPrompt(
-      templates[promptType]
-    );
-  };
-
-  const copyPrompt = async () => {
-    if (!generatedPrompt) {
-      return;
-    }
-
-    try {
-      await navigator.clipboard.writeText(
-        generatedPrompt
-      );
-
-      alert(
-        t(
-          "Prompt copied! ✅",
-          "Prompt copy ஆனது! ✅"
-        )
-      );
-    } catch {
-      alert(
-        t(
-          "Unable to copy.",
-          "Copy செய்ய முடியவில்லை."
-        )
-      );
-    }
-  };
-
-  /* =======================================================
-     DAILY CHALLENGE
-  ======================================================= */
-
-  const today =
-    todayKey();
-
-  const completedToday =
-    challengeData?.date ===
-      today &&
-    challengeData?.completed ===
-      true;
-
-  const completeChallenge =
-    () => {
-      if (completedToday) {
+  const copyPrompt =
+    async () => {
+      if (!generatedPrompt) {
         return;
       }
 
-      const newData = {
-        date: today,
-        completed: true,
-        xp: 50,
-      };
+      try {
+        await navigator.clipboard.writeText(
+          generatedPrompt
+        );
 
-      const nextXP =
-        bonusXP + 50;
-
-      localStorage.setItem(
-        CHALLENGE_KEY,
-        JSON.stringify(newData)
-      );
-
-      localStorage.setItem(
-        BONUS_XP_KEY,
-        String(nextXP)
-      );
-
-      setChallengeData(
-        newData
-      );
-
-      setBonusXP(nextXP);
-
-      window.dispatchEvent(
-        new Event(
-          "dashboard-data-updated"
-        )
-      );
+        showCelebration(
+          "📋 Prompt Copied!"
+        );
+      } catch {
+        alert(
+          "Unable to copy prompt."
+        );
+      }
     };
 
   /* =======================================================
-     CERTIFICATE
+     JOURNEY
   ======================================================= */
 
-  const openCertificate =
-    (courseId) => {
-      const courseTitle =
-        courseNames[courseId] ||
-        courseId;
+  const journey =
+    getJourney(
+      missionState.totalXP ||
+        0
+    );
 
-      const certificateDate =
-        new Date().toLocaleDateString();
+  const journeyRange =
+    journey.maximum -
+    journey.minimum;
 
-      const popup =
-        window.open(
-          "",
-          "_blank",
-          "width=1100,height=750"
-        );
+  const journeyCurrent =
+    Math.max(
+      0,
+      (missionState.totalXP ||
+        0) -
+        journey.minimum
+    );
 
-      if (!popup) {
-        alert(
-          t(
-            "Please allow popups.",
-            "Popup-ஐ allow செய்யவும்."
+  const journeyProgress =
+    journey.level >= 4
+      ? 100
+      : Math.min(
+          100,
+          Math.round(
+            (journeyCurrent /
+              journeyRange) *
+              100
           )
         );
 
-        return;
-      }
+  /* =======================================================
+     BADGES
+  ======================================================= */
 
-      popup.document.write(`
-        <!DOCTYPE html>
+  const missionCount =
+    missionState
+      .completedDates
+      ?.length || 0;
 
-        <html>
+  const badges = [
+    {
+      icon: "🌱",
+      title:
+        "First Mission",
+      description:
+        "Complete your first mission",
+      unlocked:
+        missionCount >= 1,
+    },
 
-        <head>
+    {
+      icon: "⚡",
+      title:
+        "AI Adventurer",
+      description:
+        "Complete 3 missions",
+      unlocked:
+        missionCount >= 3,
+    },
 
-          <title>
-            AI Future Tamil Certificate
-          </title>
+    {
+      icon: "🔥",
+      title:
+        "Mission Streak",
+      description:
+        "Reach a 3-day streak",
+      unlocked:
+        missionState.streak >=
+        3,
+    },
 
-          <style>
+    {
+      icon: "🎁",
+      title:
+        "Mystery Hunter",
+      description:
+        "Complete a mystery mission",
+      unlocked:
+        (
+          missionState
+            .mysteryCompletedIds ||
+          []
+        ).length >= 1,
+    },
 
-            * {
-              box-sizing: border-box;
-            }
+    {
+      icon: "🏆",
+      title:
+        "7-Day Hero",
+      description:
+        "Complete the 7-Day AI Challenge",
+      unlocked:
+        sevenProgress >= 7,
+    },
 
-            body {
-              margin: 0;
-              padding: 40px;
-              background: #070914;
-              color: white;
-              font-family:
-                Arial,
-                sans-serif;
-            }
+    {
+      icon: "👑",
+      title:
+        "AI Pro",
+      description:
+        "Earn 2500 Mission XP",
+      unlocked:
+        missionState.totalXP >=
+        2500,
+    },
+  ];
 
-            .certificate {
-              min-height: 650px;
-              border: 4px solid #22d3ee;
-              padding: 60px;
-              text-align: center;
-              background:
-                radial-gradient(
-                  circle at top left,
-                  rgba(34,211,238,.18),
-                  transparent 35%
-                ),
-                radial-gradient(
-                  circle at bottom right,
-                  rgba(168,85,247,.18),
-                  transparent 35%
-                ),
-                #090b18;
-            }
-
-            .brand {
-              font-size: 24px;
-              font-weight: 900;
-              color: #67e8f9;
-            }
-
-            h1 {
-              margin-top: 60px;
-              font-size: 50px;
-            }
-
-            .subtitle {
-              color: #9ca3af;
-              font-size: 20px;
-            }
-
-            .course {
-              margin: 40px 0;
-              color: #c084fc;
-              font-size: 34px;
-              font-weight: 900;
-            }
-
-            .date {
-              margin-top: 45px;
-              color: #94a3b8;
-            }
-
-            button {
-              margin-top: 35px;
-              border: 0;
-              border-radius: 12px;
-              padding: 14px 24px;
-              font-weight: 800;
-              cursor: pointer;
-            }
-
-            @media print {
-              button {
-                display: none;
-              }
-
-              body {
-                padding: 0;
-              }
-            }
-
-          </style>
-
-        </head>
-
-        <body>
-
-          <div class="certificate">
-
-            <div class="brand">
-              ⚡ AI Future Tamil
-            </div>
-
-            <h1>
-              Certificate of Completion
-            </h1>
-
-            <p class="subtitle">
-              This certificate confirms successful completion of
-            </p>
-
-            <div class="course">
-              ${courseTitle}
-            </div>
-
-            <p class="subtitle">
-              Course lessons and final quiz completed successfully.
-            </p>
-
-            <p class="date">
-              Completed: ${certificateDate}
-            </p>
-
-            <button onclick="window.print()">
-              Print / Save PDF
-            </button>
-
-          </div>
-
-        </body>
-
-        </html>
-      `);
-
-      popup.document.close();
-    };
+  const unlockedBadges =
+    badges.filter(
+      (badge) =>
+        badge.unlocked
+    ).length;
 
   /* =======================================================
      TABS
@@ -769,40 +1350,44 @@ function SmartHub() {
 
   const tabs = [
     {
+      id: "missions",
+      icon: "⚡",
+      label:
+        "Mission Center",
+    },
+
+    {
       id: "finder",
       icon: "🎯",
-      en: "Tool Finder",
-      ta: "Tool Finder",
+      label:
+        "Tool Finder",
     },
 
     {
       id: "prompt",
       icon: "✨",
-      en: "Prompt Generator",
-      ta: "Prompt Generator",
+      label:
+        "Prompt Generator",
     },
 
     {
       id: "library",
       icon: "❤️",
-      en: "My Library",
-      ta: "என் Library",
-    },
-
-    {
-      id: "challenge",
-      icon: "🔥",
-      en: "Daily Challenge",
-      ta: "Daily Challenge",
+      label:
+        "My Library",
     },
 
     {
       id: "certificates",
       icon: "🏆",
-      en: "Certificates",
-      ta: "சான்றிதழ்கள்",
+      label:
+        "Certificates",
     },
   ];
+
+  /* =======================================================
+     UI
+  ======================================================= */
 
   return (
     <main
@@ -816,21 +1401,51 @@ function SmartHub() {
         lg:px-8
       "
     >
+      {/* ===================================================
+          CELEBRATION
+      =================================================== */}
+
+      {celebration && (
+        <div
+          className="
+            fixed
+            left-1/2
+            top-24
+            z-[9999]
+            -translate-x-1/2
+            rounded-2xl
+            border
+            border-pink-400/40
+            bg-[#090711]/95
+            px-6
+            py-4
+            text-center
+            text-sm
+            font-black
+            text-white
+            shadow-[0_0_40px_rgba(236,72,153,.28)]
+            backdrop-blur-xl
+          "
+        >
+          {celebration}
+        </div>
+      )}
+
       <div
         className="
           mx-auto
           max-w-7xl
         "
       >
-        {/* ===============================================
+        {/* =================================================
             HERO
-        =============================================== */}
+        ================================================= */}
 
         <section
           className="
             relative
             overflow-hidden
-            rounded-[30px]
+            rounded-[32px]
             border
             border-white/[0.08]
             bg-black/25
@@ -846,18 +1461,39 @@ function SmartHub() {
               absolute
               -right-20
               -top-20
-              h-72
-              w-72
+              h-80
+              w-80
               rounded-full
               bg-purple-500/10
               blur-3xl
             "
           />
 
-          <div className="relative">
+          <div
+            className="
+              pointer-events-none
+              absolute
+              -bottom-24
+              left-20
+              h-72
+              w-72
+              rounded-full
+              bg-cyan-500/[0.07]
+              blur-3xl
+            "
+          />
+
+          <div
+            className="
+              relative
+              z-10
+            "
+          >
             <div
               className="
                 inline-flex
+                items-center
+                gap-2
                 rounded-full
                 border
                 border-cyan-400/20
@@ -869,7 +1505,8 @@ function SmartHub() {
                 text-cyan-300
               "
             >
-              ⚡ SMART AI CENTER
+              ⚡ AI FUTURE TAMIL
+              SMART HUB
             </div>
 
             <h1
@@ -878,14 +1515,27 @@ function SmartHub() {
                 max-w-4xl
                 text-3xl
                 font-black
-                sm:text-4xl
+                leading-tight
+                sm:text-5xl
                 lg:text-6xl
               "
             >
-              {t(
-                "Everything you need to grow with AI.",
-                "AI மூலம் வளர தேவையான அனைத்தும் ஒரே இடத்தில்."
-              )}
+              Learn AI like a
+              game.
+              <span
+                className="
+                  bg-gradient-to-r
+                  from-cyan-300
+                  via-purple-400
+                  to-pink-400
+                  bg-clip-text
+                  text-transparent
+                "
+              >
+                {" "}
+                Complete Missions.
+                Earn XP.
+              </span>
             </h1>
 
             <p
@@ -898,37 +1548,160 @@ function SmartHub() {
                 sm:text-base
               "
             >
-              {t(
-                "Find the right AI tool, generate professional prompts, manage saved resources, complete challenges and download course certificates.",
-                "சரியான AI tool-ஐ கண்டுபிடிக்கவும், professional prompts உருவாக்கவும், saved resources-ஐ நிர்வகிக்கவும், challenges complete செய்து certificates பெறவும்."
-              )}
+              தினமும் ஒரு simple
+              AI mission complete
+              பண்ணு, XP earn பண்ணு,
+              streak build பண்ணு,
+              Beginner-லிருந்து AI
+              Pro வரை grow ஆகு.
             </p>
+
+            {/* STATS */}
 
             <div
               className="
-                mt-6
-                inline-flex
-                items-center
-                gap-2
-                rounded-xl
-                border
-                border-yellow-400/20
-                bg-yellow-400/[0.06]
-                px-4
-                py-2
-                text-sm
-                font-bold
-                text-yellow-300
+                mt-7
+                grid
+                max-w-4xl
+                grid-cols-2
+                gap-3
+                sm:grid-cols-4
               "
             >
-              ⚡ Bonus XP: {bonusXP}
+              <div
+                className="
+                  rounded-2xl
+                  border
+                  border-yellow-400/15
+                  bg-yellow-400/[0.04]
+                  p-4
+                "
+              >
+                <p
+                  className="
+                    text-2xl
+                    font-black
+                    text-yellow-300
+                  "
+                >
+                  {
+                    missionState.totalXP ||
+                    0
+                  }
+                </p>
+
+                <p
+                  className="
+                    mt-1
+                    text-xs
+                    text-gray-500
+                  "
+                >
+                  Mission XP
+                </p>
+              </div>
+
+              <div
+                className="
+                  rounded-2xl
+                  border
+                  border-orange-400/15
+                  bg-orange-400/[0.04]
+                  p-4
+                "
+              >
+                <p
+                  className="
+                    text-2xl
+                    font-black
+                    text-orange-300
+                  "
+                >
+                  🔥{" "}
+                  {
+                    missionState.streak ||
+                    0
+                  }
+                </p>
+
+                <p
+                  className="
+                    mt-1
+                    text-xs
+                    text-gray-500
+                  "
+                >
+                  Mission Streak
+                </p>
+              </div>
+
+              <div
+                className="
+                  rounded-2xl
+                  border
+                  border-cyan-400/15
+                  bg-cyan-400/[0.04]
+                  p-4
+                "
+              >
+                <p
+                  className="
+                    text-2xl
+                    font-black
+                    text-cyan-300
+                  "
+                >
+                  {missionCount}
+                </p>
+
+                <p
+                  className="
+                    mt-1
+                    text-xs
+                    text-gray-500
+                  "
+                >
+                  Missions Done
+                </p>
+              </div>
+
+              <div
+                className="
+                  rounded-2xl
+                  border
+                  border-purple-400/15
+                  bg-purple-400/[0.04]
+                  p-4
+                "
+              >
+                <p
+                  className="
+                    text-2xl
+                    font-black
+                    text-purple-300
+                  "
+                >
+                  {unlockedBadges}/
+                  {badges.length}
+                </p>
+
+                <p
+                  className="
+                    mt-1
+                    text-xs
+                    text-gray-500
+                  "
+                >
+                  Badges
+                </p>
+              </div>
             </div>
           </div>
         </section>
 
-        {/* ===============================================
-            TAB NAV
-        =============================================== */}
+        {/* =================================================
+            TABS
+        ================================================= */}
 
         <div
           className="
@@ -967,7 +1740,9 @@ function SmartHub() {
                     activeTab ===
                     tab.id
                       ? `
-                        bg-cyan-400
+                        bg-gradient-to-r
+                        from-cyan-400
+                        to-blue-500
                         text-black
                       `
                       : `
@@ -979,18 +1754,1120 @@ function SmartHub() {
                 `}
               >
                 {tab.icon}{" "}
-                {t(
-                  tab.en,
-                  tab.ta
-                )}
+                {tab.label}
               </button>
             )
           )}
         </div>
 
-        {/* ===============================================
+        {/* =================================================
+            MISSIONS
+        ================================================= */}
+
+        {activeTab ===
+          "missions" && (
+          <div
+            className="
+              mt-6
+              space-y-6
+            "
+          >
+            {/* =============================================
+                TODAY'S MISSION
+            ============================================= */}
+
+            <section
+              className="
+                relative
+                overflow-hidden
+                rounded-[30px]
+                border
+                border-cyan-400/20
+                bg-gradient-to-br
+                from-cyan-500/[0.07]
+                via-black/25
+                to-purple-500/[0.07]
+                p-6
+                sm:p-8
+              "
+            >
+              <div
+                className="
+                  flex
+                  flex-col
+                  gap-6
+                  lg:flex-row
+                  lg:items-center
+                  lg:justify-between
+                "
+              >
+                <div
+                  className="
+                    max-w-3xl
+                  "
+                >
+                  <div
+                    className="
+                      flex
+                      flex-wrap
+                      items-center
+                      gap-3
+                    "
+                  >
+                    <span
+                      className="
+                        rounded-full
+                        border
+                        border-cyan-400/25
+                        bg-cyan-400/[0.08]
+                        px-3
+                        py-1.5
+                        text-xs
+                        font-black
+                        text-cyan-300
+                      "
+                    >
+                      🎯 TODAY'S AI
+                      MISSION
+                    </span>
+
+                    <span
+                      className="
+                        rounded-full
+                        border
+                        border-yellow-400/20
+                        bg-yellow-400/[0.06]
+                        px-3
+                        py-1.5
+                        text-xs
+                        font-bold
+                        text-yellow-300
+                      "
+                    >
+                      +{dailyMission.xp}
+                      XP
+                    </span>
+
+                    <span
+                      className="
+                        rounded-full
+                        border
+                        border-white/10
+                        bg-white/[0.03]
+                        px-3
+                        py-1.5
+                        text-xs
+                        font-bold
+                        text-gray-400
+                      "
+                    >
+                      ⏱{" "}
+                      {
+                        dailyMission.time
+                      }
+                    </span>
+                  </div>
+
+                  <div
+                    className="
+                      mt-6
+                      flex
+                      items-start
+                      gap-4
+                    "
+                  >
+                    <div
+                      className="
+                        flex
+                        h-16
+                        w-16
+                        shrink-0
+                        items-center
+                        justify-center
+                        rounded-2xl
+                        border
+                        border-cyan-400/20
+                        bg-black/25
+                        text-3xl
+                      "
+                    >
+                      {
+                        dailyMission.icon
+                      }
+                    </div>
+
+                    <div>
+                      <h2
+                        className="
+                          text-2xl
+                          font-black
+                          sm:text-3xl
+                        "
+                      >
+                        {
+                          dailyMission.title
+                        }
+                      </h2>
+
+                      <p
+                        className="
+                          mt-2
+                          text-sm
+                          font-semibold
+                          text-purple-300
+                        "
+                      >
+                        {
+                          dailyMission.tamil
+                        }
+                      </p>
+                    </div>
+                  </div>
+
+                  <p
+                    className="
+                      mt-5
+                      max-w-2xl
+                      text-sm
+                      leading-7
+                      text-gray-400
+                    "
+                  >
+                    {
+                      dailyMission.description
+                    }
+                  </p>
+                </div>
+
+                <div
+                  className="
+                    flex
+                    min-w-[230px]
+                    flex-col
+                    gap-3
+                  "
+                >
+                  <Link
+                    to={
+                      dailyMission.path
+                    }
+                    className="
+                      flex
+                      min-h-[50px]
+                      items-center
+                      justify-center
+                      rounded-xl
+                      bg-white
+                      px-5
+                      text-sm
+                      font-black
+                      text-black
+                      transition
+                      hover:-translate-y-0.5
+                    "
+                  >
+                    🚀{" "}
+                    {
+                      dailyMission.button
+                    }
+                  </Link>
+
+                  <button
+                    type="button"
+                    disabled={
+                      dailyCompleted
+                    }
+                    onClick={
+                      completeDailyMission
+                    }
+                    className={`
+                      min-h-[50px]
+                      rounded-xl
+                      px-5
+                      text-sm
+                      font-black
+                      transition
+
+                      ${
+                        dailyCompleted
+                          ? `
+                            cursor-not-allowed
+                            border
+                            border-green-400/25
+                            bg-green-400/[0.07]
+                            text-green-300
+                          `
+                          : `
+                            bg-gradient-to-r
+                            from-cyan-400
+                            to-purple-500
+                            text-black
+                            hover:-translate-y-0.5
+                          `
+                      }
+                    `}
+                  >
+                    {dailyCompleted
+                      ? "✅ Mission Completed"
+                      : `Complete +${dailyMission.xp} XP`}
+                  </button>
+                </div>
+              </div>
+            </section>
+
+            {/* =============================================
+                JOURNEY
+            ============================================= */}
+
+            <section
+              className="
+                rounded-[28px]
+                border
+                border-white/[0.08]
+                bg-black/25
+                p-6
+                sm:p-8
+              "
+            >
+              <div
+                className="
+                  flex
+                  flex-col
+                  gap-5
+                  sm:flex-row
+                  sm:items-end
+                  sm:justify-between
+                "
+              >
+                <div>
+                  <p
+                    className="
+                      text-sm
+                      font-black
+                      text-purple-300
+                    "
+                  >
+                    🚀 YOUR AI JOURNEY
+                  </p>
+
+                  <h2
+                    className="
+                      mt-2
+                      text-2xl
+                      font-black
+                    "
+                  >
+                    {journey.icon}{" "}
+                    {journey.title}
+                    <span
+                      className="
+                        ml-2
+                        text-sm
+                        font-semibold
+                        text-gray-600
+                      "
+                    >
+                      Level{" "}
+                      {
+                        journey.level
+                      }
+                    </span>
+                  </h2>
+                </div>
+
+                <div
+                  className="
+                    text-sm
+                    font-bold
+                    text-gray-500
+                  "
+                >
+                  {
+                    missionState.totalXP ||
+                    0
+                  }{" "}
+                  XP
+                </div>
+              </div>
+
+              <div
+                className="
+                  mt-6
+                  h-3
+                  overflow-hidden
+                  rounded-full
+                  bg-white/[0.06]
+                "
+              >
+                <div
+                  className="
+                    h-full
+                    rounded-full
+                    bg-gradient-to-r
+                    from-cyan-400
+                    via-purple-500
+                    to-pink-500
+                    transition-all
+                    duration-700
+                  "
+                  style={{
+                    width:
+                      `${journeyProgress}%`,
+                  }}
+                />
+              </div>
+
+              <div
+                className="
+                  mt-3
+                  flex
+                  justify-between
+                  text-xs
+                  font-semibold
+                  text-gray-600
+                "
+              >
+                <span>
+                  {journey.title}
+                </span>
+
+                <span>
+                  {journey.level >= 4
+                    ? "AI Pro 👑"
+                    : `Next: ${journey.next}`}
+                </span>
+              </div>
+
+              <div
+                className="
+                  mt-7
+                  grid
+                  gap-3
+                  sm:grid-cols-4
+                "
+              >
+                {[
+                  [
+                    "🌱",
+                    "AI Beginner",
+                    1,
+                  ],
+
+                  [
+                    "🚀",
+                    "AI Explorer",
+                    2,
+                  ],
+
+                  [
+                    "⚡",
+                    "AI Creator",
+                    3,
+                  ],
+
+                  [
+                    "👑",
+                    "AI Pro",
+                    4,
+                  ],
+                ].map(
+                  ([
+                    icon,
+                    title,
+                    level,
+                  ]) => (
+                    <div
+                      key={title}
+                      className={`
+                        rounded-2xl
+                        border
+                        p-4
+                        text-center
+
+                        ${
+                          journey.level >=
+                          level
+                            ? `
+                              border-cyan-400/25
+                              bg-cyan-400/[0.05]
+                            `
+                            : `
+                              border-white/[0.06]
+                              bg-white/[0.02]
+                              opacity-45
+                            `
+                        }
+                      `}
+                    >
+                      <div
+                        className="
+                          text-2xl
+                        "
+                      >
+                        {icon}
+                      </div>
+
+                      <p
+                        className="
+                          mt-2
+                          text-xs
+                          font-black
+                        "
+                      >
+                        {title}
+                      </p>
+                    </div>
+                  )
+                )}
+              </div>
+            </section>
+
+            {/* =============================================
+                MYSTERY MISSION
+            ============================================= */}
+
+            <section
+              className="
+                relative
+                overflow-hidden
+                rounded-[28px]
+                border
+                border-pink-400/20
+                bg-gradient-to-br
+                from-pink-500/[0.07]
+                via-black/25
+                to-purple-500/[0.08]
+                p-6
+                sm:p-8
+              "
+            >
+              <div
+                className="
+                  flex
+                  flex-col
+                  gap-6
+                  lg:flex-row
+                  lg:items-center
+                  lg:justify-between
+                "
+              >
+                {!mysteryRevealed ? (
+                  <>
+                    <div>
+                      <p
+                        className="
+                          text-sm
+                          font-black
+                          text-pink-300
+                        "
+                      >
+                        🎁 MYSTERY
+                        MISSION
+                      </p>
+
+                      <h2
+                        className="
+                          mt-3
+                          text-3xl
+                          font-black
+                        "
+                      >
+                        Ready for a
+                        surprise?
+                      </h2>
+
+                      <p
+                        className="
+                          mt-3
+                          max-w-xl
+                          text-sm
+                          leading-7
+                          text-gray-500
+                        "
+                      >
+                        Every day you
+                        get one secret AI
+                        challenge with
+                        extra XP.
+                      </p>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={
+                        revealMystery
+                      }
+                      className="
+                        min-h-[52px]
+                        rounded-xl
+                        bg-gradient-to-r
+                        from-pink-500
+                        to-purple-500
+                        px-6
+                        font-black
+                        text-white
+                        transition
+                        hover:-translate-y-0.5
+                        hover:shadow-[0_0_30px_rgba(236,72,153,.22)]
+                      "
+                    >
+                      🎁 Reveal Mystery
+                    </button>
+                  </>
+                ) : (
+                  <>
+                    <div
+                      className="
+                        max-w-3xl
+                      "
+                    >
+                      <p
+                        className="
+                          text-sm
+                          font-black
+                          text-pink-300
+                        "
+                      >
+                        🎁 MYSTERY
+                        REVEALED • +
+                        {
+                          mysteryMission.xp
+                        }{" "}
+                        XP
+                      </p>
+
+                      <h2
+                        className="
+                          mt-3
+                          text-2xl
+                          font-black
+                          sm:text-3xl
+                        "
+                      >
+                        {
+                          mysteryMission.icon
+                        }{" "}
+                        {
+                          mysteryMission.title
+                        }
+                      </h2>
+
+                      <p
+                        className="
+                          mt-2
+                          text-sm
+                          font-semibold
+                          text-purple-300
+                        "
+                      >
+                        {
+                          mysteryMission.tamil
+                        }
+                      </p>
+
+                      <p
+                        className="
+                          mt-4
+                          text-sm
+                          leading-7
+                          text-gray-500
+                        "
+                      >
+                        {
+                          mysteryMission.description
+                        }
+                      </p>
+                    </div>
+
+                    <div
+                      className="
+                        flex
+                        min-w-[220px]
+                        flex-col
+                        gap-3
+                      "
+                    >
+                      <Link
+                        to={
+                          mysteryMission.path
+                        }
+                        className="
+                          flex
+                          min-h-[48px]
+                          items-center
+                          justify-center
+                          rounded-xl
+                          border
+                          border-pink-400/25
+                          bg-pink-400/[0.07]
+                          px-5
+                          text-sm
+                          font-bold
+                          text-pink-300
+                        "
+                      >
+                        Start Mission →
+                      </Link>
+
+                      <button
+                        type="button"
+                        disabled={
+                          mysteryCompleted
+                        }
+                        onClick={
+                          completeMystery
+                        }
+                        className={`
+                          min-h-[48px]
+                          rounded-xl
+                          px-5
+                          text-sm
+                          font-black
+
+                          ${
+                            mysteryCompleted
+                              ? `
+                                cursor-not-allowed
+                                bg-green-400/[0.07]
+                                text-green-300
+                              `
+                              : `
+                                bg-white
+                                text-black
+                              `
+                          }
+                        `}
+                      >
+                        {mysteryCompleted
+                          ? "✅ Completed"
+                          : `Complete +${mysteryMission.xp} XP`}
+                      </button>
+                    </div>
+                  </>
+                )}
+              </div>
+            </section>
+
+            {/* =============================================
+                7 DAY CHALLENGE
+            ============================================= */}
+
+            <section
+              className="
+                rounded-[28px]
+                border
+                border-orange-400/15
+                bg-black/25
+                p-6
+                sm:p-8
+              "
+            >
+              <div
+                className="
+                  flex
+                  flex-col
+                  gap-5
+                  sm:flex-row
+                  sm:items-center
+                  sm:justify-between
+                "
+              >
+                <div>
+                  <p
+                    className="
+                      text-sm
+                      font-black
+                      text-orange-300
+                    "
+                  >
+                    🔥 7-DAY AI
+                    CHALLENGE
+                  </p>
+
+                  <h2
+                    className="
+                      mt-2
+                      text-2xl
+                      font-black
+                      sm:text-3xl
+                    "
+                  >
+                    Build an AI habit
+                    in 7 days
+                  </h2>
+
+                  <p
+                    className="
+                      mt-2
+                      text-sm
+                      text-gray-500
+                    "
+                  >
+                    Complete one simple
+                    AI action every day.
+                  </p>
+                </div>
+
+                {!missionState
+                  .sevenDayStartDate && (
+                  <button
+                    type="button"
+                    onClick={
+                      startSevenDay
+                    }
+                    className="
+                      min-h-[48px]
+                      rounded-xl
+                      bg-gradient-to-r
+                      from-orange-400
+                      to-pink-500
+                      px-6
+                      font-black
+                      text-black
+                    "
+                  >
+                    🔥 Start Challenge
+                  </button>
+                )}
+              </div>
+
+              <div
+                className="
+                  mt-7
+                  grid
+                  gap-3
+                  sm:grid-cols-2
+                  lg:grid-cols-7
+                "
+              >
+                {sevenDayChallenge.map(
+                  (item) => {
+                    const done =
+                      sevenCompleted.includes(
+                        item.day
+                      );
+
+                    const current =
+                      !done &&
+                      item.day ===
+                        sevenCompleted.length +
+                          1;
+
+                    const locked =
+                      !done &&
+                      !current;
+
+                    return (
+                      <div
+                        key={
+                          item.day
+                        }
+                        className={`
+                          flex
+                          min-h-[185px]
+                          flex-col
+                          rounded-2xl
+                          border
+                          p-4
+                          transition
+
+                          ${
+                            done
+                              ? `
+                                border-green-400/25
+                                bg-green-400/[0.05]
+                              `
+                              : current
+                                ? `
+                                  border-orange-400/35
+                                  bg-orange-400/[0.06]
+                                `
+                                : `
+                                  border-white/[0.06]
+                                  bg-white/[0.02]
+                                  opacity-45
+                                `
+                          }
+                        `}
+                      >
+                        <div
+                          className="
+                            flex
+                            items-center
+                            justify-between
+                          "
+                        >
+                          <span
+                            className="
+                              text-xs
+                              font-black
+                              text-gray-500
+                            "
+                          >
+                            DAY{" "}
+                            {
+                              item.day
+                            }
+                          </span>
+
+                          <span>
+                            {done
+                              ? "✅"
+                              : locked
+                                ? "🔒"
+                                : "🔥"}
+                          </span>
+                        </div>
+
+                        <div
+                          className="
+                            mt-4
+                            text-2xl
+                          "
+                        >
+                          {
+                            item.icon
+                          }
+                        </div>
+
+                        <p
+                          className="
+                            mt-3
+                            flex-1
+                            text-xs
+                            font-bold
+                            leading-5
+                          "
+                        >
+                          {
+                            item.title
+                          }
+                        </p>
+
+                        {missionState
+                          .sevenDayStartDate &&
+                          current && (
+                            <>
+                              <Link
+                                to={
+                                  item.path
+                                }
+                                className="
+                                  mt-3
+                                  text-[10px]
+                                  font-bold
+                                  text-cyan-300
+                                "
+                              >
+                                Start →
+                              </Link>
+
+                              <button
+                                type="button"
+                                onClick={() =>
+                                  completeSevenDay(
+                                    item.day
+                                  )
+                                }
+                                className="
+                                  mt-2
+                                  rounded-lg
+                                  bg-white
+                                  px-2
+                                  py-2
+                                  text-[10px]
+                                  font-black
+                                  text-black
+                                "
+                              >
+                                Complete
+                              </button>
+                            </>
+                          )}
+                      </div>
+                    );
+                  }
+                )}
+              </div>
+
+              {missionState
+                .sevenDayStartDate && (
+                <div
+                  className="
+                    mt-6
+                    flex
+                    items-center
+                    gap-4
+                  "
+                >
+                  <div
+                    className="
+                      h-2
+                      flex-1
+                      overflow-hidden
+                      rounded-full
+                      bg-white/[0.06]
+                    "
+                  >
+                    <div
+                      className="
+                        h-full
+                        rounded-full
+                        bg-gradient-to-r
+                        from-orange-400
+                        to-pink-500
+                        transition-all
+                        duration-700
+                      "
+                      style={{
+                        width:
+                          `${
+                            (sevenProgress /
+                              7) *
+                            100
+                          }%`,
+                      }}
+                    />
+                  </div>
+
+                  <span
+                    className="
+                      text-xs
+                      font-black
+                      text-orange-300
+                    "
+                  >
+                    {sevenProgress}/7
+                  </span>
+                </div>
+              )}
+            </section>
+
+            {/* =============================================
+                BADGES
+            ============================================= */}
+
+            <section
+              className="
+                rounded-[28px]
+                border
+                border-white/[0.08]
+                bg-black/25
+                p-6
+                sm:p-8
+              "
+            >
+              <p
+                className="
+                  text-sm
+                  font-black
+                  text-yellow-300
+                "
+              >
+                🏆 MISSION BADGES
+              </p>
+
+              <h2
+                className="
+                  mt-2
+                  text-2xl
+                  font-black
+                "
+              >
+                Your Achievements
+              </h2>
+
+              <div
+                className="
+                  mt-6
+                  grid
+                  gap-4
+                  sm:grid-cols-2
+                  lg:grid-cols-3
+                "
+              >
+                {badges.map(
+                  (badge) => (
+                    <div
+                      key={
+                        badge.title
+                      }
+                      className={`
+                        rounded-2xl
+                        border
+                        p-5
+
+                        ${
+                          badge.unlocked
+                            ? `
+                              border-yellow-400/20
+                              bg-yellow-400/[0.04]
+                            `
+                            : `
+                              border-white/[0.06]
+                              bg-white/[0.02]
+                              opacity-40
+                            `
+                        }
+                      `}
+                    >
+                      <div
+                        className="
+                          text-3xl
+                        "
+                      >
+                        {badge.unlocked
+                          ? badge.icon
+                          : "🔒"}
+                      </div>
+
+                      <h3
+                        className="
+                          mt-4
+                          font-black
+                        "
+                      >
+                        {
+                          badge.title
+                        }
+                      </h3>
+
+                      <p
+                        className="
+                          mt-2
+                          text-xs
+                          leading-5
+                          text-gray-600
+                        "
+                      >
+                        {
+                          badge.description
+                        }
+                      </p>
+
+                      {badge.unlocked && (
+                        <p
+                          className="
+                            mt-3
+                            text-xs
+                            font-bold
+                            text-green-300
+                          "
+                        >
+                          ✓ Unlocked
+                        </p>
+                      )}
+                    </div>
+                  )
+                )}
+              </div>
+            </section>
+          </div>
+        )}
+
+        {/* =================================================
             TOOL FINDER
-        =============================================== */}
+        ================================================= */}
 
         {activeTab ===
           "finder" && (
@@ -1023,10 +2900,8 @@ function SmartHub() {
                 sm:text-3xl
               "
             >
-              {t(
-                "What do you want to do?",
-                "நீங்கள் என்ன செய்ய விரும்புகிறீர்கள்?"
-              )}
+              What do you want to
+              create?
             </h2>
 
             <div
@@ -1043,69 +2918,62 @@ function SmartHub() {
                   "writing",
                   "✍️",
                   "Writing",
-                  "எழுதுதல்",
                 ],
 
                 [
                   "coding",
                   "💻",
                   "Coding",
-                  "கோடிங்",
                 ],
 
                 [
                   "image",
                   "🎨",
                   "Images",
-                  "படங்கள்",
                 ],
 
                 [
                   "video",
                   "🎬",
                   "Videos",
-                  "வீடியோக்கள்",
                 ],
 
                 [
                   "music",
                   "🎵",
                   "Music",
-                  "இசை",
                 ],
 
                 [
                   "study",
                   "📚",
                   "Study",
-                  "படிப்பு",
                 ],
 
                 [
                   "research",
                   "🔎",
                   "Research",
-                  "ஆராய்ச்சி",
                 ],
 
                 [
                   "creator",
                   "🚀",
                   "Creator",
-                  "Creator",
                 ],
               ].map(
                 ([
                   id,
                   icon,
-                  en,
-                  ta,
+                  label,
                 ]) => (
                   <button
                     key={id}
                     type="button"
                     onClick={() =>
-                      setToolGoal(id)
+                      setToolGoal(
+                        id
+                      )
                     }
                     className={`
                       rounded-2xl
@@ -1115,7 +2983,8 @@ function SmartHub() {
                       transition
 
                       ${
-                        toolGoal === id
+                        toolGoal ===
+                        id
                           ? `
                             border-cyan-400/40
                             bg-cyan-400/[0.09]
@@ -1125,13 +2994,16 @@ function SmartHub() {
                             border-white/[0.07]
                             bg-white/[0.025]
                             text-gray-400
-                            hover:border-white/20
                             hover:text-white
                           `
                       }
                     `}
                   >
-                    <span className="text-2xl">
+                    <span
+                      className="
+                        text-2xl
+                      "
+                    >
                       {icon}
                     </span>
 
@@ -1141,7 +3013,7 @@ function SmartHub() {
                         font-black
                       "
                     >
-                      {t(en, ta)}
+                      {label}
                     </p>
                   </button>
                 )
@@ -1205,7 +3077,9 @@ function SmartHub() {
                             font-black
                           "
                         >
-                          {tool.name}
+                          {
+                            tool.name
+                          }
                         </h3>
 
                         <p
@@ -1214,7 +3088,9 @@ function SmartHub() {
                             text-cyan-400
                           "
                         >
-                          {tool.category}
+                          {
+                            tool.category
+                          }
                         </p>
                       </div>
                     </div>
@@ -1227,7 +3103,9 @@ function SmartHub() {
                         text-gray-500
                       "
                     >
-                      {tool.description}
+                      {
+                        tool.description
+                      }
                     </p>
 
                     <p
@@ -1238,10 +3116,7 @@ function SmartHub() {
                         text-cyan-300
                       "
                     >
-                      {t(
-                        "Explore Tool →",
-                        "Tool-ஐ பார்க்க →"
-                      )}
+                      Explore Tool →
                     </p>
                   </Link>
                 )
@@ -1250,9 +3125,9 @@ function SmartHub() {
           </section>
         )}
 
-        {/* ===============================================
+        {/* =================================================
             PROMPT GENERATOR
-        =============================================== */}
+        ================================================= */}
 
         {activeTab ===
           "prompt" && (
@@ -1274,7 +3149,8 @@ function SmartHub() {
                 text-purple-300
               "
             >
-              ✨ SMART PROMPT GENERATOR
+              ✨ SMART PROMPT
+              GENERATOR
             </p>
 
             <h2
@@ -1285,10 +3161,8 @@ function SmartHub() {
                 sm:text-3xl
               "
             >
-              {t(
-                "Create a professional prompt",
-                "Professional prompt உருவாக்குங்கள்"
-              )}
+              Create a professional
+              prompt
             </h2>
 
             <div
@@ -1316,7 +3190,6 @@ function SmartHub() {
                       p-4
                       text-left
                       font-bold
-                      transition
 
                       ${
                         promptType ===
@@ -1335,10 +3208,7 @@ function SmartHub() {
                     `}
                   >
                     {item.icon}{" "}
-                    {t(
-                      item.en,
-                      item.ta
-                    )}
+                    {item.label}
                   </button>
                 )
               )}
@@ -1352,66 +3222,30 @@ function SmartHub() {
                 lg:grid-cols-2
               "
             >
-              <div>
-                <label
-                  className="
-                    mb-2
-                    block
-                    text-xs
-                    font-bold
-                    text-gray-500
-                  "
-                >
-                  {t(
-                    "YOUR TOPIC",
-                    "உங்கள் தலைப்பு"
-                  )}
-                </label>
-
-                <textarea
-                  value={topic}
-                  onChange={(event) =>
-                    setTopic(
-                      event.target.value
-                    )
-                  }
-                  placeholder={t(
-                    "Example: AI tools for students",
-                    "Example: மாணவர்களுக்கான AI tools"
-                  )}
-                  className="
-                    min-h-[160px]
-                    w-full
-                    rounded-2xl
-                    border
-                    border-white/10
-                    bg-black/30
-                    p-4
-                    text-white
-                    outline-none
-                    transition
-                    placeholder:text-gray-700
-                    focus:border-cyan-400/40
-                  "
-                />
-              </div>
+              <textarea
+                value={topic}
+                onChange={(event) =>
+                  setTopic(
+                    event.target.value
+                  )
+                }
+                placeholder="Example: AI tools for students"
+                className="
+                  min-h-[170px]
+                  w-full
+                  rounded-2xl
+                  border
+                  border-white/10
+                  bg-black/30
+                  p-4
+                  text-white
+                  outline-none
+                  placeholder:text-gray-700
+                  focus:border-cyan-400/40
+                "
+              />
 
               <div>
-                <label
-                  className="
-                    mb-2
-                    block
-                    text-xs
-                    font-bold
-                    text-gray-500
-                  "
-                >
-                  {t(
-                    "TONE / STYLE",
-                    "TONE / STYLE"
-                  )}
-                </label>
-
                 <select
                   value={tone}
                   onChange={(event) =>
@@ -1431,23 +3265,33 @@ function SmartHub() {
                     outline-none
                   "
                 >
-                  <option value="professional">
+                  <option
+                    value="professional"
+                  >
                     Professional
                   </option>
 
-                  <option value="simple">
+                  <option
+                    value="simple"
+                  >
                     Simple
                   </option>
 
-                  <option value="creative">
+                  <option
+                    value="creative"
+                  >
                     Creative
                   </option>
 
-                  <option value="friendly">
+                  <option
+                    value="friendly"
+                  >
                     Friendly
                   </option>
 
-                  <option value="cinematic">
+                  <option
+                    value="cinematic"
+                  >
                     Cinematic
                   </option>
                 </select>
@@ -1466,16 +3310,9 @@ function SmartHub() {
                     from-purple-500
                     to-pink-500
                     font-black
-                    text-white
-                    transition
-                    hover:-translate-y-0.5
                   "
                 >
-                  ✨{" "}
-                  {t(
-                    "Generate Prompt",
-                    "Prompt உருவாக்கு"
-                  )}
+                  ✨ Generate Prompt
                 </button>
               </div>
             </div>
@@ -1496,7 +3333,6 @@ function SmartHub() {
                     flex
                     items-center
                     justify-between
-                    gap-4
                   "
                 >
                   <p
@@ -1536,16 +3372,18 @@ function SmartHub() {
                     text-gray-300
                   "
                 >
-                  {generatedPrompt}
+                  {
+                    generatedPrompt
+                  }
                 </p>
               </div>
             )}
           </section>
         )}
 
-        {/* ===============================================
+        {/* =================================================
             LIBRARY
-        =============================================== */}
+        ================================================= */}
 
         {activeTab ===
           "library" && (
@@ -1575,13 +3413,9 @@ function SmartHub() {
                 mt-2
                 text-2xl
                 font-black
-                sm:text-3xl
               "
             >
-              {t(
-                "Everything you saved",
-                "நீங்கள் save செய்த அனைத்தும்"
-              )}
+              Everything you saved
             </h2>
 
             <div
@@ -1596,50 +3430,35 @@ function SmartHub() {
               {[
                 [
                   "❤️",
-                  t(
-                    "Favorite Tools",
-                    "Favorite Tools"
-                  ),
+                  "Favorite Tools",
                   favorites.length,
                   "/ai-tools",
                 ],
 
                 [
                   "✨",
-                  t(
-                    "Saved Prompts",
-                    "Saved Prompts"
-                  ),
+                  "Saved Prompts",
                   savedPrompts.length,
                   "/prompts",
                 ],
 
                 [
                   "📰",
-                  t(
-                    "News Read",
-                    "படித்த செய்திகள்"
-                  ),
+                  "News Read",
                   readNews.length,
                   "/ai-news",
                 ],
 
                 [
                   "🎓",
-                  t(
-                    "Courses",
-                    "Courses"
-                  ),
+                  "Courses",
                   completedCourses.length,
                   "/courses",
                 ],
 
                 [
                   "🕘",
-                  t(
-                    "Recent Tools",
-                    "Recent Tools"
-                  ),
+                  "Recent Tools",
                   recentTools.length,
                   "/ai-tools",
                 ],
@@ -1663,7 +3482,11 @@ function SmartHub() {
                       hover:border-cyan-400/25
                     "
                   >
-                    <div className="text-2xl">
+                    <div
+                      className="
+                        text-2xl
+                      "
+                    >
                       {icon}
                     </div>
 
@@ -1693,171 +3516,9 @@ function SmartHub() {
           </section>
         )}
 
-        {/* ===============================================
-            DAILY CHALLENGE
-        =============================================== */}
-
-        {activeTab ===
-          "challenge" && (
-          <section
-            className="
-              mt-6
-              rounded-[28px]
-              border
-              border-orange-400/15
-              bg-gradient-to-br
-              from-orange-500/[0.07]
-              to-purple-500/[0.05]
-              p-5
-              sm:p-8
-            "
-          >
-            <p
-              className="
-                text-sm
-                font-black
-                text-orange-300
-              "
-            >
-              🔥 DAILY AI CHALLENGE
-            </p>
-
-            <h2
-              className="
-                mt-3
-                text-2xl
-                font-black
-                sm:text-4xl
-              "
-            >
-              {t(
-                "Explore one AI tool today",
-                "இன்று ஒரு AI tool-ஐ explore செய்யுங்கள்"
-              )}
-            </h2>
-
-            <p
-              className="
-                mt-3
-                max-w-2xl
-                text-sm
-                leading-7
-                text-gray-400
-              "
-            >
-              {t(
-                "Complete today's challenge and earn +50 Bonus XP.",
-                "இன்றைய challenge-ஐ complete செய்து +50 Bonus XP பெறுங்கள்."
-              )}
-            </p>
-
-            <div
-              className="
-                mt-6
-                flex
-                flex-col
-                gap-3
-                sm:flex-row
-              "
-            >
-              <Link
-                to="/ai-tools"
-                className="
-                  inline-flex
-                  min-h-[50px]
-                  items-center
-                  justify-center
-                  rounded-xl
-                  border
-                  border-cyan-400/30
-                  bg-cyan-400/[0.07]
-                  px-6
-                  font-bold
-                  text-cyan-300
-                "
-              >
-                🤖{" "}
-                {t(
-                  "Explore AI Tools",
-                  "AI Tools பார்க்க"
-                )}
-              </Link>
-
-              <button
-                type="button"
-                disabled={
-                  completedToday
-                }
-                onClick={
-                  completeChallenge
-                }
-                className={`
-                  min-h-[50px]
-                  rounded-xl
-                  px-6
-                  font-black
-                  transition
-
-                  ${
-                    completedToday
-                      ? `
-                        cursor-not-allowed
-                        bg-green-500/15
-                        text-green-300
-                      `
-                      : `
-                        bg-gradient-to-r
-                        from-orange-400
-                        to-pink-500
-                        text-black
-                        hover:-translate-y-0.5
-                      `
-                  }
-                `}
-              >
-                {completedToday
-                  ? t(
-                      "✅ Completed Today",
-                      "✅ இன்று முடிந்தது"
-                    )
-                  : t(
-                      "Complete +50 XP",
-                      "Complete +50 XP"
-                    )}
-              </button>
-            </div>
-
-            <div
-              className="
-                mt-6
-                rounded-2xl
-                border
-                border-white/[0.07]
-                bg-black/20
-                p-5
-              "
-            >
-              <p className="text-sm text-gray-500">
-                Total Bonus XP
-              </p>
-
-              <p
-                className="
-                  mt-1
-                  text-4xl
-                  font-black
-                  text-yellow-300
-                "
-              >
-                {bonusXP} XP
-              </p>
-            </div>
-          </section>
-        )}
-
-        {/* ===============================================
+        {/* =================================================
             CERTIFICATES
-        =============================================== */}
+        ================================================= */}
 
         {activeTab ===
           "certificates" && (
@@ -1879,7 +3540,8 @@ function SmartHub() {
                 text-yellow-300
               "
             >
-              🏆 COURSE CERTIFICATES
+              🏆 COURSE
+              CERTIFICATES
             </p>
 
             <h2
@@ -1887,13 +3549,9 @@ function SmartHub() {
                 mt-2
                 text-2xl
                 font-black
-                sm:text-3xl
               "
             >
-              {t(
-                "Your completed courses",
-                "நீங்கள் முடித்த Courses"
-              )}
+              Your completed courses
             </h2>
 
             {completedCourses.length ===
@@ -1909,7 +3567,11 @@ function SmartHub() {
                   text-center
                 "
               >
-                <div className="text-4xl">
+                <div
+                  className="
+                    text-4xl
+                  "
+                >
                   🎓
                 </div>
 
@@ -1919,10 +3581,7 @@ function SmartHub() {
                     font-black
                   "
                 >
-                  {t(
-                    "No certificates yet",
-                    "இன்னும் certificate இல்லை"
-                  )}
+                  No certificates yet
                 </h3>
 
                 <p
@@ -1932,10 +3591,9 @@ function SmartHub() {
                     text-gray-500
                   "
                 >
-                  {t(
-                    "Complete all lessons and pass the final quiz.",
-                    "அனைத்து lessons-ஐ complete செய்து final quiz pass செய்யுங்கள்."
-                  )}
+                  Complete all lessons
+                  and pass the final
+                  quiz.
                 </p>
 
                 <Link
@@ -1964,7 +3622,9 @@ function SmartHub() {
                 "
               >
                 {completedCourses.map(
-                  (courseId) => (
+                  (
+                    courseId
+                  ) => (
                     <div
                       key={
                         courseId
@@ -1977,7 +3637,11 @@ function SmartHub() {
                         p-5
                       "
                     >
-                      <div className="text-3xl">
+                      <div
+                        className="
+                          text-3xl
+                        "
+                      >
                         🏆
                       </div>
 
@@ -2001,35 +3665,20 @@ function SmartHub() {
                           text-green-400
                         "
                       >
-                        ✓ Course Completed
+                        ✓ Course
+                        Completed
                       </p>
 
-                      <button
-                        type="button"
-                        onClick={() =>
-                          openCertificate(
-                            courseId
-                          )
-                        }
+                      <p
                         className="
-                          mt-5
-                          rounded-xl
-                          border
-                          border-yellow-400/30
-                          bg-yellow-400/[0.08]
-                          px-4
-                          py-3
-                          text-sm
-                          font-black
-                          text-yellow-300
+                          mt-3
+                          text-xs
+                          text-gray-600
                         "
                       >
-                        🖨️{" "}
-                        {t(
-                          "Open Certificate",
-                          "Certificate பார்க்க"
-                        )}
-                      </button>
+                        Certificate
+                        unlocked
+                      </p>
                     </div>
                   )
                 )}
