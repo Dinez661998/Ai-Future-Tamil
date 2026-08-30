@@ -122,6 +122,15 @@ const SmartHub = lazy(() =>
   import("./pages/SmartHub")
 );
 
+const UtilityHub = lazy(() =>
+  import("./pages/UtilityHub/UtilityHub.jsx")
+);
+
+const UtilityTool = lazy(() =>
+  import("./pages/UtilityHub/UtilityTool.jsx")
+);
+
+
 /* =========================================================
    INFO PAGE
 ========================================================= */
@@ -978,6 +987,16 @@ function WebsiteRoutes() {
         path="*"
         element={<NotFound />}
       />
+
+      <Route
+  path="/utility-hub"
+  element={<UtilityHub />}
+/>
+
+<Route
+  path="/utility-hub/:toolId"
+  element={<UtilityTool />}
+/>
 
     </Routes>
   );
