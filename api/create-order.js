@@ -1,5 +1,43 @@
+import { createClient } from "@supabase/supabase-js";
+
+const PLAN_PRICES = {
+  Starter: {
+    monthly: 500,
+    yearly: 5000,
+  },
+
+  Creator: {
+    monthly: 1000,
+    yearly: 10000,
+  },
+
+  Pro: {
+    monthly: 2500,
+    yearly: 25000,
+  },
+
+  Premium: {
+    monthly: 5000,
+    yearly: 50000,
+  },
+};
+
+function getBearerToken(req) {
+  const authHeader =
+    req.headers.authorization || "";
+
+  if (!authHeader.startsWith("Bearer ")) {
+    return null;
+  }
+
+  return authHeader.slice(7).trim();
+}
+
 export default async function handler(req, res) {
-  res.setHeader("Content-Type", "application/json");
+  res.setHeader(
+    "Content-Type",
+    "application/json"
+  );
 
   if (req.method !== "POST") {
     return res.status(405).json({
@@ -8,91 +46,172 @@ export default async function handler(req, res) {
   }
 
   try {
-    const { plan, billing } = req.body || {};
+    /* =====================================================
+       ENVIRONMENT VARIABLES
+    ====================================================== */
 
-    const prices = {
-      Starter: {
-        monthly: 5,
-        yearly: 50,
-      },
-      Creator: {
-        monthly: 10,
-        yearly: 100,
-      },
-      Pro: {
-        monthly: 25,
-        yearly: 250,
-      },
-      Premium: {
-        monthly: 50,
-        yearly: 500,
-      },
-    };
+    const razorpayKeyId =
+      process.env.RAZORPAY_KEY_ID;
 
-    if (!prices[plan]) {
-      return res.status(400).json({
-        error: "Invalid plan selected.",
-      });
-    }
+    const razorpayKeySecret =
+      process.env.RAZORPAY_KEY_SECRET;
 
-    if (!["monthly", "yearly"].includes(billing)) {
-      return res.status(400).json({
-        error: "Invalid billing cycle.",
-      });
-    }
+    const supabaseUrl =
+      process.env.VITE_SUPABASE_URL;
 
-    const keyId = process.env.RAZORPAY_KEY_ID;
-    const keySecret = process.env.RAZORPAY_KEY_SECRET;
+    const supabaseServiceRoleKey =
+      process.env.SUPABASE_SERVICE_ROLE_KEY;
 
-    if (!keyId || !keySecret) {
+    if (
+      !razorpayKeyId ||
+      !razorpayKeySecret
+    ) {
       return res.status(500).json({
         error:
           "Razorpay environment variables are missing.",
       });
     }
 
-    const amountInRupees =
-      prices[plan][billing];
+    if (
+      !supabaseUrl ||
+      !supabaseServiceRoleKey
+    ) {
+      return res.status(500).json({
+        error:
+          "Supabase server environment variables are missing.",
+      });
+    }
 
-    const amountInPaise =
-      amountInRupees * 100;
+    /* =====================================================
+       USER AUTHENTICATION
+    ====================================================== */
 
-    const auth = Buffer.from(
-      `${keyId}:${keySecret}`
-    ).toString("base64");
+    const token =
+      getBearerToken(req);
 
-    const razorpayResponse = await fetch(
-      "https://api.razorpay.com/v1/orders",
-      {
-        method: "POST",
+    if (!token) {
+      return res.status(401).json({
+        error:
+          "Please login before purchasing a plan.",
+      });
+    }
 
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Basic ${auth}`,
-        },
-
-        body: JSON.stringify({
-          amount: amountInPaise,
-          currency: "INR",
-          receipt: `aft_${Date.now()}`,
-
-          notes: {
-            plan,
-            billing,
-            source: "AI Future Tamil",
+    const supabaseAdmin =
+      createClient(
+        supabaseUrl,
+        supabaseServiceRoleKey,
+        {
+          auth: {
+            persistSession: false,
+            autoRefreshToken: false,
           },
-        }),
-      }
-    );
+        }
+      );
+
+    const {
+      data: userData,
+      error: userError,
+    } =
+      await supabaseAdmin.auth.getUser(
+        token
+      );
+
+    const user =
+      userData?.user;
+
+    if (userError || !user) {
+      return res.status(401).json({
+        error:
+          "Your login session is invalid. Please login again.",
+      });
+    }
+
+    /* =====================================================
+       VALIDATE PLAN
+    ====================================================== */
+
+    const {
+      plan,
+      billing,
+    } = req.body || {};
+
+    if (!PLAN_PRICES[plan]) {
+      return res.status(400).json({
+        error:
+          "Invalid plan selected.",
+      });
+    }
+
+    if (
+      !["monthly", "yearly"].includes(
+        billing
+      )
+    ) {
+      return res.status(400).json({
+        error:
+          "Invalid billing cycle.",
+      });
+    }
+
+    const amount =
+      PLAN_PRICES[plan][billing];
+
+    /* =====================================================
+       CREATE RAZORPAY ORDER
+    ====================================================== */
+
+    const auth =
+      Buffer.from(
+        `${razorpayKeyId}:${razorpayKeySecret}`
+      ).toString("base64");
+
+    const receipt =
+      `aft_${Date.now()}_${user.id.slice(
+        0,
+        8
+      )}`;
+
+    const razorpayResponse =
+      await fetch(
+        "https://api.razorpay.com/v1/orders",
+        {
+          method: "POST",
+
+          headers: {
+            "Content-Type":
+              "application/json",
+
+            Authorization:
+              `Basic ${auth}`,
+          },
+
+          body: JSON.stringify({
+            amount,
+
+            currency: "INR",
+
+            receipt,
+
+            notes: {
+              user_id: user.id,
+              plan,
+              billing,
+              source:
+                "AI Future Tamil",
+            },
+          }),
+        }
+      );
 
     const rawText =
       await razorpayResponse.text();
 
-    let data = null;
+    let razorpayOrder = null;
 
     if (rawText) {
       try {
-        data = JSON.parse(rawText);
+        razorpayOrder =
+          JSON.parse(rawText);
       } catch {
         return res.status(502).json({
           error:
@@ -103,30 +222,92 @@ export default async function handler(req, res) {
 
     if (!razorpayResponse.ok) {
       console.error(
-        "Razorpay create order error:",
-        data
+        "Razorpay order error:",
+        razorpayOrder
       );
 
       return res
-        .status(razorpayResponse.status)
+        .status(
+          razorpayResponse.status
+        )
         .json({
           error:
-            data?.error?.description ||
-            data?.error?.reason ||
+            razorpayOrder?.error
+              ?.description ||
             "Unable to create Razorpay order.",
         });
     }
 
+    if (
+      !razorpayOrder?.id ||
+      !razorpayOrder?.amount
+    ) {
+      return res.status(502).json({
+        error:
+          "Invalid Razorpay order response.",
+      });
+    }
+
+    /* =====================================================
+       SAVE ORDER IN SUPABASE
+    ====================================================== */
+
+    const {
+      error: orderInsertError,
+    } =
+      await supabaseAdmin
+        .from("payment_orders")
+        .insert({
+          user_id: user.id,
+
+          razorpay_order_id:
+            razorpayOrder.id,
+
+          plan,
+
+          billing,
+
+          amount:
+            razorpayOrder.amount,
+
+          currency:
+            razorpayOrder.currency ||
+            "INR",
+
+          status: "created",
+        });
+
+    if (orderInsertError) {
+      console.error(
+        "Supabase payment order insert error:",
+        orderInsertError
+      );
+
+      return res.status(500).json({
+        error:
+          "Payment order was created, but could not be saved securely. Please try again.",
+      });
+    }
+
+    /* =====================================================
+       SAFE RESPONSE
+    ====================================================== */
+
     return res.status(200).json({
       success: true,
 
-      orderId: data.id,
+      orderId:
+        razorpayOrder.id,
 
-      amount: data.amount,
+      amount:
+        razorpayOrder.amount,
 
-      currency: data.currency,
+      currency:
+        razorpayOrder.currency ||
+        "INR",
 
-      keyId,
+      keyId:
+        razorpayKeyId,
 
       plan,
 

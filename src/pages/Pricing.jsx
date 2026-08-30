@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
+import { supabase } from "../supabase/supabaseClient";
 
 /* =========================================================
    PRICING DATA
@@ -162,7 +163,7 @@ const oneTimePacks = [
 ];
 
 /* =========================================================
-   RAZORPAY SCRIPT
+   LOAD RAZORPAY CHECKOUT
 ========================================================= */
 
 function loadRazorpayScript() {
@@ -172,14 +173,13 @@ function loadRazorpayScript() {
       return;
     }
 
-    const existingScript =
-      document.querySelector(
-        'script[src="https://checkout.razorpay.com/v1/checkout.js"]'
-      );
+    const oldScript = document.querySelector(
+      'script[src="https://checkout.razorpay.com/v1/checkout.js"]'
+    );
 
-    if (existingScript) {
-      existingScript.onload = () => resolve(true);
-      existingScript.onerror = () => resolve(false);
+    if (oldScript) {
+      oldScript.onload = () => resolve(true);
+      oldScript.onerror = () => resolve(false);
       return;
     }
 
@@ -204,66 +204,90 @@ function loadRazorpayScript() {
 }
 
 /* =========================================================
-   HELPERS
+   ACCENT STYLES
 ========================================================= */
 
 function getAccentClasses(accent) {
   const styles = {
     gray: {
       border: "border-white/10",
+
       glow: "",
+
       icon:
         "bg-white/[0.05] border-white/10",
+
       button:
         "border border-white/15 bg-white/[0.03] hover:bg-white/[0.07]",
+
       badge:
         "border-white/10 bg-white/[0.05] text-gray-300",
     },
 
     cyan: {
-      border: "border-cyan-400/30",
+      border:
+        "border-cyan-400/30",
+
       glow:
         "shadow-[0_0_35px_rgba(34,211,238,0.08)]",
+
       icon:
         "bg-cyan-400/[0.07] border-cyan-400/20",
+
       button:
         "border border-cyan-400/25 bg-cyan-400/[0.07] text-cyan-200 hover:bg-cyan-400/[0.12]",
+
       badge:
         "border-cyan-400/25 bg-cyan-400/[0.08] text-cyan-300",
     },
 
     pink: {
-      border: "border-pink-400/40",
+      border:
+        "border-pink-400/40",
+
       glow:
         "shadow-[0_0_45px_rgba(236,72,153,0.12)]",
+
       icon:
         "bg-pink-400/[0.08] border-pink-400/25",
+
       button:
         "bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-400 text-white",
+
       badge:
         "border-pink-400/30 bg-pink-400/[0.10] text-pink-300",
     },
 
     blue: {
-      border: "border-blue-400/30",
+      border:
+        "border-blue-400/30",
+
       glow:
         "shadow-[0_0_35px_rgba(59,130,246,0.08)]",
+
       icon:
         "bg-blue-400/[0.07] border-blue-400/20",
+
       button:
         "border border-blue-400/25 bg-blue-400/[0.07] text-blue-200 hover:bg-blue-400/[0.12]",
+
       badge:
         "border-blue-400/25 bg-blue-400/[0.08] text-blue-300",
     },
 
     purple: {
-      border: "border-purple-400/40",
+      border:
+        "border-purple-400/40",
+
       glow:
         "shadow-[0_0_45px_rgba(168,85,247,0.12)]",
+
       icon:
         "bg-purple-400/[0.08] border-purple-400/25",
+
       button:
         "border border-purple-400/30 bg-purple-400/[0.08] text-purple-200 hover:bg-purple-400/[0.14]",
+
       badge:
         "border-purple-400/30 bg-purple-400/[0.10] text-purple-300",
     },
@@ -273,7 +297,7 @@ function getAccentClasses(accent) {
 }
 
 /* =========================================================
-   PRICING
+   PRICING COMPONENT
 ========================================================= */
 
 function Pricing() {
@@ -290,16 +314,22 @@ function Pricing() {
     useState("");
 
   /* =======================================================
-     MESSAGE
+     SHOW MESSAGE
   ======================================================= */
 
-  function showMessage(text, type = "info") {
+  function showMessage(
+    text,
+    type = "info"
+  ) {
     setMessage(text);
+
     setMessageType(type);
 
     window.setTimeout(() => {
       document
-        .getElementById("pricing-message")
+        .getElementById(
+          "pricing-message"
+        )
         ?.scrollIntoView({
           behavior: "smooth",
           block: "center",
@@ -308,7 +338,30 @@ function Pricing() {
   }
 
   /* =======================================================
-     RAZORPAY PAYMENT
+     GET LOGGED-IN SESSION
+  ======================================================= */
+
+  async function getLoggedInSession() {
+    const {
+      data,
+      error,
+    } =
+      await supabase.auth.getSession();
+
+    if (error) {
+      console.error(
+        "Supabase session error:",
+        error
+      );
+
+      return null;
+    }
+
+    return data?.session || null;
+  }
+
+  /* =======================================================
+     START PAID PLAN
   ======================================================= */
 
   async function handlePaidPlan(plan) {
@@ -318,12 +371,35 @@ function Pricing() {
 
     try {
       setMessage("");
+
       setMessageType("");
+
       setLoadingPlan(plan.name);
 
-      /* -----------------------------------------------
-         LOAD RAZORPAY
-      ------------------------------------------------ */
+      /* ===================================================
+         1. CHECK USER LOGIN
+      =================================================== */
+
+      const session =
+        await getLoggedInSession();
+
+      if (
+        !session ||
+        !session.access_token
+      ) {
+        setLoadingPlan("");
+
+        showMessage(
+          "🔐 Please login to your AI Future Tamil account before purchasing a plan.",
+          "error"
+        );
+
+        return;
+      }
+
+      /* ===================================================
+         2. LOAD RAZORPAY SCRIPT
+      =================================================== */
 
       const razorpayLoaded =
         await loadRazorpayScript();
@@ -334,31 +410,51 @@ function Pricing() {
         );
       }
 
-      /* -----------------------------------------------
-         CREATE ORDER
-      ------------------------------------------------ */
+      /* ===================================================
+         3. CREATE ORDER
+      =================================================== */
 
-      const orderResponse = await fetch(
-        "/api/create-order",
-        {
-          method: "POST",
+      const orderResponse =
+        await fetch(
+          "/api/create-order",
+          {
+            method: "POST",
 
-          headers: {
-            "Content-Type":
-              "application/json",
-          },
+            headers: {
+              "Content-Type":
+                "application/json",
 
-          body: JSON.stringify({
-            plan: plan.name,
-            billing,
-          }),
-        }
-      );
+              Authorization:
+                `Bearer ${session.access_token}`,
+            },
 
-      const orderData =
-        await orderResponse.json();
+            body: JSON.stringify({
+              plan: plan.name,
+              billing,
+            }),
+          }
+        );
+
+      let orderData = null;
+
+      try {
+        orderData =
+          await orderResponse.json();
+      } catch {
+        throw new Error(
+          "Server returned an invalid response."
+        );
+      }
 
       if (!orderResponse.ok) {
+        if (
+          orderResponse.status === 401
+        ) {
+          throw new Error(
+            "Your login session expired. Please logout and login again."
+          );
+        }
+
         throw new Error(
           orderData?.error ||
             "Unable to create payment order."
@@ -371,23 +467,27 @@ function Pricing() {
         !orderData?.keyId
       ) {
         throw new Error(
-          "Invalid order response received."
+          "Payment order information is incomplete."
         );
       }
 
-      /* -----------------------------------------------
-         RAZORPAY CHECKOUT OPTIONS
-      ------------------------------------------------ */
+      /* ===================================================
+         4. RAZORPAY OPTIONS
+      =================================================== */
 
       const options = {
-        key: orderData.keyId,
+        key:
+          orderData.keyId,
 
-        amount: orderData.amount,
+        amount:
+          orderData.amount,
 
         currency:
-          orderData.currency || "INR",
+          orderData.currency ||
+          "INR",
 
-        name: "AI Future Tamil",
+        name:
+          "AI Future Tamil",
 
         description:
           `${plan.name} Plan - ${
@@ -396,114 +496,189 @@ function Pricing() {
               : "Yearly"
           }`,
 
-        order_id: orderData.orderId,
+        order_id:
+          orderData.orderId,
 
-        /* ---------------------------------------------
-           PAYMENT SUCCESS
-        ---------------------------------------------- */
+        /* =================================================
+           SUCCESS HANDLER
+        ================================================= */
 
-        handler: async function (
-          razorpayResponse
-        ) {
-          try {
-            showMessage(
-              "🔐 Payment received. Verifying payment...",
-              "info"
-            );
-
-            const verifyResponse =
-              await fetch(
-                "/api/verify-payment",
-                {
-                  method: "POST",
-
-                  headers: {
-                    "Content-Type":
-                      "application/json",
-                  },
-
-                  body: JSON.stringify({
-                    razorpay_order_id:
-                      razorpayResponse
-                        .razorpay_order_id,
-
-                    razorpay_payment_id:
-                      razorpayResponse
-                        .razorpay_payment_id,
-
-                    razorpay_signature:
-                      razorpayResponse
-                        .razorpay_signature,
-
-                    plan:
-                      plan.name,
-
-                    billing,
-                  }),
-                }
+        handler:
+          async function (
+            razorpayResponse
+          ) {
+            try {
+              showMessage(
+                "🔐 Payment received. Securely verifying your payment...",
+                "info"
               );
 
-            const verifyData =
-              await verifyResponse.json();
+              /*
+               * Get session again.
+               * This avoids using an old token if checkout
+               * was kept open for some time.
+               */
 
-            if (
-              !verifyResponse.ok ||
-              !verifyData?.success
-            ) {
-              throw new Error(
-                verifyData?.error ||
+              const latestSession =
+                await getLoggedInSession();
+
+              if (
+                !latestSession ||
+                !latestSession.access_token
+              ) {
+                throw new Error(
+                  "Your login session expired during payment. Please login again and contact support with your payment ID."
+                );
+              }
+
+              /* ===========================================
+                 5. VERIFY PAYMENT SERVER-SIDE
+              =========================================== */
+
+              const verifyResponse =
+                await fetch(
+                  "/api/verify-payment",
+                  {
+                    method:
+                      "POST",
+
+                    headers: {
+                      "Content-Type":
+                        "application/json",
+
+                      Authorization:
+                        `Bearer ${latestSession.access_token}`,
+                    },
+
+                    body:
+                      JSON.stringify(
+                        {
+                          razorpay_order_id:
+                            razorpayResponse
+                              .razorpay_order_id,
+
+                          razorpay_payment_id:
+                            razorpayResponse
+                              .razorpay_payment_id,
+
+                          razorpay_signature:
+                            razorpayResponse
+                              .razorpay_signature,
+                        }
+                      ),
+                  }
+                );
+
+              let verifyData =
+                null;
+
+              try {
+                verifyData =
+                  await verifyResponse.json();
+              } catch {
+                throw new Error(
+                  "Payment verification server returned an invalid response."
+                );
+              }
+
+              if (
+                !verifyResponse.ok ||
+                !verifyData?.success ||
+                !verifyData?.verified
+              ) {
+                throw new Error(
+                  verifyData?.error ||
+                    "Payment verification failed."
+                );
+              }
+
+              /* ===========================================
+                 6. PAYMENT + SUBSCRIPTION SUCCESS
+              =========================================== */
+
+              let expiryText = "";
+
+              if (
+                verifyData.expiresAt
+              ) {
+                const expiryDate =
+                  new Date(
+                    verifyData.expiresAt
+                  );
+
+                expiryText =
+                  ` Valid until ${expiryDate.toLocaleDateString(
+                    "en-IN",
+                    {
+                      day: "2-digit",
+                      month: "short",
+                      year: "numeric",
+                    }
+                  )}.`;
+              }
+
+              showMessage(
+                `✅ Payment verified! Your ${verifyData.plan || plan.name} plan is now active.${expiryText}`,
+                "success"
+              );
+            } catch (error) {
+              console.error(
+                "Payment verification error:",
+                error
+              );
+
+              showMessage(
+                `⚠️ ${
+                  error?.message ||
                   "Payment verification failed."
+                }`,
+                "error"
               );
+            } finally {
+              setLoadingPlan("");
             }
+          },
 
-            showMessage(
-              `✅ Payment verified successfully! ${plan.name} ${billing} payment completed.`,
-              "success"
-            );
-          } catch (error) {
-            console.error(
-              "Payment verification error:",
-              error
-            );
-
-            showMessage(
-              `❌ ${
-                error?.message ||
-                "Payment verification failed."
-              }`,
-              "error"
-            );
-          } finally {
-            setLoadingPlan("");
-          }
-        },
-
-        /* ---------------------------------------------
-           CHECKOUT UI
-        ---------------------------------------------- */
+        /* =================================================
+           CHECKOUT THEME
+        ================================================= */
 
         theme: {
-          color: "#8b5cf6",
+          color:
+            "#8b5cf6",
         },
 
-        modal: {
-          ondismiss: function () {
-            setLoadingPlan("");
+        /* =================================================
+           MODAL
+        ================================================= */
 
-            showMessage(
-              "Payment checkout closed. No payment was completed.",
-              "info"
-            );
-          },
+        modal: {
+          ondismiss:
+            function () {
+              setLoadingPlan("");
+
+              showMessage(
+                "Payment checkout closed. No new plan was activated.",
+                "info"
+              );
+            },
 
           escape: true,
 
-          backdropclose: false,
+          backdropclose:
+            false,
         },
 
+        /* =================================================
+           ORDER NOTES
+        ================================================= */
+
         notes: {
-          plan: plan.name,
+          plan:
+            plan.name,
+
           billing,
+
           website:
             "AI Future Tamil",
         },
@@ -513,12 +688,18 @@ function Pricing() {
         },
       };
 
-      /* -----------------------------------------------
-         OPEN CHECKOUT
-      ------------------------------------------------ */
+      /* ===================================================
+         7. OPEN RAZORPAY
+      =================================================== */
 
       const razorpay =
-        new window.Razorpay(options);
+        new window.Razorpay(
+          options
+        );
+
+      /* ===================================================
+         PAYMENT FAILED
+      =================================================== */
 
       razorpay.on(
         "payment.failed",
@@ -532,7 +713,8 @@ function Pricing() {
 
           showMessage(
             `❌ ${
-              response?.error?.description ||
+              response?.error
+                ?.description ||
               "Payment failed. Please try again."
             }`,
             "error"
@@ -560,11 +742,13 @@ function Pricing() {
   }
 
   /* =======================================================
-     MESSAGE STYLES
+     MESSAGE STYLE
   ======================================================= */
 
   function getMessageStyle() {
-    if (messageType === "success") {
+    if (
+      messageType === "success"
+    ) {
       return `
         border-green-400/30
         bg-green-400/[0.07]
@@ -572,7 +756,9 @@ function Pricing() {
       `;
     }
 
-    if (messageType === "error") {
+    if (
+      messageType === "error"
+    ) {
       return `
         border-red-400/30
         bg-red-400/[0.07]
@@ -668,6 +854,7 @@ function Pricing() {
             p-1.5
           "
         >
+
           <button
             type="button"
             onClick={() =>
@@ -681,7 +868,8 @@ function Pricing() {
               font-bold
               transition
               ${
-                billing === "monthly"
+                billing ===
+                "monthly"
                   ? "bg-white text-black"
                   : "text-gray-400 hover:text-white"
               }
@@ -703,7 +891,8 @@ function Pricing() {
               font-bold
               transition
               ${
-                billing === "yearly"
+                billing ===
+                "yearly"
                   ? "bg-white text-black"
                   : "text-gray-400 hover:text-white"
               }
@@ -716,6 +905,7 @@ function Pricing() {
             </span>
 
           </button>
+
         </div>
 
       </section>
@@ -738,14 +928,25 @@ function Pricing() {
             ${getMessageStyle()}
           `}
         >
+
           <p className="font-semibold">
             {message}
           </p>
 
-          {messageType !== "success" && (
+          {messageType ===
+            "success" && (
+            <p className="mt-2 text-xs text-green-300/70">
+              Your subscription was verified
+              by the secure payment backend.
+            </p>
+          )}
+
+          {messageType ===
+            "error" && (
             <p className="mt-2 text-xs text-gray-500">
-              Your plan is activated only after
-              successful payment verification.
+              Your paid plan is not activated
+              unless server verification
+              succeeds.
             </p>
           )}
 
@@ -768,9 +969,12 @@ function Pricing() {
           xl:grid-cols-5
         "
       >
+
         {plans.map((plan) => {
           const accent =
-            getAccentClasses(plan.accent);
+            getAccentClasses(
+              plan.accent
+            );
 
           const price =
             billing === "monthly"
@@ -783,7 +987,8 @@ function Pricing() {
               : "/year";
 
           const isLoading =
-            loadingPlan === plan.name;
+            loadingPlan ===
+            plan.name;
 
           return (
             <article
@@ -802,7 +1007,8 @@ function Pricing() {
                 ${accent.border}
                 ${accent.glow}
                 ${
-                  plan.name === "Creator"
+                  plan.name ===
+                  "Creator"
                     ? "xl:-translate-y-3"
                     : ""
                 }
@@ -877,17 +1083,21 @@ function Pricing() {
 
                 </div>
 
-                {billing === "yearly" &&
-                  plan.monthly > 0 && (
+                {billing ===
+                  "yearly" &&
+                  plan.monthly >
+                    0 && (
                     <p className="mt-2 text-xs text-green-400">
                       Save ₹
-                      {plan.monthly * 12 -
+                      {plan.monthly *
+                        12 -
                         plan.yearly}{" "}
                       per year
                     </p>
                   )}
 
-                {plan.monthly === 0 && (
+                {plan.monthly ===
+                  0 && (
                   <p className="mt-2 text-xs text-gray-600">
                     No payment required
                   </p>
@@ -899,7 +1109,8 @@ function Pricing() {
 
               <div className="mt-7">
 
-                {plan.name === "Free" ? (
+                {plan.name ===
+                "Free" ? (
 
                   <Link
                     to="/ai-tools"
@@ -930,7 +1141,9 @@ function Pricing() {
                       loadingPlan
                     )}
                     onClick={() =>
-                      handlePaidPlan(plan)
+                      handlePaidPlan(
+                        plan
+                      )
                     }
                     className={`
                       w-full
@@ -969,9 +1182,13 @@ function Pricing() {
                 <ul className="space-y-4">
 
                   {plan.features.map(
-                    (feature) => (
+                    (
+                      feature
+                    ) => (
                       <li
-                        key={feature}
+                        key={
+                          feature
+                        }
                         className="
                           flex
                           items-start
@@ -986,7 +1203,9 @@ function Pricing() {
                         </span>
 
                         <span>
-                          {feature}
+                          {
+                            feature
+                          }
                         </span>
 
                       </li>
@@ -1000,10 +1219,11 @@ function Pricing() {
             </article>
           );
         })}
+
       </section>
 
       {/* =====================================================
-          SECURE PAYMENTS
+          SECURE PAYMENT INFO
       ====================================================== */}
 
       <section className="mx-auto mt-20 max-w-5xl">
@@ -1024,6 +1244,7 @@ function Pricing() {
         >
 
           <div className="text-center">
+
             <div className="text-2xl">
               🔐
             </div>
@@ -1033,11 +1254,14 @@ function Pricing() {
             </p>
 
             <p className="mt-1 text-xs text-gray-500">
-              Payments handled through Razorpay.
+              Payments are securely handled
+              through Razorpay.
             </p>
+
           </div>
 
           <div className="text-center">
+
             <div className="text-2xl">
               📱
             </div>
@@ -1047,12 +1271,15 @@ function Pricing() {
             </p>
 
             <p className="mt-1 text-xs text-gray-500">
-              Available methods are shown by
-              Razorpay Checkout.
+              Use available UPI apps, cards,
+              netbanking and other supported
+              methods.
             </p>
+
           </div>
 
           <div className="text-center">
+
             <div className="text-2xl">
               ✅
             </div>
@@ -1062,9 +1289,11 @@ function Pricing() {
             </p>
 
             <p className="mt-1 text-xs text-gray-500">
-              Successful payments are verified
-              by our backend.
+              Paid access is activated only
+              after secure server
+              verification.
             </p>
+
           </div>
 
         </div>
@@ -1100,6 +1329,7 @@ function Pricing() {
             lg:grid-cols-4
           "
         >
+
           {[
             [
               "🤖",
@@ -1125,7 +1355,11 @@ function Pricing() {
               "Higher plans can receive access to selected new features earlier.",
             ],
           ].map(
-            ([icon, title, text]) => (
+            ([
+              icon,
+              title,
+              text,
+            ]) => (
               <article
                 key={title}
                 className="
@@ -1152,6 +1386,7 @@ function Pricing() {
               </article>
             )
           )}
+
         </div>
 
       </section>
@@ -1173,9 +1408,9 @@ function Pricing() {
           </h2>
 
           <p className="mx-auto mt-3 max-w-2xl text-gray-500">
-            One-time packs will be connected
-            separately after subscription
-            payments are completed.
+            Creator packs can be purchased
+            separately when individual pack
+            checkout is enabled.
           </p>
 
         </div>
@@ -1190,63 +1425,69 @@ function Pricing() {
             lg:grid-cols-4
           "
         >
-          {oneTimePacks.map((pack) => (
-            <article
-              key={pack.name}
-              className="
-                rounded-[26px]
-                border
-                border-white/[0.08]
-                bg-[#090a0f]/85
-                p-6
-              "
-            >
 
-              <div className="text-3xl">
-                {pack.icon}
-              </div>
-
-              <h3 className="mt-5 text-lg font-black">
-                {pack.name}
-              </h3>
-
-              <p className="mt-2 min-h-[72px] text-sm leading-6 text-gray-500">
-                {pack.description}
-              </p>
-
-              <p className="mt-5 text-3xl font-black">
-                {pack.price}
-              </p>
-
-              <button
-                type="button"
-                onClick={() =>
-                  showMessage(
-                    `${pack.icon} ${pack.name} payment integration will be added after plan payments are tested.`,
-                    "info"
-                  )
-                }
+          {oneTimePacks.map(
+            (pack) => (
+              <article
+                key={pack.name}
                 className="
-                  mt-5
-                  w-full
-                  rounded-xl
+                  rounded-[26px]
                   border
-                  border-white/10
-                  bg-white/[0.035]
-                  px-4
-                  py-3
-                  text-sm
-                  font-bold
-                  transition
-                  hover:border-pink-400/30
-                  hover:text-pink-300
+                  border-white/[0.08]
+                  bg-[#090a0f]/85
+                  p-6
                 "
               >
-                Coming Soon
-              </button>
 
-            </article>
-          ))}
+                <div className="text-3xl">
+                  {pack.icon}
+                </div>
+
+                <h3 className="mt-5 text-lg font-black">
+                  {pack.name}
+                </h3>
+
+                <p className="mt-2 min-h-[72px] text-sm leading-6 text-gray-500">
+                  {
+                    pack.description
+                  }
+                </p>
+
+                <p className="mt-5 text-3xl font-black">
+                  {pack.price}
+                </p>
+
+                <button
+                  type="button"
+                  onClick={() =>
+                    showMessage(
+                      `${pack.icon} ${pack.name} individual checkout will be enabled separately.`,
+                      "info"
+                    )
+                  }
+                  className="
+                    mt-5
+                    w-full
+                    rounded-xl
+                    border
+                    border-white/10
+                    bg-white/[0.035]
+                    px-4
+                    py-3
+                    text-sm
+                    font-bold
+                    transition
+                    hover:border-pink-400/30
+                    hover:text-pink-300
+                  "
+                >
+                  Coming Soon
+                </button>
+
+              </article>
+            )
+          )}
+
         </div>
 
       </section>
@@ -1278,23 +1519,33 @@ function Pricing() {
             ],
 
             [
-              "Can I upgrade later?",
-              "Yes. You can choose one of the available paid plans when payments are enabled.",
+              "Do I need an account before payment?",
+              "Yes. Please login first so your verified payment can be securely connected to your AI Future Tamil account.",
             ],
 
             [
-              "How is a payment confirmed?",
-              "After checkout completes, AI Future Tamil sends the payment details to the backend for Razorpay signature verification.",
+              "How is my payment verified?",
+              "After Razorpay Checkout completes, the payment signature is securely verified on the AI Future Tamil backend before paid access is activated.",
             ],
 
             [
-              "Does payment immediately unlock premium features?",
-              "Not yet. Subscription storage and premium feature locking will be connected with Supabase in the next stage.",
+              "When does my plan become active?",
+              "After successful server verification, your subscription is saved to your account and marked active.",
+            ],
+
+            [
+              "How long does my plan last?",
+              "Monthly plans receive approximately one month of access and yearly plans receive one year of access from activation.",
             ],
           ].map(
-            ([question, answer]) => (
+            ([
+              question,
+              answer,
+            ]) => (
               <details
-                key={question}
+                key={
+                  question
+                }
                 className="
                   rounded-2xl
                   border
@@ -1305,7 +1556,9 @@ function Pricing() {
               >
 
                 <summary className="cursor-pointer font-bold">
-                  {question}
+                  {
+                    question
+                  }
                 </summary>
 
                 <p className="mt-4 text-sm leading-7 text-gray-500">
