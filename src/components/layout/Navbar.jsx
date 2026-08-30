@@ -328,14 +328,12 @@ function Navbar() {
   }, []);
 
   /* =========================================================
-     CLOSE MENUS ON ROUTE CHANGE
+     CLOSE MENUS
   ========================================================= */
 
   useEffect(() => {
     setActiveMegaMenu(null);
-
     setMobileOpen(false);
-
     setMobileSection(null);
   }, [location.pathname]);
 
@@ -354,34 +352,23 @@ function Navbar() {
       }
 
       setUser(null);
-
       navigate("/");
     };
 
   /* =========================================================
-     DISPLAY NAME
+     USER NAME
   ========================================================= */
 
   const displayName =
-    user?.user_metadata
-      ?.full_name ||
-    user?.email?.split(
-      "@"
-    )[0] ||
+    user?.user_metadata?.full_name ||
+    user?.email?.split("@")[0] ||
     "User";
 
-  /* =========================================================
-     ACTIVE ROUTE
-  ========================================================= */
-
-  const isActive = (
-    path
-  ) =>
-    location.pathname ===
-    path;
+  const isActive = (path) =>
+    location.pathname === path;
 
   /* =========================================================
-     COMMON NAV STYLE
+     NORMAL NAV BUTTON
   ========================================================= */
 
   const navButtonClass = `
@@ -391,15 +378,17 @@ function Navbar() {
     justify-center
     whitespace-nowrap
     rounded-lg
-    px-2.5
+    px-2
     py-2
-    text-[13px]
+    text-[12px]
     font-semibold
     text-gray-300
     transition-all
     duration-200
     hover:bg-white/[0.05]
     hover:text-cyan-300
+    2xl:px-2.5
+    2xl:text-[13px]
   `;
 
   return (
@@ -418,7 +407,7 @@ function Navbar() {
         "
       >
         {/* =================================================
-            MAIN NAVBAR
+            DESKTOP MAIN BAR
         ================================================= */}
 
         <div
@@ -427,13 +416,14 @@ function Navbar() {
             flex
             h-[76px]
             w-full
-            max-w-[1600px]
+            max-w-[1700px]
             items-center
             justify-between
-            gap-3
+            gap-2
             px-4
             sm:px-6
-            xl:px-8
+            xl:px-5
+            2xl:px-8
           "
         >
           {/* LOGO */}
@@ -469,10 +459,13 @@ function Navbar() {
               flex-1
               items-center
               justify-center
-              gap-0.5
+              gap-0
               xl:flex
+              2xl:gap-0.5
             "
           >
+            {/* HOME */}
+
             <Link
               to="/"
               className={`
@@ -488,22 +481,18 @@ function Navbar() {
               Home
             </Link>
 
-            {/* MEGA MENUS */}
+            {/* MEGA MENU BUTTONS */}
 
             {Object.keys(
               megaMenus
             ).map(
               (menuName) => (
                 <button
-                  key={
-                    menuName
-                  }
+                  key={menuName}
                   type="button"
                   onClick={() =>
                     setActiveMegaMenu(
-                      (
-                        current
-                      ) =>
+                      (current) =>
                         current ===
                         menuName
                           ? null
@@ -551,6 +540,8 @@ function Navbar() {
               )
             )}
 
+            {/* COMMUNITY */}
+
             <Link
               to="/community"
               className={`
@@ -569,7 +560,7 @@ function Navbar() {
             </Link>
 
             {/* =================================================
-                NEW INNOVATION LAB
+                INNOVATION LAB
             ================================================= */}
 
             <Link
@@ -582,12 +573,14 @@ function Navbar() {
                 whitespace-nowrap
                 rounded-xl
                 border
-                px-3
+                px-2.5
                 py-2
-                text-[13px]
+                text-[12px]
                 font-black
                 transition-all
                 duration-300
+                2xl:px-3
+                2xl:text-[13px]
 
                 ${
                   isActive(
@@ -605,6 +598,7 @@ function Navbar() {
                       border-fuchsia-400/25
                       bg-fuchsia-400/[0.06]
                       text-fuchsia-300
+                      hover:-translate-y-0.5
                       hover:border-fuchsia-300/50
                       hover:bg-fuchsia-400/[0.12]
                       hover:shadow-[0_0_24px_rgba(217,70,239,.16)]
@@ -615,6 +609,105 @@ function Navbar() {
               🧪 Innovation Lab
             </Link>
 
+            {/* =================================================
+                EXPERIENCE ZONE
+            ================================================= */}
+
+            <Link
+              to="/experience-zone"
+              className={`
+                group
+                relative
+                inline-flex
+                items-center
+                justify-center
+                overflow-hidden
+                whitespace-nowrap
+                rounded-xl
+                border
+                px-2.5
+                py-2
+                text-[12px]
+                font-black
+                transition-all
+                duration-300
+                2xl:px-3
+                2xl:text-[13px]
+
+                ${
+                  isActive(
+                    "/experience-zone"
+                  )
+                    ? `
+                      border-cyan-300/55
+                      bg-gradient-to-r
+                      from-cyan-500/20
+                      via-indigo-500/15
+                      to-purple-500/20
+                      text-cyan-100
+                      shadow-[0_0_28px_rgba(34,211,238,.20)]
+                    `
+                    : `
+                      border-cyan-400/25
+                      bg-gradient-to-r
+                      from-cyan-400/[0.07]
+                      via-indigo-500/[0.05]
+                      to-purple-500/[0.07]
+                      text-cyan-300
+                      hover:-translate-y-0.5
+                      hover:border-cyan-300/55
+                      hover:text-cyan-100
+                      hover:shadow-[0_0_28px_rgba(34,211,238,.18)]
+                    `
+                }
+              `}
+            >
+              {/* MOVING LIGHT */}
+
+              <span
+                className="
+                  pointer-events-none
+                  absolute
+                  inset-y-0
+                  -left-12
+                  w-8
+                  rotate-12
+                  bg-white/10
+                  blur-sm
+                  transition-all
+                  duration-700
+                  group-hover:left-[115%]
+                "
+              />
+
+              <span
+                className="
+                  relative
+                  z-10
+                  flex
+                  items-center
+                  gap-1.5
+                "
+              >
+                <span
+                  className="
+                    transition-transform
+                    duration-300
+                    group-hover:rotate-12
+                    group-hover:scale-110
+                  "
+                >
+                  🌌
+                </span>
+
+                <span>
+                  Experience Zone
+                </span>
+              </span>
+            </Link>
+
+            {/* PROMOTION */}
+
             <Link
               to="/promotion"
               className={
@@ -623,6 +716,8 @@ function Navbar() {
             >
               Promotion
             </Link>
+
+            {/* PREMIUM */}
 
             <Link
               to="/premium"
@@ -635,9 +730,9 @@ function Navbar() {
                 border
                 border-purple-400/30
                 bg-purple-400/[0.06]
-                px-3
+                px-2.5
                 py-2
-                text-[13px]
+                text-[12px]
                 font-bold
                 text-purple-300
                 transition-all
@@ -645,10 +740,14 @@ function Navbar() {
                 hover:border-purple-300
                 hover:bg-purple-400/15
                 hover:shadow-[0_0_20px_rgba(168,85,247,.15)]
+                2xl:px-3
+                2xl:text-[13px]
               "
             >
               💎 Premium
             </Link>
+
+            {/* PRICING */}
 
             <Link
               to="/pricing"
@@ -661,7 +760,7 @@ function Navbar() {
           </div>
 
           {/* =================================================
-              RIGHT AREA
+              RIGHT AUTH AREA
           ================================================= */}
 
           <div
@@ -694,7 +793,7 @@ function Navbar() {
 
                   <p
                     className="
-                      max-w-[110px]
+                      max-w-[100px]
                       truncate
                       text-xs
                       font-semibold
@@ -779,15 +878,13 @@ function Navbar() {
               </Link>
             )}
 
-            {/* MOBILE BUTTON */}
+            {/* MOBILE MENU BUTTON */}
 
             <button
               type="button"
               onClick={() =>
                 setMobileOpen(
-                  (
-                    current
-                  ) =>
+                  (current) =>
                     !current
                 )
               }
@@ -844,6 +941,8 @@ function Navbar() {
                 py-8
               "
             >
+              {/* MEGA HEADER */}
+
               <div
                 className="
                   mb-6
@@ -901,6 +1000,8 @@ function Navbar() {
                   ✕
                 </button>
               </div>
+
+              {/* MEGA ITEMS */}
 
               <div
                 className="
@@ -1031,12 +1132,13 @@ function Navbar() {
               </MobileLink>
 
               {/* =================================================
-                  NEW INNOVATION LAB MOBILE
+                  INNOVATION LAB MOBILE
               ================================================= */}
 
               <Link
                 to="/innovation-lab"
                 className="
+                  group
                   relative
                   flex
                   items-center
@@ -1050,8 +1152,10 @@ function Navbar() {
                   to-cyan-500/[0.06]
                   px-4
                   py-4
-                  transition
+                  transition-all
+                  duration-300
                   hover:border-fuchsia-300/50
+                  hover:shadow-[0_0_28px_rgba(217,70,239,.10)]
                 "
               >
                 <div
@@ -1073,6 +1177,10 @@ function Navbar() {
                       border-fuchsia-400/20
                       bg-fuchsia-400/[0.08]
                       text-xl
+                      transition-transform
+                      duration-300
+                      group-hover:rotate-6
+                      group-hover:scale-110
                     "
                   >
                     🧪
@@ -1095,8 +1203,7 @@ function Navbar() {
                         text-gray-500
                       "
                     >
-                      Create • Experiment •
-                      Build
+                      Create • Experiment • Build
                     </p>
                   </div>
                 </div>
@@ -1105,13 +1212,151 @@ function Navbar() {
                   className="
                     font-black
                     text-fuchsia-300
+                    transition-transform
+                    duration-300
+                    group-hover:translate-x-1
                   "
                 >
                   →
                 </span>
               </Link>
 
-              {/* MEGA MENU MOBILE */}
+              {/* =================================================
+                  EXPERIENCE ZONE MOBILE
+              ================================================= */}
+
+              <Link
+                to="/experience-zone"
+                className="
+                  group
+                  relative
+                  flex
+                  items-center
+                  justify-between
+                  overflow-hidden
+                  rounded-2xl
+                  border
+                  border-cyan-400/30
+                  bg-gradient-to-r
+                  from-cyan-500/[0.10]
+                  via-indigo-500/[0.07]
+                  to-purple-500/[0.08]
+                  px-4
+                  py-4
+                  transition-all
+                  duration-300
+                  hover:border-cyan-300/55
+                  hover:shadow-[0_0_32px_rgba(34,211,238,.13)]
+                "
+              >
+                {/* GLOW */}
+
+                <span
+                  className="
+                    pointer-events-none
+                    absolute
+                    -right-10
+                    -top-10
+                    h-24
+                    w-24
+                    rounded-full
+                    bg-cyan-400/10
+                    blur-2xl
+                    transition
+                    duration-500
+                    group-hover:scale-150
+                  "
+                />
+
+                {/* SHINE */}
+
+                <span
+                  className="
+                    pointer-events-none
+                    absolute
+                    inset-y-0
+                    -left-16
+                    w-10
+                    rotate-12
+                    bg-white/[0.08]
+                    blur-sm
+                    transition-all
+                    duration-700
+                    group-hover:left-[115%]
+                  "
+                />
+
+                <div
+                  className="
+                    relative
+                    z-10
+                    flex
+                    items-center
+                    gap-3
+                  "
+                >
+                  <div
+                    className="
+                      flex
+                      h-10
+                      w-10
+                      items-center
+                      justify-center
+                      rounded-xl
+                      border
+                      border-cyan-400/25
+                      bg-cyan-400/[0.08]
+                      text-xl
+                      shadow-[0_0_20px_rgba(34,211,238,.08)]
+                      transition-transform
+                      duration-300
+                      group-hover:rotate-12
+                      group-hover:scale-110
+                    "
+                  >
+                    🌌
+                  </div>
+
+                  <div>
+                    <p
+                      className="
+                        font-black
+                        text-cyan-100
+                      "
+                    >
+                      Experience Zone
+                    </p>
+
+                    <p
+                      className="
+                        mt-0.5
+                        text-[11px]
+                        text-gray-500
+                      "
+                    >
+                      Play • Battle • Explore • Build
+                    </p>
+                  </div>
+                </div>
+
+                <span
+                  className="
+                    relative
+                    z-10
+                    font-black
+                    text-cyan-300
+                    transition-transform
+                    duration-300
+                    group-hover:translate-x-1
+                  "
+                >
+                  →
+                </span>
+              </Link>
+
+              {/* =================================================
+                  MOBILE MEGA MENUS
+              ================================================= */}
 
               {Object.keys(
                 megaMenus
@@ -1147,6 +1392,9 @@ function Navbar() {
                         px-4
                         py-3.5
                         font-semibold
+                        transition
+                        hover:border-cyan-400/20
+                        hover:bg-white/[0.04]
                       "
                     >
                       <span>
@@ -1159,6 +1407,7 @@ function Navbar() {
                         className={`
                           text-xs
                           transition-transform
+                          duration-300
 
                           ${
                             mobileSection ===
@@ -1210,6 +1459,7 @@ function Navbar() {
                                 text-gray-300
                                 transition
                                 hover:border-cyan-400/20
+                                hover:bg-cyan-400/[0.03]
                                 hover:text-white
                               "
                             >
@@ -1236,6 +1486,8 @@ function Navbar() {
                   </div>
                 )
               )}
+
+              {/* NORMAL LINKS */}
 
               <MobileLink
                 to="/community"
@@ -1265,7 +1517,9 @@ function Navbar() {
                 Pricing
               </MobileLink>
 
-              {/* AUTH */}
+              {/* =================================================
+                  MOBILE AUTH
+              ================================================= */}
 
               <div
                 className="
@@ -1281,6 +1535,8 @@ function Navbar() {
                       space-y-2
                     "
                   >
+                    {/* USER */}
+
                     <div
                       className="
                         rounded-xl
@@ -1314,6 +1570,8 @@ function Navbar() {
                       </p>
                     </div>
 
+                    {/* DASHBOARD */}
+
                     <Link
                       to="/dashboard"
                       className="
@@ -1326,10 +1584,14 @@ function Navbar() {
                         py-3
                         font-semibold
                         text-cyan-300
+                        transition
+                        hover:bg-cyan-400/10
                       "
                     >
                       📊 Dashboard
                     </Link>
+
+                    {/* LOGOUT */}
 
                     <button
                       type="button"
@@ -1347,6 +1609,8 @@ function Navbar() {
                         text-left
                         font-semibold
                         text-red-300
+                        transition
+                        hover:bg-red-500/10
                       "
                     >
                       🚪 Logout
@@ -1364,6 +1628,8 @@ function Navbar() {
                       text-center
                       font-black
                       text-black
+                      transition
+                      hover:bg-gray-200
                     "
                   >
                     Login
@@ -1376,7 +1642,7 @@ function Navbar() {
       </nav>
 
       {/* =================================================
-          CLICK OUTSIDE LAYER
+          CLICK OUTSIDE MEGA MENU
       ================================================= */}
 
       {activeMegaMenu && (
@@ -1404,7 +1670,7 @@ function Navbar() {
 }
 
 /* =========================================================
-   MOBILE LINK COMPONENT
+   MOBILE LINK
 ========================================================= */
 
 function MobileLink({
