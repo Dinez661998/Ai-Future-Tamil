@@ -51,6 +51,19 @@ const tools = [
   },
 
   {
+  id: "ai-writer",
+  name: "AI Writer",
+  category: "AI Chat",
+  icon: "✍️",
+  description:
+    "Create blogs, emails, YouTube scripts, captions and professional content with AI.",
+  badge: "new",
+  pricing: "free",
+  popularity: 85,
+  goodFor: ["writing"],
+},
+
+  {
     id: "midjourney",
     name: "Midjourney",
     category: "AI Image",
