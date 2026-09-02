@@ -130,6 +130,13 @@ const UtilityTool = lazy(() =>
   import("./pages/UtilityHub/UtilityTool.jsx")
 );
 
+/* =========================================================
+   NEW — NEXT GENERATION HUB
+========================================================= */
+
+const NextGenHub = lazy(() =>
+  import("./pages/NextGenHub")
+);
 
 /* =========================================================
    INFO PAGE
@@ -627,20 +634,35 @@ function WebsiteRoutes() {
   return (
     <Routes>
 
+      {/* HOME */}
+
       <Route
         path="/"
         element={<Home />}
       />
 
-      <Route
-  path="/innovation-lab"
-  element={<InnovationLab />}
-/>
+      {/* INNOVATION */}
 
-<Route
-  path="/experience-zone"
-  element={<ExperienceZone />}
-/>
+      <Route
+        path="/innovation-lab"
+        element={<InnovationLab />}
+      />
+
+      {/* EXPERIENCE */}
+
+      <Route
+        path="/experience-zone"
+        element={<ExperienceZone />}
+      />
+
+      {/* =====================================================
+          NEW NEXT GENERATION HUB
+      ===================================================== */}
+
+      <Route
+        path="/next-gen"
+        element={<NextGenHub />}
+      />
 
       {/* AI */}
 
@@ -881,10 +903,12 @@ function WebsiteRoutes() {
         element={<PremiumHub />}
       />
 
+      {/* SMART HUB */}
+
       <Route
-  path="/smart-hub"
-  element={<SmartHub />}
-/>
+        path="/smart-hub"
+        element={<SmartHub />}
+      />
 
       {/* AI TOOLS */}
 
@@ -981,22 +1005,24 @@ function WebsiteRoutes() {
         }
       />
 
-      {/* 404 */}
+      {/* UTILITY HUB */}
+
+      <Route
+        path="/utility-hub"
+        element={<UtilityHub />}
+      />
+
+      <Route
+        path="/utility-hub/:toolId"
+        element={<UtilityTool />}
+      />
+
+      {/* 404 — KEEP LAST */}
 
       <Route
         path="*"
         element={<NotFound />}
       />
-
-      <Route
-  path="/utility-hub"
-  element={<UtilityHub />}
-/>
-
-<Route
-  path="/utility-hub/:toolId"
-  element={<UtilityTool />}
-/>
 
     </Routes>
   );
@@ -1018,7 +1044,7 @@ function WebsiteLayout() {
     to a section with sub-options.
 
     Home / Dashboard / Pricing / Community /
-    About etc do NOT get unnecessary sidebar.
+    About / NextGen etc do NOT get unnecessary sidebar.
   */
 
   const sidebarSection =

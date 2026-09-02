@@ -1116,6 +1116,17 @@ function Home() {
                   >
                     🤖 Explore AI Tools
                   </Link>
+                  <Link
+  to="/next-gen"
+  className="group relative overflow-hidden rounded-xl border border-purple-400/30 bg-gradient-to-r from-purple-500/15 via-violet-500/15 to-cyan-500/15 px-5 py-3 text-sm font-black text-white shadow-[0_0_25px_rgba(168,85,247,0.12)] transition-all duration-300 hover:-translate-y-0.5 hover:border-purple-400/60 hover:shadow-[0_0_35px_rgba(168,85,247,0.22)]"
+>
+  <span className="relative z-10 flex items-center gap-2">
+    🚀 Next Gen Hub
+    <span className="transition-transform duration-300 group-hover:translate-x-1">
+      →
+    </span>
+  </span>
+</Link>
 
                 </div>
 
