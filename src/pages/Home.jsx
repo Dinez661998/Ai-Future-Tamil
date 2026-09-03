@@ -12,6 +12,8 @@ import {
 import Hero from "../components/sections/Hero";
 import Tools from "../components/sections/Tools";
 import Features from "../components/sections/Features";
+import VisualLibrarySection from "../components/VisualLibrarySection";
+
 import AINews from "./AINews";
 
 import {
@@ -24,7 +26,6 @@ import {
   getSavedPrompts,
   getNewsRead,
   getCompletedCourses,
-  getCompletedCourseCount,
   getToolsExploredCount,
 } from "../utils/dashboardStorage";
 
@@ -291,7 +292,10 @@ function getLevelInfo(xp) {
   const xpPerLevel = 500;
 
   const safeXP =
-    Math.max(0, Number(xp) || 0);
+    Math.max(
+      0,
+      Number(xp) || 0
+    );
 
   const level =
     Math.floor(
@@ -305,9 +309,10 @@ function getLevelInfo(xp) {
     Math.min(
       100,
       Math.round(
-        (currentXP /
-          xpPerLevel) *
-          100
+        (
+          currentXP /
+          xpPerLevel
+        ) * 100
       )
     );
 
@@ -320,6 +325,7 @@ function getLevelInfo(xp) {
   if (level >= 3) {
     rank =
       "AI Explorer";
+
     icon =
       "🚀";
   }
@@ -327,6 +333,7 @@ function getLevelInfo(xp) {
   if (level >= 5) {
     rank =
       "AI Builder";
+
     icon =
       "⚡";
   }
@@ -334,6 +341,7 @@ function getLevelInfo(xp) {
   if (level >= 8) {
     rank =
       "AI Pro";
+
     icon =
       "🔥";
   }
@@ -341,6 +349,7 @@ function getLevelInfo(xp) {
   if (level >= 12) {
     rank =
       "AI Master";
+
     icon =
       "👑";
   }
@@ -369,15 +378,17 @@ function normalizeRecentTool(
   const id =
     String(
       item.id ||
-        item.toolId ||
-        item.tool_id ||
-        ""
+      item.toolId ||
+      item.tool_id ||
+      ""
     );
 
   const match =
     toolLibrary.find(
       (tool) =>
-        String(tool.id) === id
+        String(
+          tool.id
+        ) === id
     );
 
   if (match) {
@@ -568,7 +579,8 @@ function Home() {
         const {
           data,
         } =
-          await supabase.auth.getUser();
+          await supabase.auth
+            .getUser();
 
         const user =
           data?.user;
@@ -576,6 +588,7 @@ function Home() {
         if (!user) {
           setLoggedIn(false);
           setUserName("");
+
           return;
         }
 
@@ -593,9 +606,16 @@ function Home() {
             data: profile,
           } =
             await supabase
-              .from("profiles")
-              .select("name")
-              .eq("id", user.id)
+              .from(
+                "profiles"
+              )
+              .select(
+                "name"
+              )
+              .eq(
+                "id",
+                user.id
+              )
               .maybeSingle();
 
           if (
@@ -605,7 +625,7 @@ function Home() {
               profile.name;
           }
         } catch {
-          // profile optional
+          // Profile is optional.
         }
 
         if (!name) {
@@ -616,6 +636,7 @@ function Home() {
         }
 
         setUserName(name);
+
       } catch {
         setLoggedIn(false);
       }
@@ -629,16 +650,20 @@ function Home() {
     useCallback(() => {
       try {
         const favoriteIds =
-          getFavoriteTools() || [];
+          getFavoriteTools() ||
+          [];
 
         const favoriteItems =
           favoriteIds
-            .map((id) =>
-              toolLibrary.find(
-                (tool) =>
-                  String(tool.id) ===
-                  String(id)
-              )
+            .map(
+              (id) =>
+                toolLibrary.find(
+                  (tool) =>
+                    String(
+                      tool.id
+                    ) ===
+                    String(id)
+                )
             )
             .filter(Boolean);
 
@@ -686,7 +711,8 @@ function Home() {
         );
 
         const newsIds =
-          getNewsRead() || [];
+          getNewsRead() ||
+          [];
 
         setReadNews(
           newsIds
@@ -731,6 +757,7 @@ function Home() {
             gameData.streak
           ) || 1
         );
+
       } catch (
         error
       ) {
@@ -822,11 +849,13 @@ function Home() {
 
           const percentage =
             Math.round(
-              (Math.min(
-                completedLessons.length,
+              (
+                Math.min(
+                  completedLessons.length,
+                  course.lessons
+                ) /
                 course.lessons
-              ) /
-                course.lessons) *
+              ) *
                 100
             );
 
@@ -842,16 +871,22 @@ function Home() {
             completedCourses.some(
               (id) =>
                 String(id) ===
-                String(course.id)
+                String(
+                  course.id
+                )
             ) ||
-            (percentage ===
-              100 &&
-              quizPassed);
+            (
+              percentage ===
+                100 &&
+              quizPassed
+            );
 
           return {
             ...course,
+
             completedLessons:
               completedLessons.length,
+
             percentage,
             quizPassed,
             completed,
@@ -873,7 +908,8 @@ function Home() {
       const started =
         courseProgress.filter(
           (course) =>
-            course.percentage > 0 &&
+            course.percentage >
+              0 &&
             !course.completed
         );
 
@@ -891,7 +927,10 @@ function Home() {
           (course) =>
             !course.completed
         )
-        .slice(0, 3);
+        .slice(
+          0,
+          3
+        );
     }, [courseProgress]);
 
   /* =========================================================
@@ -918,11 +957,16 @@ function Home() {
   const totalXP =
     useMemo(() => {
       return (
-        toolsExplored * 20 +
-        favorites.length * 10 +
-        savedPrompts.length * 25 +
-        readNews.length * 15 +
-        totalCompletedLessons * 40 +
+        toolsExplored *
+          20 +
+        favorites.length *
+          10 +
+        savedPrompts.length *
+          25 +
+        readNews.length *
+          15 +
+        totalCompletedLessons *
+          40 +
         completedCourses.length *
           200 +
         streak * 10
@@ -953,17 +997,21 @@ function Home() {
   const savedPromptItems =
     useMemo(() => {
       return savedPrompts
-        .map((id) =>
-          promptLibrary.find(
-            (prompt) =>
-              String(
-                prompt.id
-              ) ===
-              String(id)
-          )
+        .map(
+          (id) =>
+            promptLibrary.find(
+              (prompt) =>
+                String(
+                  prompt.id
+                ) ===
+                String(id)
+            )
         )
         .filter(Boolean)
-        .slice(0, 3);
+        .slice(
+          0,
+          3
+        );
     }, [savedPrompts]);
 
   /* =========================================================
@@ -973,15 +1021,21 @@ function Home() {
   const readNewsItems =
     useMemo(() => {
       return readNews
-        .map((id) =>
-          newsLibrary.find(
-            (news) =>
-              String(news.id) ===
-              String(id)
-          )
+        .map(
+          (id) =>
+            newsLibrary.find(
+              (news) =>
+                String(
+                  news.id
+                ) ===
+                String(id)
+            )
         )
         .filter(Boolean)
-        .slice(0, 3);
+        .slice(
+          0,
+          3
+        );
     }, [readNews]);
 
   /* =========================================================
@@ -994,12 +1048,16 @@ function Home() {
         new Set([
           ...favorites.map(
             (item) =>
-              String(item.id)
+              String(
+                item.id
+              )
           ),
 
           ...recentTools.map(
             (item) =>
-              String(item.id)
+              String(
+                item.id
+              )
           ),
         ]);
 
@@ -1007,7 +1065,9 @@ function Home() {
         toolLibrary.filter(
           (tool) =>
             !usedIds.has(
-              String(tool.id)
+              String(
+                tool.id
+              )
             )
         );
 
@@ -1052,6 +1112,12 @@ function Home() {
       </section>
 
       {/* =====================================================
+          VISUAL LEARNING LIBRARY
+      ===================================================== */}
+
+      <VisualLibrarySection />
+
+      {/* =====================================================
           PERSONALIZED HOME
       ===================================================== */}
 
@@ -1086,10 +1152,13 @@ function Home() {
                 <h2 className="max-w-3xl text-3xl font-black leading-tight text-white sm:text-4xl">
 
                   {loggedIn
-                    ? `Welcome back, ${userName || "Explorer"} 👋`
+                    ? `Welcome back, ${
+                        userName ||
+                        "Explorer"
+                      } 👋`
                     : hasPersonalActivity
-                    ? "Continue Your AI Journey 🚀"
-                    : "Start Your AI Journey 🚀"}
+                      ? "Continue Your AI Journey 🚀"
+                      : "Start Your AI Journey 🚀"}
 
                 </h2>
 
@@ -1116,17 +1185,32 @@ function Home() {
                   >
                     🤖 Explore AI Tools
                   </Link>
+
                   <Link
-  to="/next-gen"
-  className="group relative overflow-hidden rounded-xl border border-purple-400/30 bg-gradient-to-r from-purple-500/15 via-violet-500/15 to-cyan-500/15 px-5 py-3 text-sm font-black text-white shadow-[0_0_25px_rgba(168,85,247,0.12)] transition-all duration-300 hover:-translate-y-0.5 hover:border-purple-400/60 hover:shadow-[0_0_35px_rgba(168,85,247,0.22)]"
->
-  <span className="relative z-10 flex items-center gap-2">
-    🚀 Next Gen Hub
-    <span className="transition-transform duration-300 group-hover:translate-x-1">
-      →
-    </span>
-  </span>
-</Link>
+                    to="/next-gen"
+                    className="group relative overflow-hidden rounded-xl border border-purple-400/30 bg-gradient-to-r from-purple-500/15 via-violet-500/15 to-cyan-500/15 px-5 py-3 text-sm font-black text-white shadow-[0_0_25px_rgba(168,85,247,0.12)] transition-all duration-300 hover:-translate-y-0.5 hover:border-purple-400/60 hover:shadow-[0_0_35px_rgba(168,85,247,0.22)]"
+                  >
+                    <span className="relative z-10 flex items-center gap-2">
+                      🚀 Next Gen Hub
+
+                      <span className="transition-transform duration-300 group-hover:translate-x-1">
+                        →
+                      </span>
+                    </span>
+                  </Link>
+
+                  <Link
+                    to="/visual-library"
+                    className="group rounded-xl border border-cyan-400/20 bg-cyan-400/[0.06] px-5 py-3 text-sm font-black text-cyan-200 transition-all duration-300 hover:-translate-y-0.5 hover:border-cyan-400/40 hover:bg-cyan-400/[0.10]"
+                  >
+                    <span className="flex items-center gap-2">
+                      📚 Visual Library
+
+                      <span className="transition-transform duration-300 group-hover:translate-x-1">
+                        →
+                      </span>
+                    </span>
+                  </Link>
 
                 </div>
 
@@ -1158,14 +1242,25 @@ function Home() {
                 <div className="mt-5">
 
                   <div className="mb-2 flex items-center justify-between text-xs">
+
                     <span className="text-gray-500">
-                      {levelInfo.currentXP} /{" "}
-                      {levelInfo.xpPerLevel} XP
+                      {
+                        levelInfo.currentXP
+                      }{" "}
+                      /{" "}
+                      {
+                        levelInfo.xpPerLevel
+                      }{" "}
+                      XP
                     </span>
 
                     <span className="font-bold text-cyan-300">
-                      {levelInfo.progress}%
+                      {
+                        levelInfo.progress
+                      }
+                      %
                     </span>
+
                   </div>
 
                   <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
@@ -1182,6 +1277,7 @@ function Home() {
                 <div className="mt-5 grid grid-cols-2 gap-3">
 
                   <div className="rounded-2xl border border-orange-400/15 bg-orange-400/[0.05] p-3">
+
                     <p className="text-lg">
                       🔥
                     </p>
@@ -1193,9 +1289,11 @@ function Home() {
                     <p className="text-[11px] text-gray-600">
                       Day Streak
                     </p>
+
                   </div>
 
                   <div className="rounded-2xl border border-cyan-400/15 bg-cyan-400/[0.05] p-3">
+
                     <p className="text-lg">
                       ⚡
                     </p>
@@ -1207,6 +1305,7 @@ function Home() {
                     <p className="text-[11px] text-gray-600">
                       Total XP
                     </p>
+
                   </div>
 
                 </div>
@@ -1224,6 +1323,7 @@ function Home() {
           <div className="mb-12 grid grid-cols-2 gap-3 md:grid-cols-4">
 
             <div className="rounded-2xl border border-pink-400/15 bg-pink-400/[0.04] p-4 sm:p-5">
+
               <div className="text-2xl">
                 ❤️
               </div>
@@ -1235,23 +1335,29 @@ function Home() {
               <p className="text-xs text-gray-500">
                 Favorite Tools
               </p>
+
             </div>
 
             <div className="rounded-2xl border border-purple-400/15 bg-purple-400/[0.04] p-4 sm:p-5">
+
               <div className="text-2xl">
                 ✨
               </div>
 
               <p className="mt-3 text-2xl font-black text-white">
-                {savedPrompts.length}
+                {
+                  savedPrompts.length
+                }
               </p>
 
               <p className="text-xs text-gray-500">
                 Saved Prompts
               </p>
+
             </div>
 
             <div className="rounded-2xl border border-blue-400/15 bg-blue-400/[0.04] p-4 sm:p-5">
+
               <div className="text-2xl">
                 📰
               </div>
@@ -1263,20 +1369,25 @@ function Home() {
               <p className="text-xs text-gray-500">
                 News Read
               </p>
+
             </div>
 
             <div className="rounded-2xl border border-green-400/15 bg-green-400/[0.04] p-4 sm:p-5">
+
               <div className="text-2xl">
                 🎓
               </div>
 
               <p className="mt-3 text-2xl font-black text-white">
-                {completedCourses.length}
+                {
+                  completedCourses.length
+                }
               </p>
 
               <p className="text-xs text-gray-500">
                 Courses Done
               </p>
+
             </div>
 
           </div>
@@ -1314,7 +1425,10 @@ function Home() {
               <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-3">
 
                 {recentTools
-                  .slice(0, 3)
+                  .slice(
+                    0,
+                    3
+                  )
                   .map(
                     (tool) => (
                       <Link
@@ -1423,14 +1537,23 @@ function Home() {
                     </h3>
 
                     <p className="mt-2 text-xs text-gray-600">
-                      {course.completedLessons} /{" "}
-                      {course.lessons} lessons ·{" "}
-                      {course.duration}
+                      {
+                        course.completedLessons
+                      }{" "}
+                      /{" "}
+                      {
+                        course.lessons
+                      }{" "}
+                      lessons ·{" "}
+                      {
+                        course.duration
+                      }
                     </p>
 
                     <div className="mt-5">
 
                       <div className="mb-2 flex items-center justify-between text-xs">
+
                         <span className="text-gray-600">
                           Progress
                         </span>
@@ -1441,6 +1564,7 @@ function Home() {
                           }
                           %
                         </span>
+
                       </div>
 
                       <div className="h-2 overflow-hidden rounded-full bg-white/[0.06]">
@@ -1455,10 +1579,12 @@ function Home() {
                     </div>
 
                     <div className="mt-5 text-sm font-bold text-green-300">
-                      {course.percentage >
-                      0
-                        ? "Continue Course →"
-                        : "Start Course →"}
+                      {
+                        course.percentage >
+                        0
+                          ? "Continue Course →"
+                          : "Start Course →"
+                      }
                     </div>
 
                   </Link>
@@ -1675,7 +1801,8 @@ function Home() {
               FAVORITE TOOLS
           ================================================= */}
 
-          {favorites.length > 0 && (
+          {favorites.length >
+            0 && (
             <div className="mb-14">
 
               <SectionTitle
@@ -1687,7 +1814,10 @@ function Home() {
               <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
 
                 {favorites
-                  .slice(0, 6)
+                  .slice(
+                    0,
+                    6
+                  )
                   .map(
                     (tool) => (
                       <Link

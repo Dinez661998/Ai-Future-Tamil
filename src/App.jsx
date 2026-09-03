@@ -130,8 +130,12 @@ const UtilityTool = lazy(() =>
   import("./pages/UtilityHub/UtilityTool.jsx")
 );
 
+const VisualLibrary = lazy(() =>
+  import("./pages/VisualLibrary")
+);
+
 /* =========================================================
-   NEW — NEXT GENERATION HUB
+   NEXT GENERATION HUB
 ========================================================= */
 
 const NextGenHub = lazy(() =>
@@ -655,9 +659,7 @@ function WebsiteRoutes() {
         element={<ExperienceZone />}
       />
 
-      {/* =====================================================
-          NEW NEXT GENERATION HUB
-      ===================================================== */}
+      {/* NEXT GENERATION HUB */}
 
       <Route
         path="/next-gen"
@@ -1005,6 +1007,13 @@ function WebsiteRoutes() {
         }
       />
 
+      {/* VISUAL LIBRARY */}
+
+      <Route
+        path="/visual-library"
+        element={<VisualLibrary />}
+      />
+
       {/* UTILITY HUB */}
 
       <Route
@@ -1044,7 +1053,7 @@ function WebsiteLayout() {
     to a section with sub-options.
 
     Home / Dashboard / Pricing / Community /
-    About / NextGen etc do NOT get unnecessary sidebar.
+    About / NextGen / VisualLibrary etc do NOT get unnecessary sidebar.
   */
 
   const sidebarSection =
