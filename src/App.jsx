@@ -19,6 +19,7 @@ import AnimatedBackground from "./components/AnimatedBackground";
 import Navbar from "./components/layout/Navbar";
 import NotificationCenter from "./components/NotificationCenter";
 import ProtectedRoute from "./components/ProtectedRoute";
+import AdminRoute from "./components/AdminRoute";
 import CommandCenter from "./components/CommandCenter";
 import Footer from "./components/Footer";
 
@@ -32,6 +33,10 @@ import AppSidebar, {
 
 const Home = lazy(() =>
   import("./pages/Home")
+);
+
+const AdminNews = lazy(() =>
+  import("./pages/AdminNews")
 );
 
 const AITools = lazy(() =>
@@ -60,6 +65,10 @@ const Signup = lazy(() =>
 
 const Dashboard = lazy(() =>
   import("./pages/Dashboard")
+);
+
+const AdminDashboard = lazy(() =>
+  import("./pages/AdminDashboard")
 );
 
 const ToolDetails = lazy(() =>
@@ -134,16 +143,12 @@ const VisualLibrary = lazy(() =>
   import("./pages/VisualLibrary")
 );
 
-/* =========================================================
-   NEXT GENERATION HUB
-========================================================= */
-
 const NextGenHub = lazy(() =>
   import("./pages/NextGenHub")
 );
 
 /* =========================================================
-   INFO PAGE
+   INFO PAGE COMPONENT
 ========================================================= */
 
 function InfoPage({
@@ -166,6 +171,8 @@ function InfoPage({
       "
     >
       <div className="mx-auto max-w-[1300px]">
+
+        {/* HERO */}
 
         <section
           className="
@@ -252,87 +259,86 @@ function InfoPage({
           </div>
         </section>
 
-        <section
-          className="
-            mt-7
-            space-y-5
-          "
-        >
-          {sections.map(
-            (section, index) => (
-              <article
-                key={section.title}
-                className="
-                  rounded-[26px]
-                  border
-                  border-white/[0.08]
-                  bg-black/25
-                  p-6
-                  backdrop-blur-xl
-                  sm:p-8
-                "
-              >
+        {/* SECTIONS */}
+
+        <section className="mt-7 space-y-5">
+
+          {sections.map((section, index) => (
+            <article
+              key={`${section.title}-${index}`}
+              className="
+                rounded-[26px]
+                border
+                border-white/[0.08]
+                bg-black/25
+                p-6
+                backdrop-blur-xl
+                sm:p-8
+              "
+            >
+              <div className="flex items-start gap-4">
+
                 <div
                   className="
                     flex
-                    items-start
-                    gap-4
+                    h-11
+                    w-11
+                    shrink-0
+                    items-center
+                    justify-center
+                    rounded-xl
+                    border
+                    border-purple-400/20
+                    bg-purple-400/[0.05]
+                    font-black
+                    text-purple-300
                   "
                 >
-                  <div
+                  {index + 1}
+                </div>
+
+                <div>
+
+                  <h2
                     className="
-                      flex
-                      h-11
-                      w-11
-                      shrink-0
-                      items-center
-                      justify-center
-                      rounded-xl
-                      border
-                      border-purple-400/20
-                      bg-purple-400/[0.05]
+                      text-xl
                       font-black
-                      text-purple-300
+                      sm:text-2xl
                     "
                   >
-                    {index + 1}
+                    {section.title}
+                  </h2>
+
+                  <div
+                    className="
+                      mt-3
+                      space-y-3
+                      text-sm
+                      leading-7
+                      text-gray-400
+                      sm:text-base
+                    "
+                  >
+                    {section.text.map(
+                      (paragraph, paragraphIndex) => (
+                        <p
+                          key={`${section.title}-${paragraphIndex}`}
+                        >
+                          {paragraph}
+                        </p>
+                      )
+                    )}
                   </div>
 
-                  <div>
-                    <h2
-                      className="
-                        text-xl
-                        font-black
-                        sm:text-2xl
-                      "
-                    >
-                      {section.title}
-                    </h2>
-
-                    <div
-                      className="
-                        mt-3
-                        space-y-3
-                        text-sm
-                        leading-7
-                        text-gray-400
-                        sm:text-base
-                      "
-                    >
-                      {section.text.map(
-                        (paragraph) => (
-                          <p key={paragraph}>
-                            {paragraph}
-                          </p>
-                        )
-                      )}
-                    </div>
-                  </div>
                 </div>
-              </article>
-            )
-          )}
+
+              </div>
+            </article>
+          ))}
+
         </section>
+
+        {/* CONTACT CTA */}
 
         <section
           className="
@@ -354,21 +360,17 @@ function InfoPage({
               sm:justify-between
             "
           >
+
             <div>
+
               <p className="font-black">
                 Need help?
               </p>
 
-              <p
-                className="
-                  mt-1
-                  text-sm
-                  text-gray-500
-                "
-              >
-                Contact AI Future Tamil
-                for questions or support.
+              <p className="mt-1 text-sm text-gray-500">
+                Contact AI Future Tamil for questions or support.
               </p>
+
             </div>
 
             <Link
@@ -387,6 +389,7 @@ function InfoPage({
             >
               Contact Us →
             </Link>
+
           </div>
         </section>
 
@@ -396,7 +399,7 @@ function InfoPage({
 }
 
 /* =========================================================
-   ABOUT
+   ABOUT PAGE
 ========================================================= */
 
 function AboutPage() {
@@ -405,7 +408,11 @@ function AboutPage() {
       icon="🚀"
       eyebrow="ABOUT AI FUTURE TAMIL"
       title="Learn. Create. Grow with AI."
-      subtitle="AI Future Tamil is a platform built to help users discover AI tools, creator resources, technology, learning content and useful digital products in one place."
+      subtitle="
+        AI Future Tamil is a platform built to help users
+        discover AI tools, creator resources, technology,
+        learning content and useful digital products in one place.
+      "
       sections={[
         {
           title: "Our Mission",
@@ -448,7 +455,7 @@ function AboutPage() {
 }
 
 /* =========================================================
-   PRIVACY
+   PRIVACY PAGE
 ========================================================= */
 
 function PrivacyPage() {
@@ -457,7 +464,10 @@ function PrivacyPage() {
       icon="🔒"
       eyebrow="LEGAL & PRIVACY"
       title="Privacy Policy"
-      subtitle="This page explains how AI Future Tamil may collect, use and protect information when you use the platform."
+      subtitle="
+        This page explains how AI Future Tamil may collect,
+        use and protect information when you use the platform.
+      "
       sections={[
         {
           title: "Information We Collect",
@@ -514,7 +524,7 @@ function PrivacyPage() {
 }
 
 /* =========================================================
-   TERMS
+   TERMS PAGE
 ========================================================= */
 
 function TermsPage() {
@@ -523,7 +533,10 @@ function TermsPage() {
       icon="📜"
       eyebrow="LEGAL INFORMATION"
       title="Terms & Conditions"
-      subtitle="By using AI Future Tamil, users agree to use the platform and its resources responsibly."
+      subtitle="
+        By using AI Future Tamil, users agree to use
+        the platform and its resources responsibly.
+      "
       sections={[
         {
           title: "Platform Use",
@@ -580,7 +593,7 @@ function TermsPage() {
 }
 
 /* =========================================================
-   LOADER
+   PAGE LOADER
 ========================================================= */
 
 function PageLoader() {
@@ -604,6 +617,7 @@ function PageLoader() {
           text-center
         "
       >
+
         <div
           className="
             h-11
@@ -625,48 +639,70 @@ function PageLoader() {
         >
           Loading AI Future Tamil...
         </p>
+
       </div>
     </div>
   );
 }
 
 /* =========================================================
-   ROUTES
+   WEBSITE ROUTES
 ========================================================= */
 
 function WebsiteRoutes() {
   return (
     <Routes>
 
-      {/* HOME */}
+      {/* ================= HOME ================= */}
 
       <Route
         path="/"
         element={<Home />}
       />
 
-      {/* INNOVATION */}
+      {/* ================= ADMIN ================= */}
+
+      <Route
+  path="/admin"
+  element={
+    <AdminRoute>
+      <AdminDashboard />
+    </AdminRoute>
+  }
+/>
+
+<Route
+  path="/admin/news"
+  element={
+    <AdminRoute>
+      <AdminNews />
+    </AdminRoute>
+  }
+/>
+
+
+      {/* ================= INNOVATION ================= */}
 
       <Route
         path="/innovation-lab"
         element={<InnovationLab />}
       />
 
-      {/* EXPERIENCE */}
+      {/* ================= EXPERIENCE ================= */}
 
       <Route
         path="/experience-zone"
         element={<ExperienceZone />}
       />
 
-      {/* NEXT GENERATION HUB */}
+      {/* ================= NEXT GEN ================= */}
 
       <Route
         path="/next-gen"
         element={<NextGenHub />}
       />
 
-      {/* AI */}
+      {/* ================= AI HUB ================= */}
 
       <Route
         path="/ai-apps"
@@ -708,7 +744,7 @@ function WebsiteRoutes() {
         element={<AIHubPage />}
       />
 
-      {/* CREATORS */}
+      {/* ================= CREATORS ================= */}
 
       <Route
         path="/creators/youtube"
@@ -770,7 +806,7 @@ function WebsiteRoutes() {
         element={<CreatorHubPage />}
       />
 
-      {/* TECHNOLOGY */}
+      {/* ================= TECHNOLOGY ================= */}
 
       <Route
         path="/technology/android"
@@ -822,7 +858,7 @@ function WebsiteRoutes() {
         element={<TechnologyHubPage />}
       />
 
-      {/* PRODUCTS */}
+      {/* ================= PRODUCTS ================= */}
 
       <Route
         path="/products/free"
@@ -884,35 +920,35 @@ function WebsiteRoutes() {
         element={<ProductsHubPage />}
       />
 
-      {/* COMMUNITY */}
+      {/* ================= COMMUNITY ================= */}
 
       <Route
         path="/community"
         element={<Community />}
       />
 
-      {/* PROMOTION */}
+      {/* ================= PROMOTION ================= */}
 
       <Route
         path="/promotion"
         element={<PromotionHub />}
       />
 
-      {/* PREMIUM */}
+      {/* ================= PREMIUM ================= */}
 
       <Route
         path="/premium"
         element={<PremiumHub />}
       />
 
-      {/* SMART HUB */}
+      {/* ================= SMART HUB ================= */}
 
       <Route
         path="/smart-hub"
         element={<SmartHub />}
       />
 
-      {/* AI TOOLS */}
+      {/* ================= AI TOOLS ================= */}
 
       <Route
         path="/ai-tools"
@@ -924,7 +960,7 @@ function WebsiteRoutes() {
         element={<ToolDetails />}
       />
 
-      {/* NEWS */}
+      {/* ================= NEWS ================= */}
 
       <Route
         path="/ai-news"
@@ -936,14 +972,14 @@ function WebsiteRoutes() {
         element={<NewsDetails />}
       />
 
-      {/* PROMPTS */}
+      {/* ================= PROMPTS ================= */}
 
       <Route
         path="/prompts"
         element={<Prompts />}
       />
 
-      {/* COURSES */}
+      {/* ================= COURSES ================= */}
 
       <Route
         path="/courses"
@@ -955,14 +991,14 @@ function WebsiteRoutes() {
         element={<Courses />}
       />
 
-      {/* PRICING */}
+      {/* ================= PRICING ================= */}
 
       <Route
         path="/pricing"
         element={<Pricing />}
       />
 
-      {/* INFORMATION */}
+      {/* ================= INFORMATION ================= */}
 
       <Route
         path="/about"
@@ -984,7 +1020,7 @@ function WebsiteRoutes() {
         element={<Contact />}
       />
 
-      {/* AUTH */}
+      {/* ================= AUTH ================= */}
 
       <Route
         path="/login"
@@ -996,7 +1032,7 @@ function WebsiteRoutes() {
         element={<Signup />}
       />
 
-      {/* DASHBOARD */}
+      {/* ================= USER DASHBOARD ================= */}
 
       <Route
         path="/dashboard"
@@ -1007,14 +1043,14 @@ function WebsiteRoutes() {
         }
       />
 
-      {/* VISUAL LIBRARY */}
+      {/* ================= VISUAL LIBRARY ================= */}
 
       <Route
         path="/visual-library"
         element={<VisualLibrary />}
       />
 
-      {/* UTILITY HUB */}
+      {/* ================= UTILITY HUB ================= */}
 
       <Route
         path="/utility-hub"
@@ -1026,7 +1062,7 @@ function WebsiteRoutes() {
         element={<UtilityTool />}
       />
 
-      {/* 404 — KEEP LAST */}
+      {/* ================= 404 ================= */}
 
       <Route
         path="*"
@@ -1044,16 +1080,20 @@ function WebsiteRoutes() {
 function WebsiteLayout() {
   const location = useLocation();
 
+  /* AUTH PAGES */
+
   const authPage =
     location.pathname === "/login" ||
     location.pathname === "/signup";
 
-  /*
-    Sidebar appears ONLY when current page belongs
-    to a section with sub-options.
+  /* ADMIN PAGE */
 
-    Home / Dashboard / Pricing / Community /
-    About / NextGen / VisualLibrary etc do NOT get unnecessary sidebar.
+  const adminPage =
+    location.pathname.startsWith("/admin");
+
+  /*
+    Sidebar only appears when current pathname
+    belongs to a sidebar section.
   */
 
   const sidebarSection =
@@ -1061,6 +1101,7 @@ function WebsiteLayout() {
 
   const hasSidebar =
     !authPage &&
+    !adminPage &&
     Boolean(sidebarSection);
 
   return (
@@ -1072,19 +1113,20 @@ function WebsiteLayout() {
         text-white
       "
     >
-      {/* NAVBAR */}
+
+      {/* ================= NAVBAR ================= */}
 
       {!authPage && (
         <Navbar />
       )}
 
-      {/* SIDEBAR */}
+      {/* ================= SIDEBAR ================= */}
 
       {hasSidebar && (
         <AppSidebar />
       )}
 
-      {/* MAIN */}
+      {/* ================= MAIN CONTENT ================= */}
 
       <main
         className={`
@@ -1103,20 +1145,24 @@ function WebsiteLayout() {
           }
         `}
       >
+
         <Suspense
           fallback={<PageLoader />}
         >
           <WebsiteRoutes />
         </Suspense>
 
-        {!authPage && (
+        {/* FOOTER */}
+
+        {!authPage && !adminPage && (
           <Footer />
         )}
+
       </main>
 
-      {/* FLOATING UI */}
+      {/* ================= FLOATING UI ================= */}
 
-      {!authPage && (
+      {!authPage && !adminPage && (
         <>
           <NotificationCenter />
           <CommandCenter />
@@ -1128,14 +1174,18 @@ function WebsiteLayout() {
 }
 
 /* =========================================================
-   APP
+   MAIN APP
 ========================================================= */
 
 function App() {
   return (
     <BrowserRouter>
 
+      {/* GLOBAL BACKGROUND */}
+
       <AnimatedBackground />
+
+      {/* WEBSITE */}
 
       <WebsiteLayout />
 

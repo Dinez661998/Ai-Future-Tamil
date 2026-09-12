@@ -1,107 +1,10 @@
-import { Link, useNavigate } from "react-router-dom";
 import { useEffect, useMemo, useState } from "react";
+import { supabase } from "../supabase/client";
 
 import {
   getFavoriteTools,
   toggleFavoriteTool,
 } from "../utils/dashboardStorage";
-
-/* =========================================================
-   AI TOOLS DATA
-========================================================= */
-
-const tools = [
-  {
-    id: "chatgpt",
-    name: "ChatGPT",
-    category: "AI Chat",
-    icon: "🤖",
-    description:
-      "AI assistant for writing, coding, learning and productivity.",
-    badge: "popular",
-    pricing: "free",
-    popularity: 95,
-    goodFor: ["writing", "chat"],
-  },
-
-  {
-    id: "gemini",
-    name: "Gemini",
-    category: "AI Chat",
-    icon: "💎",
-    description:
-      "Google AI assistant for research, writing and everyday tasks.",
-    badge: "popular",
-    pricing: "free",
-    popularity: 88,
-    goodFor: ["writing", "chat"],
-  },
-
-  {
-    id: "claude",
-    name: "Claude",
-    category: "AI Chat",
-    icon: "🧠",
-    description:
-      "Powerful AI assistant for writing, analysis and coding.",
-    badge: "popular",
-    pricing: "free",
-    popularity: 90,
-    goodFor: ["writing", "chat"],
-  },
-
-  {
-  id: "ai-writer",
-  name: "AI Writer",
-  category: "AI Chat",
-  icon: "✍️",
-  description:
-    "Create blogs, emails, YouTube scripts, captions and professional content with AI.",
-  badge: "new",
-  pricing: "free",
-  popularity: 85,
-  goodFor: ["writing"],
-},
-
-  {
-    id: "midjourney",
-    name: "Midjourney",
-    category: "AI Image",
-    icon: "🎨",
-    description:
-      "Create stunning AI-generated images from text prompts.",
-    badge: "new",
-    pricing: "paid",
-    popularity: 82,
-    goodFor: ["image"],
-  },
-
-  {
-    id: "runway",
-    name: "Runway",
-    category: "AI Video",
-    icon: "🎬",
-    description:
-      "Create and edit videos using powerful AI tools.",
-    badge: "new",
-    pricing: "paid",
-    popularity: 70,
-    goodFor: ["video"],
-  },
-
-  {
-    id: "suno",
-    name: "Suno AI",
-    category: "AI Music",
-    icon: "🎵",
-    description:
-      "Generate songs and music using artificial intelligence.",
-    badge: null,
-    pricing: "free",
-    popularity: 65,
-    goodFor: ["music"],
-  },
-];
 
 /* =========================================================
    HELPERS
@@ -120,13 +23,69 @@ function getSafeFavorites() {
   }
 }
 
-const categoryIcons = {
-  All: "✨",
-  "AI Chat": "🤖",
-  "AI Image": "🎨",
-  "AI Video": "🎬",
-  "AI Music": "🎵",
-};
+function getCategoryIcon(category) {
+  const icons = {
+    "AI Chat": "🤖",
+    "AI Image": "🎨",
+    "AI Video": "🎬",
+    "AI Music": "🎵",
+    "AI Coding": "💻",
+    "AI Writing": "✍️",
+    Productivity: "⚡",
+    Education: "🎓",
+    Other: "✨",
+  };
+
+  return icons[category] || "🤖";
+}
+
+function getGoodFor(category) {
+  const map = {
+    "AI Chat": ["writing", "chat"],
+    "AI Image": ["image"],
+    "AI Video": ["video"],
+    "AI Music": ["music"],
+    "AI Coding": ["coding"],
+    "AI Writing": ["writing"],
+    Productivity: ["productivity"],
+    Education: ["learning"],
+  };
+
+  return map[category] || ["other"];
+}
+
+function normalizePricing(value) {
+  const pricing = String(value || "Free").toLowerCase();
+
+  if (pricing.includes("free") && pricing.includes("trial")) {
+    return "Free Trial";
+  }
+
+  if (pricing.includes("freemium")) {
+    return "Freemium";
+  }
+
+  if (pricing.includes("paid")) {
+    return "Paid";
+  }
+
+  return "Free";
+}
+
+function getPopularity(tool) {
+  if (tool.trending && tool.featured) return 95;
+  if (tool.trending) return 88;
+  if (tool.featured) return 82;
+
+  return 70;
+}
+
+function getBadge(tool) {
+  if (tool.trending) return "popular";
+  if (tool.featured) return "featured";
+
+  return null;
+}
 
 /* =========================================================
    FAVORITE BUTTON
@@ -167,7 +126,7 @@ function FavoriteButton({ tool, onChange }) {
     };
   }, [tool.id]);
 
-  const handleFavorite = (event) => {
+  function handleFavorite(event) {
     event.preventDefault();
     event.stopPropagation();
 
@@ -187,7 +146,7 @@ function FavoriteButton({ tool, onChange }) {
         error
       );
     }
-  };
+  }
 
   return (
     <button
@@ -216,7 +175,6 @@ function FavoriteButton({ tool, onChange }) {
               border-pink-400/40
               bg-pink-500/10
               text-pink-400
-              shadow-[0_0_18px_rgba(236,72,153,.15)]
             `
             : `
               border-white/[0.08]
@@ -234,10 +192,14 @@ function FavoriteButton({ tool, onChange }) {
 }
 
 /* =========================================================
-   BADGES
+   TOOL BADGES
 ========================================================= */
 
-function ToolBadges({ badge, pricing }) {
+function ToolBadges({
+  badge,
+  pricing,
+  featured,
+}) {
   return (
     <div className="flex flex-wrap gap-2">
 
@@ -255,55 +217,42 @@ function ToolBadges({ badge, pricing }) {
             text-orange-300
           "
         >
-          🔥 Popular
+          🔥 Trending
         </span>
       )}
 
-      {badge === "new" && (
+      {featured && (
         <span
           className="
             rounded-full
             border
-            border-green-400/20
-            bg-green-400/[0.06]
+            border-yellow-400/20
+            bg-yellow-400/[0.06]
             px-3
             py-1
             text-[11px]
             font-bold
-            text-green-300
+            text-yellow-300
           "
         >
-          🆕 New
+          ⭐ Featured
         </span>
       )}
 
       <span
-        className={`
+        className="
           rounded-full
           border
+          border-cyan-400/20
+          bg-cyan-400/[0.06]
           px-3
           py-1
           text-[11px]
           font-bold
-
-          ${
-            pricing === "free"
-              ? `
-                border-cyan-400/20
-                bg-cyan-400/[0.06]
-                text-cyan-300
-              `
-              : `
-                border-purple-400/20
-                bg-purple-400/[0.06]
-                text-purple-300
-              `
-          }
-        `}
+          text-cyan-300
+        "
       >
-        {pricing === "free"
-          ? "✓ Free"
-          : "💎 Paid"}
+        {pricing}
       </span>
 
     </div>
@@ -311,7 +260,7 @@ function ToolBadges({ badge, pricing }) {
 }
 
 /* =========================================================
-   POPULARITY BAR
+   POPULARITY
 ========================================================= */
 
 function PopularityBar({ value }) {
@@ -352,8 +301,6 @@ function PopularityBar({ value }) {
             from-cyan-400
             via-purple-500
             to-pink-500
-            transition-all
-            duration-700
           "
           style={{
             width: `${value}%`,
@@ -366,10 +313,11 @@ function PopularityBar({ value }) {
 }
 
 /* =========================================================
-   FIND MY TOOL MODAL
+   TOOL FINDER
 ========================================================= */
 
 function ToolFinderQuiz({
+  tools,
   onClose,
   onResult,
 }) {
@@ -399,7 +347,7 @@ function ToolFinderQuiz({
     },
   ];
 
-  const handleSelect = (value) => {
+  function handleSelect(value) {
     setSelected(value);
 
     const match =
@@ -407,10 +355,12 @@ function ToolFinderQuiz({
         tool.goodFor.includes(value)
       ) || tools[0];
 
+    if (!match) return;
+
     setTimeout(() => {
       onResult(match);
-    }, 250);
-  };
+    }, 200);
+  }
 
   return (
     <div
@@ -444,9 +394,9 @@ function ToolFinderQuiz({
           bg-[#080a13]
           p-7
           sm:p-9
-          shadow-[0_0_70px_rgba(34,211,238,.10)]
         "
       >
+
         <div
           className="
             mb-8
@@ -486,14 +436,12 @@ function ToolFinderQuiz({
               flex
               h-10
               w-10
-              shrink-0
               items-center
               justify-center
               rounded-xl
               border
               border-white/10
               text-gray-500
-              transition
               hover:text-white
             "
           >
@@ -522,8 +470,6 @@ function ToolFinderQuiz({
                 p-5
                 text-left
                 transition-all
-                duration-300
-                hover:-translate-y-1
 
                 ${
                   selected === option.value
@@ -549,48 +495,181 @@ function ToolFinderQuiz({
             </button>
           ))}
         </div>
+
       </div>
     </div>
   );
 }
 
 /* =========================================================
-   MAIN PAGE
+   MAIN
 ========================================================= */
 
-function AITools() {
-  const navigate = useNavigate();
+export default function AITools() {
+  const [tools, setTools] =
+    useState([]);
+
+  const [loading, setLoading] =
+    useState(true);
+
+  const [error, setError] =
+    useState("");
 
   const [search, setSearch] =
     useState("");
 
-  const [activeCategory, setActiveCategory] =
-    useState("All");
+  const [
+    activeCategory,
+    setActiveCategory,
+  ] = useState("All");
 
-  const [favoriteCount, setFavoriteCount] =
-    useState(0);
+  const [
+    favoriteCount,
+    setFavoriteCount,
+  ] = useState(0);
 
-  const [compareIds, setCompareIds] =
-    useState([]);
+  const [
+    compareIds,
+    setCompareIds,
+  ] = useState([]);
 
-  const [showCompare, setShowCompare] =
-    useState(false);
+  const [
+    showCompare,
+    setShowCompare,
+  ] = useState(false);
 
-  const [showQuiz, setShowQuiz] =
-    useState(false);
+  const [
+    showQuiz,
+    setShowQuiz,
+  ] = useState(false);
 
-  const [quizResult, setQuizResult] =
-    useState(null);
+  const [
+    quizResult,
+    setQuizResult,
+  ] = useState(null);
+
+  /* =======================================================
+     LOAD TOOLS FROM SUPABASE
+  ======================================================= */
+
+  useEffect(() => {
+    fetchTools();
+  }, []);
+
+  async function fetchTools() {
+    setLoading(true);
+    setError("");
+
+    try {
+      const {
+        data,
+        error: fetchError,
+      } = await supabase
+        .from("ai_tools")
+        .select("*")
+        .order("trending", {
+          ascending: false,
+        })
+        .order("featured", {
+          ascending: false,
+        })
+        .order("created_at", {
+          ascending: false,
+        });
+
+      if (fetchError) {
+        throw fetchError;
+      }
+
+      const formattedTools =
+        (data || []).map((tool) => ({
+          dbId: tool.id,
+
+          /*
+            IMPORTANT:
+            Website route/favorites-ku slug use pannrom.
+          */
+
+          id:
+            tool.slug ||
+            String(tool.id),
+
+          slug:
+            tool.slug ||
+            String(tool.id),
+
+          name:
+            tool.name ||
+            "AI Tool",
+
+          category:
+            tool.category ||
+            "Other",
+
+          description:
+            tool.description ||
+            "Explore this AI tool on AI Future Tamil.",
+
+          websiteUrl:
+            tool.website_url || "",
+
+          logoUrl:
+            tool.logo_url || "",
+
+          pricing:
+            normalizePricing(
+              tool.pricing
+            ),
+
+          featured:
+            Boolean(tool.featured),
+
+          trending:
+            Boolean(tool.trending),
+
+          icon:
+            getCategoryIcon(
+              tool.category
+            ),
+
+          badge:
+            getBadge(tool),
+
+          popularity:
+            getPopularity(tool),
+
+          goodFor:
+            getGoodFor(
+              tool.category
+            ),
+        }));
+
+      setTools(formattedTools);
+    } catch (fetchError) {
+      console.error(
+        "AI Tools fetch error:",
+        fetchError
+      );
+
+      setError(
+        "AI Tools load aagala. Konjam refresh panni try pannunga."
+      );
+
+      setTools([]);
+    } finally {
+      setLoading(false);
+    }
+  }
 
   /* =======================================================
      FAVORITES
   ======================================================= */
 
-  const updateFavoriteCount = () => {
+  function updateFavoriteCount() {
     setFavoriteCount(
       getSafeFavorites().length
     );
-  };
+  }
 
   useEffect(() => {
     updateFavoriteCount();
@@ -622,26 +701,23 @@ function AITools() {
   }, []);
 
   /* =======================================================
-     TOOL OF THE DAY
-  ======================================================= */
-
-  const toolOfTheDay =
-    tools[
-      new Date().getDate() %
-        tools.length
-    ];
-
-  /* =======================================================
      CATEGORIES
   ======================================================= */
 
-  const categories = [
-    "All",
-    "AI Chat",
-    "AI Image",
-    "AI Video",
-    "AI Music",
-  ];
+  const categories = useMemo(() => {
+    const uniqueCategories = [
+      ...new Set(
+        tools
+          .map((tool) => tool.category)
+          .filter(Boolean)
+      ),
+    ];
+
+    return [
+      "All",
+      ...uniqueCategories,
+    ];
+  }, [tools]);
 
   /* =======================================================
      FILTER
@@ -655,7 +731,8 @@ function AITools() {
     return tools.filter((tool) => {
       const categoryMatch =
         activeCategory === "All" ||
-        tool.category === activeCategory;
+        tool.category ===
+          activeCategory;
 
       const searchMatch =
         tool.name
@@ -673,13 +750,32 @@ function AITools() {
         searchMatch
       );
     });
-  }, [search, activeCategory]);
+  }, [
+    tools,
+    search,
+    activeCategory,
+  ]);
+
+  /* =======================================================
+     TOOL OF DAY
+  ======================================================= */
+
+  const toolOfTheDay = useMemo(() => {
+    if (tools.length === 0) {
+      return null;
+    }
+
+    return tools[
+      new Date().getDate() %
+        tools.length
+    ];
+  }, [tools]);
 
   /* =======================================================
      COMPARE
   ======================================================= */
 
-  const toggleCompare = (toolId) => {
+  function toggleCompare(toolId) {
     setCompareIds((current) => {
       if (
         current.includes(toolId)
@@ -701,18 +797,22 @@ function AITools() {
         toolId,
       ];
     });
-  };
+  }
 
-  const compareTools = tools.filter(
-    (tool) =>
+  const compareTools =
+    tools.filter((tool) =>
       compareIds.includes(tool.id)
-  );
+    );
 
   /* =======================================================
      SURPRISE
   ======================================================= */
 
-  const handleSurprise = () => {
+  function handleSurprise() {
+    if (tools.length === 0) {
+      return;
+    }
+
     const tool =
       tools[
         Math.floor(
@@ -721,10 +821,88 @@ function AITools() {
         )
       ];
 
-    navigate(
-      `/ai-tools/${tool.id}`
+    openTool(tool);
+  }
+
+  /* =======================================================
+     OPEN TOOL
+  ======================================================= */
+
+  function openTool(tool) {
+    if (tool.websiteUrl) {
+      window.open(
+        tool.websiteUrl,
+        "_blank",
+        "noopener,noreferrer"
+      );
+
+      return;
+    }
+
+    window.location.href =
+      `/ai-tools/${tool.slug}`;
+  }
+
+  /* =======================================================
+     CATEGORY ICON
+  ======================================================= */
+
+  function categoryButtonIcon(
+    category
+  ) {
+    if (category === "All") {
+      return "✨";
+    }
+
+    return getCategoryIcon(
+      category
     );
-  };
+  }
+
+  /* =======================================================
+     LOADING
+  ======================================================= */
+
+  if (loading) {
+    return (
+      <main
+        className="
+          flex
+          min-h-[70vh]
+          items-center
+          justify-center
+          text-white
+        "
+      >
+        <div className="text-center">
+
+          <div
+            className="
+              mx-auto
+              h-12
+              w-12
+              animate-spin
+              rounded-full
+              border-4
+              border-white/10
+              border-t-cyan-400
+            "
+          />
+
+          <p
+            className="
+              mt-5
+              font-bold
+              text-gray-400
+            "
+          >
+            Loading AI Tools...
+          </p>
+
+        </div>
+      </main>
+    );
+  }
 
   /* =======================================================
      PAGE
@@ -735,8 +913,8 @@ function AITools() {
       className="
         min-h-screen
         bg-transparent
-        text-white
         pb-20
+        text-white
       "
     >
       <div
@@ -797,6 +975,7 @@ function AITools() {
               xl:justify-between
             "
           >
+
             <div className="max-w-3xl">
 
               <div
@@ -829,6 +1008,7 @@ function AITools() {
                 "
               >
                 Discover the Best{" "}
+
                 <span
                   className="
                     bg-gradient-to-r
@@ -861,7 +1041,7 @@ function AITools() {
 
             </div>
 
-            {/* HERO STATS */}
+            {/* STATS */}
 
             <div
               className="
@@ -899,7 +1079,10 @@ function AITools() {
                 "
               >
                 <p className="text-2xl font-black">
-                  {categories.length - 1}
+                  {Math.max(
+                    categories.length - 1,
+                    0
+                  )}
                 </p>
 
                 <p className="mt-1 text-xs text-gray-500">
@@ -916,7 +1099,13 @@ function AITools() {
                   p-4
                 "
               >
-                <p className="text-2xl font-black text-pink-300">
+                <p
+                  className="
+                    text-2xl
+                    font-black
+                    text-pink-300
+                  "
+                >
                   {favoriteCount}
                 </p>
 
@@ -928,6 +1117,38 @@ function AITools() {
 
           </div>
         </section>
+
+        {/* =================================================
+            ERROR
+        ================================================= */}
+
+        {error && (
+          <div
+            className="
+              mt-5
+              rounded-2xl
+              border
+              border-red-400/20
+              bg-red-400/[0.05]
+              p-5
+              text-red-300
+            "
+          >
+            ❌ {error}
+
+            <button
+              type="button"
+              onClick={fetchTools}
+              className="
+                ml-4
+                font-bold
+                underline
+              "
+            >
+              Retry
+            </button>
+          </div>
+        )}
 
         {/* =================================================
             QUICK ACTIONS
@@ -958,6 +1179,9 @@ function AITools() {
           >
             <button
               type="button"
+              disabled={
+                tools.length === 0
+              }
               onClick={() =>
                 setShowQuiz(true)
               }
@@ -971,9 +1195,7 @@ function AITools() {
                 text-sm
                 font-bold
                 text-cyan-300
-                transition-all
-                hover:-translate-y-0.5
-                hover:bg-cyan-400/10
+                disabled:opacity-40
               "
             >
               🎯 Find My Tool
@@ -981,6 +1203,9 @@ function AITools() {
 
             <button
               type="button"
+              disabled={
+                tools.length === 0
+              }
               onClick={handleSurprise}
               className="
                 rounded-xl
@@ -992,25 +1217,30 @@ function AITools() {
                 text-sm
                 font-bold
                 text-pink-300
-                transition-all
-                hover:-translate-y-0.5
-                hover:bg-pink-400/10
+                disabled:opacity-40
               "
             >
               🎲 Surprise Me
             </button>
 
-            <p
+            <button
+              type="button"
+              onClick={fetchTools}
               className="
-                hidden
+                rounded-xl
+                border
+                border-green-400/20
+                bg-green-400/[0.05]
+                px-5
+                py-3
                 text-sm
-                text-gray-600
-                xl:block
+                font-bold
+                text-green-300
               "
             >
-              Choose a tool instantly or
-              let us recommend one.
-            </p>
+              🔄 Refresh Tools
+            </button>
+
           </div>
 
           <div
@@ -1046,120 +1276,139 @@ function AITools() {
             TOOL OF THE DAY
         ================================================= */}
 
-        <section className="mt-5">
+        {toolOfTheDay && (
+          <section className="mt-5">
 
-          <div
-            className="
-              relative
-              overflow-hidden
-              rounded-[28px]
-              border
-              border-yellow-400/20
-              bg-gradient-to-r
-              from-yellow-400/[0.05]
-              via-purple-400/[0.04]
-              to-pink-400/[0.05]
-              p-6
-              sm:p-7
-            "
-          >
             <div
               className="
-                relative
-                z-10
-                flex
-                flex-col
-                gap-6
-                sm:flex-row
-                sm:items-center
-                sm:justify-between
+                rounded-[28px]
+                border
+                border-yellow-400/20
+                bg-gradient-to-r
+                from-yellow-400/[0.05]
+                via-purple-400/[0.04]
+                to-pink-400/[0.05]
+                p-6
+                sm:p-7
               "
             >
               <div
                 className="
                   flex
-                  items-center
-                  gap-5
+                  flex-col
+                  gap-6
+                  sm:flex-row
+                  sm:items-center
+                  sm:justify-between
                 "
               >
+
                 <div
                   className="
                     flex
-                    h-20
-                    w-20
-                    shrink-0
                     items-center
-                    justify-center
-                    rounded-2xl
-                    border
-                    border-yellow-400/20
-                    bg-yellow-400/[0.06]
-                    text-4xl
+                    gap-5
                   "
                 >
-                  {toolOfTheDay.icon}
+                  <div
+                    className="
+                      flex
+                      h-20
+                      w-20
+                      shrink-0
+                      items-center
+                      justify-center
+                      overflow-hidden
+                      rounded-2xl
+                      border
+                      border-yellow-400/20
+                      bg-yellow-400/[0.06]
+                      text-4xl
+                    "
+                  >
+                    {toolOfTheDay.logoUrl ? (
+                      <img
+                        src={
+                          toolOfTheDay.logoUrl
+                        }
+                        alt={
+                          toolOfTheDay.name
+                        }
+                        className="
+                          h-full
+                          w-full
+                          object-cover
+                        "
+                      />
+                    ) : (
+                      toolOfTheDay.icon
+                    )}
+                  </div>
+
+                  <div>
+                    <p
+                      className="
+                        mb-1
+                        text-sm
+                        font-bold
+                        text-yellow-300
+                      "
+                    >
+                      ✨ Tool of the Day
+                    </p>
+
+                    <h2
+                      className="
+                        text-2xl
+                        font-black
+                      "
+                    >
+                      {toolOfTheDay.name}
+                    </h2>
+
+                    <p
+                      className="
+                        mt-2
+                        max-w-xl
+                        text-sm
+                        leading-6
+                        text-gray-400
+                      "
+                    >
+                      {
+                        toolOfTheDay.description
+                      }
+                    </p>
+                  </div>
                 </div>
 
-                <div>
-                  <p
-                    className="
-                      mb-1
-                      text-sm
-                      font-bold
-                      text-yellow-300
-                    "
-                  >
-                    ✨ Tool of the Day
-                  </p>
+                <button
+                  type="button"
+                  onClick={() =>
+                    openTool(
+                      toolOfTheDay
+                    )
+                  }
+                  className="
+                    shrink-0
+                    rounded-xl
+                    bg-white
+                    px-6
+                    py-3
+                    text-sm
+                    font-black
+                    text-black
+                    hover:bg-gray-200
+                  "
+                >
+                  Explore Tool →
+                </button>
 
-                  <h2
-                    className="
-                      text-2xl
-                      font-black
-                    "
-                  >
-                    {toolOfTheDay.name}
-                  </h2>
-
-                  <p
-                    className="
-                      mt-2
-                      max-w-xl
-                      text-sm
-                      leading-6
-                      text-gray-400
-                    "
-                  >
-                    {
-                      toolOfTheDay.description
-                    }
-                  </p>
-                </div>
               </div>
-
-              <Link
-                to={`/ai-tools/${toolOfTheDay.id}`}
-                className="
-                  shrink-0
-                  rounded-xl
-                  bg-white
-                  px-6
-                  py-3
-                  text-center
-                  text-sm
-                  font-black
-                  text-black
-                  transition
-                  hover:bg-gray-200
-                "
-              >
-                Explore Tool →
-              </Link>
-
             </div>
-          </div>
 
-        </section>
+          </section>
+        )}
 
         {/* =================================================
             SEARCH
@@ -1209,7 +1458,7 @@ function AITools() {
                     event.target.value
                   )
                 }
-                placeholder="Search ChatGPT, image tools, video AI..."
+                placeholder="Search AI tools..."
                 className="
                   w-full
                   rounded-2xl
@@ -1221,16 +1470,12 @@ function AITools() {
                   pr-5
                   text-white
                   outline-none
-                  transition-all
                   placeholder:text-gray-600
                   focus:border-cyan-400/40
-                  focus:shadow-[0_0_25px_rgba(34,211,238,.06)]
                 "
               />
 
             </div>
-
-            {/* CATEGORIES */}
 
             <div
               className="
@@ -1258,7 +1503,6 @@ function AITools() {
                       py-3
                       text-sm
                       font-bold
-                      transition-all
 
                       ${
                         activeCategory ===
@@ -1272,16 +1516,14 @@ function AITools() {
                             border-white/[0.08]
                             bg-white/[0.025]
                             text-gray-400
-                            hover:border-cyan-400/25
-                            hover:text-white
                           `
                       }
                     `}
                   >
                     {
-                      categoryIcons[
+                      categoryButtonIcon(
                         category
-                      ]
+                      )
                     }{" "}
                     {category}
                   </button>
@@ -1315,6 +1557,7 @@ function AITools() {
                 sm:justify-between
               "
             >
+
               <div>
                 <p
                   className="
@@ -1332,8 +1575,7 @@ function AITools() {
                     text-gray-500
                   "
                 >
-                  {compareIds.length}/2
-                  selected
+                  {compareIds.length}/2 selected
                 </p>
               </div>
 
@@ -1372,9 +1614,6 @@ function AITools() {
                     py-2
                     text-sm
                     font-bold
-                    text-white
-                    transition
-                    disabled:cursor-not-allowed
                     disabled:opacity-40
                   "
                 >
@@ -1388,7 +1627,7 @@ function AITools() {
         )}
 
         {/* =================================================
-            SECTION HEADER
+            TITLE
         ================================================= */}
 
         <section
@@ -1427,12 +1666,7 @@ function AITools() {
             </h2>
           </div>
 
-          <p
-            className="
-              text-sm
-              text-gray-500
-            "
-          >
+          <p className="text-sm text-gray-500">
             {filteredTools.length}{" "}
             {filteredTools.length === 1
               ? "tool"
@@ -1442,12 +1676,13 @@ function AITools() {
         </section>
 
         {/* =================================================
-            TOOL GRID
+            GRID
         ================================================= */}
 
         <section className="mt-6">
 
           {filteredTools.length === 0 ? (
+
             <div
               className="
                 rounded-[28px]
@@ -1461,7 +1696,7 @@ function AITools() {
               "
             >
               <div className="text-5xl">
-                🔍
+                🤖
               </div>
 
               <h3
@@ -1471,7 +1706,7 @@ function AITools() {
                   font-black
                 "
               >
-                No tools found
+                No AI Tools Found
               </h3>
 
               <p
@@ -1480,8 +1715,8 @@ function AITools() {
                   text-gray-500
                 "
               >
-                Try another search or
-                category.
+                Admin Dashboard-la tool
+                add pannunga.
               </p>
 
               <button
@@ -1507,7 +1742,9 @@ function AITools() {
                 Reset Filters
               </button>
             </div>
+
           ) : (
+
             <div
               className="
                 grid
@@ -1519,6 +1756,7 @@ function AITools() {
             >
               {filteredTools.map(
                 (tool) => {
+
                   const selected =
                     compareIds.includes(
                       tool.id
@@ -1526,7 +1764,7 @@ function AITools() {
 
                   return (
                     <article
-                      key={tool.id}
+                      key={tool.dbId}
                       className={`
                         group
                         relative
@@ -1537,15 +1775,12 @@ function AITools() {
                         p-6
                         transition-all
                         duration-300
-
                         hover:-translate-y-1
-                        hover:shadow-[0_20px_60px_rgba(0,0,0,.22)]
 
                         ${
                           selected
                             ? `
                               border-purple-400/45
-                              shadow-[0_0_30px_rgba(168,85,247,.10)]
                             `
                             : `
                               border-white/[0.08]
@@ -1554,6 +1789,7 @@ function AITools() {
                         }
                       `}
                     >
+
                       {/* TOP */}
 
                       <div
@@ -1564,6 +1800,7 @@ function AITools() {
                           gap-4
                         "
                       >
+
                         <div
                           className="
                             flex
@@ -1571,18 +1808,29 @@ function AITools() {
                             w-16
                             items-center
                             justify-center
+                            overflow-hidden
                             rounded-2xl
                             border
                             border-white/[0.08]
                             bg-white/[0.035]
                             text-4xl
-                            transition-all
-                            duration-300
-                            group-hover:scale-105
-                            group-hover:border-cyan-400/20
                           "
                         >
-                          {tool.icon}
+                          {tool.logoUrl ? (
+                            <img
+                              src={
+                                tool.logoUrl
+                              }
+                              alt={tool.name}
+                              className="
+                                h-full
+                                w-full
+                                object-cover
+                              "
+                            />
+                          ) : (
+                            tool.icon
+                          )}
                         </div>
 
                         <div
@@ -1592,6 +1840,7 @@ function AITools() {
                             gap-2
                           "
                         >
+
                           <button
                             type="button"
                             onClick={() =>
@@ -1609,7 +1858,6 @@ function AITools() {
                               px-3
                               text-xs
                               font-bold
-                              transition
 
                               ${
                                 selected
@@ -1622,17 +1870,13 @@ function AITools() {
                                     border-white/[0.08]
                                     bg-white/[0.025]
                                     text-gray-500
-                                    hover:text-white
                                   `
                               }
                             `}
                           >
-                            <span>
-                              {selected
-                                ? "✓"
-                                : "⚖️"}
-                            </span>
-
+                            {selected
+                              ? "✓"
+                              : "⚖️"}{" "}
                             Compare
                           </button>
 
@@ -1642,11 +1886,11 @@ function AITools() {
                               updateFavoriteCount
                             }
                           />
-                        </div>
 
+                        </div>
                       </div>
 
-                      {/* CATEGORY + BADGES */}
+                      {/* CATEGORY */}
 
                       <div className="mt-6">
 
@@ -1662,28 +1906,28 @@ function AITools() {
                         </p>
 
                         <ToolBadges
-                          badge={tool.badge}
+                          badge={
+                            tool.badge
+                          }
                           pricing={
                             tool.pricing
+                          }
+                          featured={
+                            tool.featured
                           }
                         />
 
                       </div>
-
-                      {/* TITLE */}
 
                       <h3
                         className="
                           mt-5
                           text-2xl
                           font-black
-                          tracking-tight
                         "
                       >
                         {tool.name}
                       </h3>
-
-                      {/* DESCRIPTION */}
 
                       <p
                         className="
@@ -1703,25 +1947,25 @@ function AITools() {
                         }
                       />
 
-                      {/* FOOTER */}
-
                       <div
                         className="
                           mt-6
                           flex
-                          items-center
                           gap-3
                         "
                       >
-                        <Link
-                          to={`/ai-tools/${tool.id}`}
+
+                        <button
+                          type="button"
+                          onClick={() =>
+                            openTool(tool)
+                          }
                           className="
                             flex-1
                             rounded-xl
                             bg-white
                             px-5
                             py-3.5
-                            text-center
                             text-sm
                             font-black
                             text-black
@@ -1729,29 +1973,37 @@ function AITools() {
                             hover:bg-gray-200
                           "
                         >
-                          Open Tool →
-                        </Link>
+                          Visit Tool →
+                        </button>
 
-                        <Link
-                          to={`/ai-tools/${tool.id}`}
-                          className="
-                            flex
-                            h-[50px]
-                            w-[50px]
-                            items-center
-                            justify-center
-                            rounded-xl
-                            border
-                            border-white/[0.08]
-                            bg-white/[0.025]
-                            text-gray-400
-                            transition
-                            hover:border-cyan-400/25
-                            hover:text-cyan-300
-                          "
-                        >
-                          ↗
-                        </Link>
+                        {tool.websiteUrl && (
+                          <button
+                            type="button"
+                            onClick={() =>
+                              window.open(
+                                tool.websiteUrl,
+                                "_blank",
+                                "noopener,noreferrer"
+                              )
+                            }
+                            className="
+                              flex
+                              h-[50px]
+                              w-[50px]
+                              items-center
+                              justify-center
+                              rounded-xl
+                              border
+                              border-white/[0.08]
+                              bg-white/[0.025]
+                              text-gray-400
+                              hover:text-cyan-300
+                            "
+                          >
+                            ↗
+                          </button>
+                        )}
+
                       </div>
 
                     </article>
@@ -1759,6 +2011,7 @@ function AITools() {
                 }
               )}
             </div>
+
           )}
 
         </section>
@@ -1766,19 +2019,22 @@ function AITools() {
       </div>
 
       {/* ===================================================
-          QUIZ MODAL
+          QUIZ
       =================================================== */}
 
-      {showQuiz && !quizResult && (
-        <ToolFinderQuiz
-          onClose={() =>
-            setShowQuiz(false)
-          }
-          onResult={(tool) =>
-            setQuizResult(tool)
-          }
-        />
-      )}
+      {showQuiz &&
+        !quizResult &&
+        tools.length > 0 && (
+          <ToolFinderQuiz
+            tools={tools}
+            onClose={() =>
+              setShowQuiz(false)
+            }
+            onResult={(tool) =>
+              setQuizResult(tool)
+            }
+          />
+        )}
 
       {/* ===================================================
           QUIZ RESULT
@@ -1797,15 +2053,6 @@ function AITools() {
             px-4
             backdrop-blur-md
           "
-          onClick={(event) => {
-            if (
-              event.target ===
-              event.currentTarget
-            ) {
-              setQuizResult(null);
-              setShowQuiz(false);
-            }
-          }}
         >
           <div
             className="
@@ -1817,7 +2064,6 @@ function AITools() {
               bg-[#080a13]
               p-8
               text-center
-              shadow-[0_0_70px_rgba(34,197,94,.10)]
             "
           >
             <div className="text-6xl">
@@ -1883,8 +2129,13 @@ function AITools() {
                 Close
               </button>
 
-              <Link
-                to={`/ai-tools/${quizResult.id}`}
+              <button
+                type="button"
+                onClick={() =>
+                  openTool(
+                    quizResult
+                  )
+                }
                 className="
                   rounded-xl
                   bg-white
@@ -1893,8 +2144,8 @@ function AITools() {
                   text-black
                 "
               >
-                Open →
-              </Link>
+                Visit →
+              </button>
             </div>
 
           </div>
@@ -1902,7 +2153,7 @@ function AITools() {
       )}
 
       {/* ===================================================
-          COMPARE MODAL
+          COMPARE
       =================================================== */}
 
       {showCompare &&
@@ -1919,14 +2170,6 @@ function AITools() {
               px-4
               backdrop-blur-md
             "
-            onClick={(event) => {
-              if (
-                event.target ===
-                event.currentTarget
-              ) {
-                setShowCompare(false);
-              }
-            }}
           >
             <div
               className="
@@ -1938,9 +2181,9 @@ function AITools() {
                 bg-[#080a13]
                 p-6
                 sm:p-8
-                shadow-[0_0_70px_rgba(168,85,247,.10)]
               "
             >
+
               <div
                 className="
                   mb-7
@@ -2003,7 +2246,7 @@ function AITools() {
                 {compareTools.map(
                   (tool) => (
                     <div
-                      key={tool.id}
+                      key={tool.dbId}
                       className="
                         rounded-2xl
                         border
@@ -2012,6 +2255,7 @@ function AITools() {
                         p-6
                       "
                     >
+
                       <div className="text-5xl">
                         {tool.icon}
                       </div>
@@ -2044,6 +2288,7 @@ function AITools() {
                           text-sm
                         "
                       >
+
                         <div
                           className="
                             flex
@@ -2058,10 +2303,7 @@ function AITools() {
                           </span>
 
                           <span className="font-bold">
-                            {tool.pricing ===
-                            "free"
-                              ? "Free"
-                              : "Paid"}
+                            {tool.pricing}
                           </span>
                         </div>
 
@@ -2097,22 +2339,25 @@ function AITools() {
                           </span>
 
                           <span className="font-bold">
-                            {tool.badge ===
-                            "popular"
-                              ? "🔥 Popular"
-                              : tool.badge ===
-                                "new"
-                              ? "🆕 New"
+                            {tool.trending
+                              ? "🔥 Trending"
+                              : tool.featured
+                              ? "⭐ Featured"
                               : "Standard"}
                           </span>
                         </div>
+
                       </div>
 
-                      <Link
-                        to={`/ai-tools/${tool.id}`}
+                      <button
+                        type="button"
+                        onClick={() =>
+                          openTool(tool)
+                        }
                         className="
                           mt-6
                           block
+                          w-full
                           rounded-xl
                           bg-white
                           py-3
@@ -2121,8 +2366,8 @@ function AITools() {
                           text-black
                         "
                       >
-                        Open Tool →
-                      </Link>
+                        Visit Tool →
+                      </button>
 
                     </div>
                   )
@@ -2136,5 +2381,3 @@ function AITools() {
     </main>
   );
 }
-
-export default AITools;

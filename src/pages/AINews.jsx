@@ -1,592 +1,993 @@
-import { useEffect, useMemo, useState } from "react";
-import { Link } from "react-router-dom";
+import {
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
 
 import {
-  getNewsRead,
-  trackNewsRead,
-  addRecentActivity,
-} from "../utils/dashboardStorage";
+  Link,
+} from "react-router-dom";
 
-/* =========================================================
-   NEWS DATA
-========================================================= */
+import {
+  supabase,
+} from "../supabase/client";
 
-const news = [
-  {
-    id: 1,
-    category: "AI Trends",
-    title: "AI is changing the future",
-    description:
-      "Artificial Intelligence is becoming more powerful and useful in everyday life.",
-    icon: "🚀",
-    date: "Today",
-  },
-  {
-    id: 2,
-    category: "AI Agents",
-    title: "AI Agents are growing fast",
-    description:
-      "AI agents can help users with research, coding, automation and productivity.",
-    icon: "🤖",
-    date: "Today",
-  },
-  {
-    id: 3,
-    category: "AI Images",
-    title: "AI Image Generation is evolving",
-    description:
-      "New AI image tools are making it easier to create high-quality visuals and designs.",
-    icon: "🎨",
-    date: "Latest",
-  },
-  {
-    id: 4,
-    category: "AI Videos",
-    title: "AI Video Creation is becoming easier",
-    description:
-      "AI video tools are helping creators generate videos, animations and creative content.",
-    icon: "🎬",
-    date: "Latest",
-  },
-  {
-    id: 5,
-    category: "AI Coding",
-    title: "AI Coding Tools are improving",
-    description:
-      "Developers can use AI coding assistants to write, explain and debug code faster.",
-    icon: "💻",
-    date: "Trending",
-  },
-  {
-    id: 6,
-    category: "Future AI",
-    title: "AI is becoming part of daily life",
-    description:
-      "From education to business, AI is becoming an important part of everyday workflows.",
-    icon: "🧠",
-    date: "Trending",
-  },
-];
+export default function AINews() {
+  const [news, setNews] =
+    useState([]);
 
-/* =========================================================
-   MAIN
-========================================================= */
+  const [loading, setLoading] =
+    useState(true);
 
-function AINews() {
-  const [search, setSearch] = useState("");
-  const [category, setCategory] = useState("All");
-  const [readNews, setReadNews] = useState([]);
+  const [error, setError] =
+    useState("");
 
-  const categories = [
-    "All",
-    "AI Trends",
-    "AI Agents",
-    "AI Images",
-    "AI Videos",
-    "AI Coding",
-    "Future AI",
-  ];
+  const [search, setSearch] =
+    useState("");
+
+  const [
+    activeCategory,
+    setActiveCategory,
+  ] = useState("All");
 
   /* =========================================================
-     LOAD READ NEWS
+     LOAD NEWS
   ========================================================= */
-
-  const loadReadNews = () => {
-    const saved = getNewsRead();
-
-    setReadNews(
-      Array.isArray(saved)
-        ? saved.map(String)
-        : []
-    );
-  };
 
   useEffect(() => {
-    loadReadNews();
-
-    const handleUpdate = () => {
-      loadReadNews();
-    };
-
-    window.addEventListener(
-      "dashboard-data-updated",
-      handleUpdate
-    );
-
-    window.addEventListener(
-      "storage",
-      handleUpdate
-    );
-
-    return () => {
-      window.removeEventListener(
-        "dashboard-data-updated",
-        handleUpdate
-      );
-
-      window.removeEventListener(
-        "storage",
-        handleUpdate
-      );
-    };
+    fetchNews();
   }, []);
 
-  /* =========================================================
-     FILTER NEWS
-  ========================================================= */
+  async function fetchNews() {
+    setLoading(true);
+    setError("");
 
-  const filteredNews = useMemo(() => {
-    const query =
-      search.trim().toLowerCase();
+    try {
+      const {
+        data,
+        error: fetchError,
+      } = await supabase
+        .from("ai_news")
+        .select("*")
+        .order(
+          "trending",
+          {
+            ascending: false,
+          }
+        )
+        .order(
+          "featured",
+          {
+            ascending: false,
+          }
+        )
+        .order(
+          "published_at",
+          {
+            ascending: false,
+          }
+        );
 
-    return news.filter((item) => {
-      const matchesSearch =
-        item.title
-          .toLowerCase()
-          .includes(query) ||
-        item.description
-          .toLowerCase()
-          .includes(query) ||
-        item.category
-          .toLowerCase()
-          .includes(query);
+      if (fetchError) {
+        throw fetchError;
+      }
 
-      const matchesCategory =
-        category === "All" ||
-        item.category === category;
-
-      return (
-        matchesSearch &&
-        matchesCategory
+      setNews(
+        data || []
       );
-    });
-  }, [search, category]);
+    } catch (err) {
+      console.error(
+        "AI News fetch error:",
+        err
+      );
+
+      setError(
+        "AI News load aagala."
+      );
+    } finally {
+      setLoading(false);
+    }
+  }
 
   /* =========================================================
-     READ CHECK
+     CATEGORIES
   ========================================================= */
 
-  const isRead = (id) =>
-    readNews.includes(String(id));
+  const categories =
+    useMemo(() => {
+      return [
+        "All",
+
+        ...new Set(
+          news
+            .map(
+              (item) =>
+                item.category
+            )
+            .filter(Boolean)
+        ),
+      ];
+    }, [news]);
 
   /* =========================================================
-     TRACK ARTICLE
+     FILTER
   ========================================================= */
 
-  const handleReadArticle = (item) => {
-    const alreadyRead =
-      isRead(item.id);
+  const filteredNews =
+    useMemo(() => {
+      const query =
+        search
+          .toLowerCase()
+          .trim();
 
-    trackNewsRead(item.id);
+      return news.filter(
+        (item) => {
+          const categoryMatch =
+            activeCategory ===
+              "All" ||
+            item.category ===
+              activeCategory;
 
-    /*
-      Recent activity duplicate avoid panna
-      first time read pannumbodhu mattum activity add pannrom.
-    */
+          const searchMatch =
+            String(
+              item.title || ""
+            )
+              .toLowerCase()
+              .includes(query) ||
+            String(
+              item.summary || ""
+            )
+              .toLowerCase()
+              .includes(query) ||
+            String(
+              item.category || ""
+            )
+              .toLowerCase()
+              .includes(query);
 
-    if (!alreadyRead) {
-      addRecentActivity({
-        icon: item.icon,
-        title: item.title,
-        description: `Read ${item.category} news`,
-        link: `/ai-news/${item.id}`,
-      });
+          return (
+            categoryMatch &&
+            searchMatch
+          );
+        }
+      );
+    }, [
+      news,
+      search,
+      activeCategory,
+    ]);
+
+  const featuredNews =
+    news.find(
+      (item) =>
+        item.featured
+    ) || news[0];
+
+  /* =========================================================
+     DATE
+  ========================================================= */
+
+  function formatDate(value) {
+    if (!value) {
+      return "";
     }
 
-    loadReadNews();
-  };
+    return new Date(
+      value
+    ).toLocaleDateString(
+      "en-IN",
+      {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+      }
+    );
+  }
 
   /* =========================================================
-     STATS
+     LOADING
   ========================================================= */
 
-  const totalRead =
-    readNews.filter((id) =>
-      news.some(
-        (item) =>
-          String(item.id) ===
-          String(id)
-      )
-    ).length;
+  if (loading) {
+    return (
+      <main
+        className="
+          flex
+          min-h-[70vh]
+          items-center
+          justify-center
+          text-white
+        "
+      >
 
-  /* =========================================================
-     RENDER
-  ========================================================= */
+        <div className="text-center">
 
-  return (
-    <main className="min-h-screen bg-transparent px-4 py-12 text-white sm:px-6 sm:py-16 lg:py-20">
-
-      {/* =====================================================
-          HERO
-      ===================================================== */}
-
-      <section className="mx-auto max-w-6xl text-center">
-
-        <div className="mb-5 inline-flex items-center gap-2 rounded-full border border-blue-400/20 bg-blue-400/10 px-4 py-2 text-sm font-semibold text-blue-300">
-          📰 Latest AI Updates
-        </div>
-
-        <h1 className="text-4xl font-black tracking-tight sm:text-5xl md:text-6xl">
-          AI News
-          <span className="block bg-gradient-to-r from-blue-400 via-purple-400 to-pink-400 bg-clip-text text-transparent">
-            & Trends
-          </span>
-        </h1>
-
-        <p className="mx-auto mt-5 max-w-2xl text-base leading-7 text-gray-400 sm:text-lg">
-          Stay updated with the latest
-          AI news, tools, trends and
-          innovations shaping the future.
-        </p>
-
-      </section>
-
-      {/* =====================================================
-          STATS
-      ===================================================== */}
-
-      <section className="mx-auto mt-10 grid max-w-4xl gap-4 sm:grid-cols-3">
-
-        <div className="rounded-2xl border border-blue-400/15 bg-blue-400/[0.05] p-5 text-center">
-          <p className="text-sm text-gray-500">
-            Total Articles
-          </p>
-
-          <p className="mt-2 text-3xl font-black text-blue-300">
-            {news.length}
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-green-400/15 bg-green-400/[0.05] p-5 text-center">
-          <p className="text-sm text-gray-500">
-            Articles Read
-          </p>
-
-          <p className="mt-2 text-3xl font-black text-green-300">
-            {totalRead}
-          </p>
-        </div>
-
-        <div className="rounded-2xl border border-purple-400/15 bg-purple-400/[0.05] p-5 text-center">
-          <p className="text-sm text-gray-500">
-            Remaining
-          </p>
-
-          <p className="mt-2 text-3xl font-black text-purple-300">
-            {Math.max(
-              news.length -
-                totalRead,
-              0
-            )}
-          </p>
-        </div>
-
-      </section>
-
-      {/* =====================================================
-          SEARCH
-      ===================================================== */}
-
-      <section className="mx-auto mt-10 max-w-4xl">
-
-        <div className="relative">
-
-          <span className="absolute left-5 top-1/2 -translate-y-1/2 text-gray-600">
-            🔍
-          </span>
-
-          <input
-            type="text"
-            placeholder="Search AI news..."
-            value={search}
-            onChange={(event) =>
-              setSearch(
-                event.target.value
-              )
-            }
+          <div
             className="
-              w-full
-              rounded-2xl
-              border
+              mx-auto
+              h-12
+              w-12
+              animate-spin
+              rounded-full
+              border-4
               border-white/10
-              bg-black/30
-              py-4
-              pl-12
-              pr-5
-              text-white
-              outline-none
-              backdrop-blur-xl
-              transition-all
-              duration-300
-              placeholder:text-gray-600
-              focus:border-blue-400/50
-              focus:shadow-[0_0_30px_rgba(59,130,246,.10)]
+              border-t-cyan-400
             "
           />
 
+          <p
+            className="
+              mt-5
+              font-bold
+              text-gray-400
+            "
+          >
+            Loading AI News...
+          </p>
+
         </div>
 
-      </section>
+      </main>
+    );
+  }
 
-      {/* =====================================================
-          CATEGORY FILTER
-      ===================================================== */}
+  return (
+    <main
+      className="
+        min-h-screen
+        bg-transparent
+        pb-20
+        text-white
+      "
+    >
 
-      <section className="mx-auto mt-7 flex max-w-6xl flex-wrap justify-center gap-3">
+      <div
+        className="
+          mx-auto
+          max-w-[1500px]
+          px-5
+          py-8
+          sm:px-7
+          lg:px-9
+          lg:py-10
+        "
+      >
 
-        {categories.map((item) => {
-          const active =
-            category === item;
+        {/* HERO */}
 
-          return (
-            <button
-              key={item}
-              type="button"
-              onClick={() =>
-                setCategory(item)
-              }
-              className={`
+        <section
+          className="
+            relative
+            overflow-hidden
+            rounded-[32px]
+            border
+            border-white/[0.08]
+            bg-black/25
+            p-7
+            backdrop-blur-xl
+            sm:p-10
+          "
+        >
+
+          <div
+            className="
+              pointer-events-none
+              absolute
+              -right-24
+              -top-24
+              h-72
+              w-72
+              rounded-full
+              bg-purple-500/10
+              blur-3xl
+            "
+          />
+
+          <div
+            className="
+              relative
+              z-10
+            "
+          >
+
+            <div
+              className="
+                inline-flex
                 rounded-full
                 border
-                px-5
-                py-2.5
+                border-cyan-400/20
+                bg-cyan-400/[0.05]
+                px-4
+                py-2
                 text-sm
-                font-semibold
-                transition-all
-                duration-300
-                ${
-                  active
-                    ? "border-blue-400/60 bg-blue-400/15 text-blue-300 shadow-[0_0_20px_rgba(59,130,246,.12)]"
-                    : "border-white/10 bg-white/[0.03] text-gray-400 hover:border-blue-400/30 hover:bg-blue-400/[0.06] hover:text-blue-300"
-                }
-              `}
+                font-bold
+                text-cyan-300
+              "
             >
-              {item}
-            </button>
-          );
-        })}
-
-      </section>
-
-      {/* =====================================================
-          RESULT COUNT
-      ===================================================== */}
-
-      <section className="mx-auto mt-10 max-w-6xl">
-
-        <div className="flex flex-col justify-between gap-3 sm:flex-row sm:items-center">
-
-          <div>
-            <p className="text-sm text-gray-500">
-              Showing{" "}
-              <span className="font-semibold text-white">
-                {filteredNews.length}
-              </span>{" "}
-              articles
-            </p>
-          </div>
-
-          <Link
-            to="/dashboard"
-            className="text-sm font-semibold text-purple-300 transition hover:text-purple-200"
-          >
-            📚 View My Library →
-          </Link>
-
-        </div>
-
-      </section>
-
-      {/* =====================================================
-          NEWS CARDS
-      ===================================================== */}
-
-      <section className="mx-auto mt-6 grid max-w-6xl gap-6 md:grid-cols-2 xl:grid-cols-3">
-
-        {filteredNews.map((item) => {
-          const articleRead =
-            isRead(item.id);
-
-          return (
-            <article
-              key={item.id}
-              className={`
-                group
-                relative
-                flex
-                h-full
-                flex-col
-                overflow-hidden
-                rounded-3xl
-                border
-                p-6
-                backdrop-blur-xl
-                transition-all
-                duration-500
-                hover:-translate-y-2
-                ${
-                  articleRead
-                    ? "border-green-400/20 bg-[linear-gradient(145deg,rgba(20,35,28,.65),rgba(7,9,22,.85))] hover:border-green-400/40 hover:shadow-[0_0_40px_rgba(34,197,94,.08)]"
-                    : "border-white/[0.08] bg-[linear-gradient(145deg,rgba(14,17,38,.82),rgba(6,8,22,.80))] hover:border-blue-400/40 hover:shadow-[0_0_45px_rgba(59,130,246,.09)]"
-                }
-              `}
-            >
-
-              {/* TOP GLOW */}
-
-              <div
-                className={`
-                  pointer-events-none
-                  absolute
-                  inset-x-10
-                  top-0
-                  h-px
-                  bg-gradient-to-r
-                  from-transparent
-                  to-transparent
-                  ${
-                    articleRead
-                      ? "via-green-400"
-                      : "via-blue-400"
-                  }
-                `}
-              />
-
-              {/* ICON + STATUS */}
-
-              <div className="flex items-start justify-between">
-
-                <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-white/10 bg-white/[0.04] text-4xl transition-all duration-500 group-hover:rotate-6 group-hover:scale-110">
-                  {item.icon}
-                </div>
-
-                {articleRead ? (
-                  <div className="rounded-full border border-green-400/20 bg-green-400/10 px-3 py-1.5 text-xs font-bold text-green-300">
-                    ✓ READ
-                  </div>
-                ) : (
-                  <div className="rounded-full border border-blue-400/20 bg-blue-400/10 px-3 py-1.5 text-xs font-bold text-blue-300">
-                    NEW
-                  </div>
-                )}
-
-              </div>
-
-              {/* CATEGORY */}
-
-              <div className="mt-6 flex items-center justify-between gap-3">
-
-                <span className="text-sm font-semibold text-blue-400">
-                  {item.category}
-                </span>
-
-                <span className="text-xs text-gray-600">
-                  {item.date}
-                </span>
-
-              </div>
-
-              {/* TITLE */}
-
-              <h2 className="mt-4 text-2xl font-bold leading-tight transition-colors group-hover:text-blue-200">
-                {item.title}
-              </h2>
-
-              {/* DESCRIPTION */}
-
-              <p className="mt-4 flex-1 text-sm leading-7 text-gray-500">
-                {item.description}
-              </p>
-
-              {/* DIVIDER */}
-
-              <div className="my-6 h-px bg-white/[0.06]" />
-
-              {/* ACTION */}
-
-              <Link
-                to={`/ai-news/${item.id}`}
-                onClick={() =>
-                  handleReadArticle(
-                    item
-                  )
-                }
-                className={`
-                  flex
-                  items-center
-                  justify-between
-                  rounded-xl
-                  border
-                  px-4
-                  py-3
-                  text-sm
-                  font-bold
-                  transition-all
-                  duration-300
-                  ${
-                    articleRead
-                      ? "border-green-400/20 bg-green-400/[0.06] text-green-300 hover:bg-green-400/10"
-                      : "border-blue-400/20 bg-blue-400/[0.07] text-blue-300 hover:border-blue-400/40 hover:bg-blue-400/12"
-                  }
-                `}
-              >
-                <span>
-                  {articleRead
-                    ? "Read Again"
-                    : "Read Article"}
-                </span>
-
-                <span className="transition-transform duration-300 group-hover:translate-x-1">
-                  →
-                </span>
-              </Link>
-
-            </article>
-          );
-        })}
-
-      </section>
-
-      {/* =====================================================
-          EMPTY STATE
-      ===================================================== */}
-
-      {filteredNews.length === 0 && (
-        <section className="mx-auto mt-14 max-w-3xl">
-
-          <div className="rounded-3xl border border-dashed border-white/10 bg-white/[0.025] px-6 py-14 text-center">
-
-            <div className="text-5xl">
-              🔍
+              📰 Latest AI Updates
             </div>
 
-            <h3 className="mt-5 text-xl font-bold">
-              No AI news found
-            </h3>
+            <h1
+              className="
+                mt-5
+                text-4xl
+                font-black
+                sm:text-5xl
+                lg:text-6xl
+              "
+            >
+              AI News &{" "}
 
-            <p className="mt-2 text-sm text-gray-500">
-              Try another search term or
-              category.
+              <span
+                className="
+                  bg-gradient-to-r
+                  from-cyan-300
+                  via-purple-400
+                  to-pink-400
+                  bg-clip-text
+                  text-transparent
+                "
+              >
+                Trends
+              </span>
+
+            </h1>
+
+            <p
+              className="
+                mt-5
+                max-w-3xl
+                text-lg
+                leading-8
+                text-gray-400
+              "
+            >
+              Discover important AI
+              launches, tools,
+              updates and technology
+              changes in one place.
             </p>
 
-            <button
-              type="button"
-              onClick={() => {
-                setSearch("");
-                setCategory("All");
-              }}
-              className="mt-6 rounded-xl border border-blue-400/20 bg-blue-400/10 px-5 py-3 text-sm font-semibold text-blue-300 transition hover:bg-blue-400/15"
+            <div
+              className="
+                mt-7
+                flex
+                flex-wrap
+                gap-3
+              "
             >
-              Reset Filters
-            </button>
+
+              <div
+                className="
+                  rounded-xl
+                  border
+                  border-white/10
+                  bg-white/[0.03]
+                  px-5
+                  py-3
+                "
+              >
+                <strong>
+                  {news.length}
+                </strong>{" "}
+                News
+              </div>
+
+              <div
+                className="
+                  rounded-xl
+                  border
+                  border-orange-400/20
+                  bg-orange-400/[0.05]
+                  px-5
+                  py-3
+                "
+              >
+                🔥{" "}
+                {
+                  news.filter(
+                    (item) =>
+                      item.trending
+                  ).length
+                }{" "}
+                Trending
+              </div>
+
+            </div>
 
           </div>
 
         </section>
-      )}
+
+        {/* ERROR */}
+
+        {error && (
+          <div
+            className="
+              mt-6
+              rounded-2xl
+              border
+              border-red-400/20
+              bg-red-400/[0.05]
+              p-5
+              text-red-300
+            "
+          >
+            ❌ {error}
+
+            <button
+              type="button"
+              onClick={
+                fetchNews
+              }
+              className="
+                ml-3
+                underline
+              "
+            >
+              Retry
+            </button>
+
+          </div>
+        )}
+
+        {/* FEATURED */}
+
+        {featuredNews && (
+          <section
+            className="
+              mt-7
+              overflow-hidden
+              rounded-[30px]
+              border
+              border-purple-400/20
+              bg-black/30
+            "
+          >
+
+            <div
+              className="
+                grid
+                grid-cols-1
+                lg:grid-cols-2
+              "
+            >
+
+              <div
+                className="
+                  min-h-[280px]
+                  overflow-hidden
+                  bg-white/[0.03]
+                "
+              >
+
+                {featuredNews.image_url ? (
+
+                  <img
+                    src={
+                      featuredNews.image_url
+                    }
+                    alt={
+                      featuredNews.title
+                    }
+                    className="
+                      h-full
+                      w-full
+                      object-cover
+                    "
+                  />
+
+                ) : (
+
+                  <div
+                    className="
+                      flex
+                      h-full
+                      min-h-[280px]
+                      items-center
+                      justify-center
+                      text-8xl
+                    "
+                  >
+                    🤖
+                  </div>
+
+                )}
+
+              </div>
+
+              <div
+                className="
+                  flex
+                  flex-col
+                  justify-center
+                  p-7
+                  sm:p-10
+                "
+              >
+
+                <p
+                  className="
+                    text-sm
+                    font-bold
+                    text-purple-300
+                  "
+                >
+                  ⭐ Featured News
+                </p>
+
+                <h2
+                  className="
+                    mt-4
+                    text-3xl
+                    font-black
+                    leading-tight
+                  "
+                >
+                  {
+                    featuredNews.title
+                  }
+                </h2>
+
+                <p
+                  className="
+                    mt-4
+                    leading-7
+                    text-gray-400
+                  "
+                >
+                  {
+                    featuredNews.summary
+                  }
+                </p>
+
+                <div
+                  className="
+                    mt-6
+                    flex
+                    flex-wrap
+                    gap-3
+                  "
+                >
+
+                  <Link
+                    to={`/ai-news/${featuredNews.slug}`}
+                    className="
+                      rounded-xl
+                      bg-white
+                      px-6
+                      py-3
+                      font-black
+                      text-black
+                    "
+                  >
+                    Read News →
+                  </Link>
+
+                  {featuredNews.source_url && (
+                    <a
+                      href={
+                        featuredNews.source_url
+                      }
+                      target="_blank"
+                      rel="noreferrer"
+                      className="
+                        rounded-xl
+                        border
+                        border-white/10
+                        px-6
+                        py-3
+                        font-bold
+                        text-gray-300
+                      "
+                    >
+                      Source ↗
+                    </a>
+                  )}
+
+                </div>
+
+              </div>
+
+            </div>
+
+          </section>
+        )}
+
+        {/* SEARCH */}
+
+        <section
+          className="
+            mt-7
+            rounded-[26px]
+            border
+            border-white/[0.08]
+            bg-black/25
+            p-5
+          "
+        >
+
+          <div
+            className="
+              flex
+              flex-col
+              gap-4
+              xl:flex-row
+            "
+          >
+
+            <input
+              type="text"
+              value={
+                search
+              }
+              onChange={
+                (event) =>
+                  setSearch(
+                    event.target.value
+                  )
+              }
+              placeholder="Search AI news..."
+              className="
+                flex-1
+                rounded-xl
+                border
+                border-white/10
+                bg-[#080a13]
+                px-5
+                py-4
+                outline-none
+                focus:border-cyan-400/40
+              "
+            />
+
+            <div
+              className="
+                flex
+                gap-2
+                overflow-x-auto
+              "
+            >
+
+              {categories.map(
+                (category) => (
+                  <button
+                    key={
+                      category
+                    }
+                    type="button"
+                    onClick={() =>
+                      setActiveCategory(
+                        category
+                      )
+                    }
+                    className={`
+                      min-w-max
+                      rounded-xl
+                      border
+                      px-4
+                      py-3
+                      text-sm
+                      font-bold
+
+                      ${
+                        activeCategory ===
+                        category
+                          ? `
+                            border-white
+                            bg-white
+                            text-black
+                          `
+                          : `
+                            border-white/10
+                            bg-white/[0.03]
+                            text-gray-400
+                          `
+                      }
+                    `}
+                  >
+                    {category}
+                  </button>
+                )
+              )}
+
+            </div>
+
+          </div>
+
+        </section>
+
+        {/* NEWS TITLE */}
+
+        <section
+          className="
+            mt-10
+            flex
+            items-end
+            justify-between
+          "
+        >
+
+          <div>
+
+            <p
+              className="
+                text-sm
+                font-bold
+                text-cyan-400
+              "
+            >
+              ⚡ Latest Updates
+            </p>
+
+            <h2
+              className="
+                mt-1
+                text-3xl
+                font-black
+              "
+            >
+              {activeCategory ===
+              "All"
+                ? "All AI News"
+                : activeCategory}
+            </h2>
+
+          </div>
+
+          <p
+            className="
+              text-sm
+              text-gray-500
+            "
+          >
+            {
+              filteredNews.length
+            }{" "}
+            results
+          </p>
+
+        </section>
+
+        {/* GRID */}
+
+        <section className="mt-6">
+
+          {filteredNews.length ===
+          0 ? (
+
+            <div
+              className="
+                rounded-[28px]
+                border
+                border-dashed
+                border-white/10
+                bg-black/25
+                py-20
+                text-center
+              "
+            >
+
+              <div className="text-6xl">
+                📰
+              </div>
+
+              <h3
+                className="
+                  mt-5
+                  text-2xl
+                  font-black
+                "
+              >
+                No AI News Found
+              </h3>
+
+              <p
+                className="
+                  mt-2
+                  text-gray-500
+                "
+              >
+                Admin panel-la first
+                news add pannunga.
+              </p>
+
+            </div>
+
+          ) : (
+
+            <div
+              className="
+                grid
+                grid-cols-1
+                gap-5
+                md:grid-cols-2
+                xl:grid-cols-3
+              "
+            >
+
+              {filteredNews.map(
+                (item) => (
+                  <article
+                    key={
+                      item.id
+                    }
+                    className="
+                      group
+                      overflow-hidden
+                      rounded-[26px]
+                      border
+                      border-white/[0.08]
+                      bg-[#111318]/85
+                      transition
+                      hover:-translate-y-1
+                      hover:border-cyan-400/20
+                    "
+                  >
+
+                    <div
+                      className="
+                        aspect-[16/9]
+                        overflow-hidden
+                        bg-white/[0.03]
+                      "
+                    >
+
+                      {item.image_url ? (
+
+                        <img
+                          src={
+                            item.image_url
+                          }
+                          alt={
+                            item.title
+                          }
+                          className="
+                            h-full
+                            w-full
+                            object-cover
+                            transition
+                            duration-500
+                            group-hover:scale-105
+                          "
+                        />
+
+                      ) : (
+
+                        <div
+                          className="
+                            flex
+                            h-full
+                            items-center
+                            justify-center
+                            text-6xl
+                          "
+                        >
+                          📰
+                        </div>
+
+                      )}
+
+                    </div>
+
+                    <div className="p-6">
+
+                      <div
+                        className="
+                          flex
+                          flex-wrap
+                          gap-2
+                        "
+                      >
+
+                        <span
+                          className="
+                            rounded-full
+                            bg-cyan-400/[0.06]
+                            px-3
+                            py-1
+                            text-xs
+                            font-bold
+                            text-cyan-300
+                          "
+                        >
+                          {
+                            item.category
+                          }
+                        </span>
+
+                        {item.trending && (
+                          <span
+                            className="
+                              rounded-full
+                              bg-orange-400/[0.07]
+                              px-3
+                              py-1
+                              text-xs
+                              font-bold
+                              text-orange-300
+                            "
+                          >
+                            🔥 Trending
+                          </span>
+                        )}
+
+                      </div>
+
+                      <h3
+                        className="
+                          mt-4
+                          text-xl
+                          font-black
+                          leading-snug
+                        "
+                      >
+                        {
+                          item.title
+                        }
+                      </h3>
+
+                      <p
+                        className="
+                          mt-3
+                          line-clamp-3
+                          text-sm
+                          leading-6
+                          text-gray-400
+                        "
+                      >
+                        {
+                          item.summary
+                        }
+                      </p>
+
+                      <p
+                        className="
+                          mt-4
+                          text-xs
+                          text-gray-600
+                        "
+                      >
+                        {
+                          formatDate(
+                            item.published_at
+                          )
+                        }
+                      </p>
+
+                      <Link
+                        to={`/ai-news/${item.slug}`}
+                        className="
+                          mt-5
+                          block
+                          rounded-xl
+                          bg-white
+                          px-5
+                          py-3
+                          text-center
+                          font-black
+                          text-black
+                          transition
+                          hover:bg-gray-200
+                        "
+                      >
+                        Read More →
+                      </Link>
+
+                    </div>
+
+                  </article>
+                )
+              )}
+
+            </div>
+
+          )}
+
+        </section>
+
+      </div>
 
     </main>
   );
 }
-
-export default AINews;
