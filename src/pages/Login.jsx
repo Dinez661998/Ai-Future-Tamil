@@ -408,146 +408,179 @@ function Login() {
   ========================================================= */
 
   const handleLogin =
-    async (e) => {
-      e.preventDefault();
+  async (e) => {
+    e.preventDefault();
 
-      setError("");
-      setSuccess("");
+    setError("");
+    setSuccess("");
+
+    if (
+      !email.trim() ||
+      !password
+    ) {
+      setError(
+        "Please enter email and password."
+      );
+
+      return;
+    }
+
+    try {
+      setLoading(true);
+
+      // =====================================================
+      // LOGIN USER
+      // =====================================================
+
+      const {
+        data,
+        error:
+          loginError,
+      } =
+        await supabase.auth.signInWithPassword(
+          {
+            email:
+              email.trim(),
+
+            password,
+          }
+        );
 
       if (
-        !email.trim() ||
-        !password
+        loginError
       ) {
         setError(
-          "Please enter email and password."
+          loginError.message
         );
 
         return;
       }
 
-      try {
-        setLoading(
-          true
+      if (
+        !data?.user
+      ) {
+        setError(
+          "Login failed. Please try again."
         );
 
-        const {
-          data,
-          error:
-            loginError,
-        } =
-          await supabase.auth.signInWithPassword(
-            {
-              email:
-                email.trim(),
+        return;
+      }
 
-              password,
-            }
-          );
+      // =====================================================
+      // SAVE BASIC USER DETAILS
+      // =====================================================
 
-        if (
-          loginError
-        ) {
-          setError(
-            loginError.message
-          );
+      localStorage.setItem(
+        "isLoggedIn",
+        "true"
+      );
 
-          return;
-        }
+      localStorage.setItem(
+        "userEmail",
+        data.user.email || ""
+      );
 
-        if (
-          !data?.user
-        ) {
-          setError(
-            "Login failed. Please try again."
-          );
+      const userName =
+        data.user
+          .user_metadata
+          ?.full_name ||
+        data.user
+          .user_metadata
+          ?.name ||
+        data.user.email
+          ?.split("@")[0] ||
+        "User";
 
-          return;
-        }
+      localStorage.setItem(
+        "userName",
+        userName
+      );
 
-        /* ===============================================
-           COMPATIBILITY DATA
-        =============================================== */
+      window.dispatchEvent(
+        new Event(
+          "dashboard-data-updated"
+        )
+      );
 
-        localStorage.setItem(
-          "isLoggedIn",
-          "true"
+      window.dispatchEvent(
+        new Event(
+          "ai-future-data-change"
+        )
+      );
+
+      // =====================================================
+      // CHECK WHETHER LOGGED-IN USER IS ADMIN
+      // =====================================================
+
+      const {
+        data:
+          adminResult,
+        error:
+          adminError,
+      } =
+        await supabase.rpc(
+          "is_admin"
         );
 
-        localStorage.setItem(
-          "userEmail",
-          data.user.email || ""
+      if (
+        adminError
+      ) {
+        console.error(
+          "Admin role check error:",
+          adminError
         );
+      }
 
-        const userName =
-          data.user
-            .user_metadata
-            ?.full_name ||
-          data.user
-            .user_metadata
-            ?.name ||
-          data.user.email
-            ?.split("@")[0] ||
-          "User";
+      // =====================================================
+      // ADMIN ACCOUNT
+      // =====================================================
 
-        localStorage.setItem(
-          "userName",
-          userName
-        );
-
-        window.dispatchEvent(
-          new Event(
-            "dashboard-data-updated"
-          )
-        );
-
-        window.dispatchEvent(
-          new Event(
-            "ai-future-data-change"
-          )
-        );
-
-        /*
-          IMPORTANT:
-
-          If AdminRoute sent user here:
-
-          /admin
-            ↓
-          /login
-            ↓
-          Login success
-            ↓
-          /admin
-
-          Normal login:
-          /dashboard
-        */
-
+      if (
+        adminResult === true
+      ) {
         navigate(
-          redirectTo,
+          "/admin",
           {
             replace: true,
           }
         );
 
-      } catch (
-        err
-      ) {
-        console.error(
-          "Login error:",
-          err
-        );
-
-        setError(
-          "Something went wrong. Please try again."
-        );
-
-      } finally {
-        setLoading(
-          false
-        );
+        return;
       }
-    };
+
+      // =====================================================
+      // NORMAL USER
+      // =====================================================
+
+      navigate(
+        redirectTo.startsWith(
+          "/admin"
+        )
+          ? "/dashboard"
+          : redirectTo,
+        {
+          replace: true,
+        }
+      );
+
+    } catch (
+      err
+    ) {
+      console.error(
+        "Login error:",
+        err
+      );
+
+      setError(
+        "Something went wrong. Please try again."
+      );
+
+    } finally {
+      setLoading(
+        false
+      );
+    }
+  };
 
   /* =========================================================
      FORGOT PASSWORD
