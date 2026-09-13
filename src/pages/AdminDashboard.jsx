@@ -30,7 +30,7 @@ const MODULES = [
     title: "AI News",
     icon: "📰",
     table: "ai_news",
-    route: "/admin/news",
+    route: null,
     description:
       "AI news, updates and trending stories manage pannalam.",
   },
@@ -130,6 +130,159 @@ function prettyDate(value) {
   }
 }
 
+function toDateTimeLocal(value) {
+  if (!value) return "";
+
+  const date = new Date(value);
+
+  if (Number.isNaN(date.getTime())) {
+    return "";
+  }
+
+  const pad = (number) =>
+    String(number).padStart(2, "0");
+
+  return `${date.getFullYear()}-${pad(
+    date.getMonth() + 1
+  )}-${pad(date.getDate())}T${pad(
+    date.getHours()
+  )}:${pad(date.getMinutes())}`;
+}
+
+const MODULE_FIELDS = {
+  tools: [
+    "name",
+    "slug",
+    "description",
+    "category",
+    "website_url",
+    "logo_url",
+    "pricing",
+    "featured",
+    "trending",
+  ],
+  news: [
+    "title",
+    "slug",
+    "summary",
+    "category",
+    "image_url",
+    "source_url",
+    "featured",
+    "trending",
+    "published_at",
+  ],
+  prompts: [
+    "title",
+    "slug",
+    "prompt_text",
+    "description",
+    "category",
+    "image_url",
+    "featured",
+    "premium",
+    "published",
+  ],
+  pricing: [
+    "name",
+    "description",
+    "price",
+    "billing_period",
+    "button_text",
+    "button_url",
+    "features",
+    "popular",
+    "active",
+    "sort_order",
+  ],
+  courses: [
+    "title",
+    "slug",
+    "description",
+    "category",
+    "level",
+    "duration",
+    "image_url",
+    "course_url",
+    "featured",
+    "published",
+  ],
+  sections: [
+    "page_key",
+    "section_key",
+    "title",
+    "subtitle",
+    "description",
+    "button_text",
+    "button_url",
+    "image_url",
+    "active",
+    "sort_order",
+  ],
+  navigation: [
+    "label",
+    "url",
+    "location",
+    "active",
+    "sort_order",
+  ],
+  announcements: [
+    "message",
+    "button_text",
+    "button_url",
+    "active",
+  ],
+  seo: [
+    "page_key",
+    "title",
+    "description",
+    "keywords",
+    "image_url",
+  ],
+  settings: [
+    "setting_key",
+    "setting_value",
+  ],
+};
+
+function getRecordIdentity(moduleKey, record) {
+  if (!record) return [];
+
+  if (
+    record.id !== undefined &&
+    record.id !== null
+  ) {
+    return [["id", record.id]];
+  }
+
+  if (moduleKey === "settings") {
+    return [
+      [
+        "setting_key",
+        record.setting_key,
+      ],
+    ];
+  }
+
+  if (moduleKey === "seo") {
+    return [
+      ["page_key", record.page_key],
+    ];
+  }
+
+  if (moduleKey === "sections") {
+    return [
+      ["page_key", record.page_key],
+      [
+        "section_key",
+        record.section_key,
+      ],
+    ];
+  }
+
+  return [];
+}
+
 /* =========================================================
    GENERIC MODAL
 ========================================================= */
@@ -143,16 +296,23 @@ function Modal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/80 p-4 backdrop-blur-sm">
-      <div className="max-h-[92vh] w-full max-w-3xl overflow-y-auto rounded-3xl border border-white/10 bg-[#0b1020] p-6 shadow-2xl">
-        <div className="mb-6 flex items-center justify-between gap-4">
-          <h2 className="text-2xl font-black text-white">
-            {title}
-          </h2>
+    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-3 backdrop-blur-md">
+      <div className="w-full max-w-[1240px] rounded-[26px] border border-white/10 bg-[#0b1020] p-5 shadow-[0_30px_100px_rgba(0,0,0,.65)] sm:p-6">
+        <div className="mb-4 flex items-center justify-between gap-4 border-b border-white/[0.08] pb-4">
+          <div>
+            <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-400">
+              Master Admin CMS
+            </p>
+
+            <h2 className="mt-1 text-xl font-black text-white sm:text-2xl">
+              {title}
+            </h2>
+          </div>
 
           <button
+            type="button"
             onClick={onClose}
-            className="flex h-10 w-10 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-xl text-gray-400 transition hover:bg-white/10 hover:text-white"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl border border-white/10 bg-white/5 text-xl text-gray-400 transition hover:border-red-400/30 hover:bg-red-500/10 hover:text-red-300"
           >
             ×
           </button>
@@ -200,6 +360,9 @@ export default function AdminDashboard() {
 
   const [form, setForm] =
     useState({});
+
+  const [saving, setSaving] =
+    useState(false);
 
   const currentModule =
     MODULES.find(
@@ -475,6 +638,31 @@ export default function AdminDashboard() {
         );
         break;
 
+      case "news":
+        Object.assign(
+          defaults,
+          {
+            title: "",
+            slug: "",
+            summary: "",
+            category:
+              "AI Update",
+            image_url:
+              "",
+            source_url:
+              "",
+            featured:
+              false,
+            trending:
+              false,
+            published_at:
+              toDateTimeLocal(
+                new Date()
+              ),
+          }
+        );
+        break;
+
       case "prompts":
         Object.assign(
           defaults,
@@ -677,6 +865,16 @@ export default function AdminDashboard() {
         );
     }
 
+    if (
+      activeModule === "news" &&
+      copy.published_at
+    ) {
+      copy.published_at =
+        toDateTimeLocal(
+          copy.published_at
+        );
+    }
+
     setForm(copy);
 
     setModalOpen(
@@ -719,6 +917,7 @@ export default function AdminDashboard() {
             field ===
               "title" &&
             [
+              "news",
               "prompts",
               "courses",
             ].includes(
@@ -741,28 +940,28 @@ export default function AdminDashboard() {
      SAVE
   ========================================================= */
 
-  async function saveRecord(
-    event
-  ) {
-    event.preventDefault();
+  function buildPayload() {
+    const allowedFields =
+      MODULE_FIELDS[
+        activeModule
+      ] || [];
 
-    if (
-      !currentModule
-    ) {
-      return;
-    }
+    const payload = {};
 
-    setMessage("");
-
-    const payload = {
-      ...form,
-    };
-
-    delete payload.id;
-    delete payload.created_at;
-
-    payload.updated_at =
-      new Date().toISOString();
+    allowedFields.forEach(
+      (field) => {
+        if (
+          Object.prototype
+            .hasOwnProperty.call(
+              form,
+              field
+            )
+        ) {
+          payload[field] =
+            form[field];
+        }
+      }
+    );
 
     if (
       activeModule ===
@@ -770,79 +969,226 @@ export default function AdminDashboard() {
     ) {
       payload.features =
         String(
-          form.features ||
-            ""
+          form.features || ""
         )
           .split("\n")
-          .map(
-            (value) =>
-              value.trim()
+          .map((value) =>
+            value.trim()
           )
           .filter(Boolean);
+
+      payload.sort_order =
+        Number(
+          form.sort_order
+        ) || 0;
     }
 
-    try {
-      let result;
+    if (
+      activeModule ===
+        "sections" ||
+      activeModule ===
+        "navigation"
+    ) {
+      payload.sort_order =
+        Number(
+          form.sort_order
+        ) || 0;
+    }
+
+    if (
+      activeModule ===
+        "news" &&
+      form.published_at
+    ) {
+      const publishedDate =
+        new Date(
+          form.published_at
+        );
 
       if (
-        editingRecord?.id
+        !Number.isNaN(
+          publishedDate.getTime()
+        )
       ) {
-        result =
-          await supabase
+        payload.published_at =
+          publishedDate.toISOString();
+      }
+    }
+
+    return payload;
+  }
+
+  function applyIdentity(
+    query,
+    record
+  ) {
+    const identity =
+      getRecordIdentity(
+        activeModule,
+        record
+      );
+
+    if (
+      identity.length === 0
+    ) {
+      throw new Error(
+        "Record identity missing. Reload pannitu try pannunga."
+      );
+    }
+
+    let nextQuery = query;
+
+    identity.forEach(
+      ([field, value]) => {
+        nextQuery =
+          nextQuery.eq(
+            field,
+            value
+          );
+      }
+    );
+
+    return nextQuery;
+  }
+
+  async function saveRecord(
+    event
+  ) {
+    event.preventDefault();
+
+    if (
+      !currentModule ||
+      saving
+    ) {
+      return;
+    }
+
+    setSaving(true);
+    setMessage("");
+
+    try {
+      const payload =
+        buildPayload();
+
+      if (
+        Object.keys(
+          payload
+        ).length === 0
+      ) {
+        throw new Error(
+          "Save panna data illa."
+        );
+      }
+
+      let savedRecord;
+
+      if (editingRecord) {
+        let updateQuery =
+          supabase
             .from(
               currentModule.table
             )
             .update(
               payload
-            )
-            .eq(
-              "id",
-              editingRecord.id
             );
 
+        updateQuery =
+          applyIdentity(
+            updateQuery,
+            editingRecord
+          );
+
+        const {
+          data,
+          error,
+        } =
+          await updateQuery
+            .select("*")
+            .maybeSingle();
+
+        if (error) {
+          throw error;
+        }
+
+        if (!data) {
+          throw new Error(
+            "Update apply aagala. Supabase UPDATE policy / RLS check pannunga."
+          );
+        }
+
+        savedRecord =
+          data;
+
+        setMessage(
+          "✅ Successfully updated."
+        );
       } else {
-        result =
+        const {
+          data,
+          error,
+        } =
           await supabase
             .from(
               currentModule.table
             )
-            .insert(
-              payload
-            );
+            .insert(payload)
+            .select("*")
+            .single();
+
+        if (error) {
+          throw error;
+        }
+
+        savedRecord =
+          data;
+
+        setMessage(
+          "✅ Successfully added."
+        );
       }
 
-      if (
-        result.error
-      ) {
-        throw result.error;
-      }
+      setModalOpen(false);
+      setEditingRecord(null);
+      setForm({});
 
-      setModalOpen(
-        false
+      await loadRecords(
+        currentModule
       );
-
-      setEditingRecord(
-        null
-      );
-
-      setMessage(
-        editingRecord
-          ? "✅ Successfully updated."
-          : "✅ Successfully added."
-      );
-
-      await loadRecords();
 
       await loadCounts();
 
+      window.dispatchEvent(
+        new CustomEvent(
+          "ai-future-data-change",
+          {
+            detail: {
+              module:
+                activeModule,
+              action:
+                editingRecord
+                  ? "update"
+                  : "insert",
+              record:
+                savedRecord,
+            },
+          }
+        )
+      );
+
     } catch (error) {
       console.error(
+        "CMS save error:",
         error
       );
 
       setMessage(
-        `❌ ${error.message}`
+        `❌ ${
+          error?.message ||
+          "Save failed."
+        }`
       );
+    } finally {
+      setSaving(false);
     }
   }
 
@@ -864,41 +1210,82 @@ export default function AdminDashboard() {
         "Idha permanent-aa delete panna sure-aa?"
       );
 
-    if (
-      !confirmDelete
-    ) {
+    if (!confirmDelete) {
       return;
     }
 
+    setMessage("");
+
     try {
-      const {
-        error,
-      } =
-        await supabase
+      let deleteQuery =
+        supabase
           .from(
             currentModule.table
           )
-          .delete()
-          .eq(
-            "id",
-            record.id
-          );
+          .delete();
+
+      deleteQuery =
+        applyIdentity(
+          deleteQuery,
+          record
+        );
+
+      const {
+        data,
+        error,
+      } =
+        await deleteQuery
+          .select("*");
 
       if (error) {
         throw error;
+      }
+
+      if (
+        !Array.isArray(data) ||
+        data.length === 0
+      ) {
+        throw new Error(
+          "Delete apply aagala. Supabase DELETE policy / RLS check pannunga."
+        );
       }
 
       setMessage(
         "🗑️ Deleted successfully."
       );
 
-      await loadRecords();
+      await loadRecords(
+        currentModule
+      );
 
       await loadCounts();
 
+      window.dispatchEvent(
+        new CustomEvent(
+          "ai-future-data-change",
+          {
+            detail: {
+              module:
+                activeModule,
+              action:
+                "delete",
+              record,
+            },
+          }
+        )
+      );
+
     } catch (error) {
+      console.error(
+        "CMS delete error:",
+        error
+      );
+
       setMessage(
-        `❌ ${error.message}`
+        `❌ ${
+          error?.message ||
+          "Delete failed."
+        }`
       );
     }
   }
@@ -971,53 +1358,64 @@ export default function AdminDashboard() {
     options = {}
   ) {
     const {
-      textarea =
-        false,
-      type =
-        "text",
+      textarea = false,
+      type = "text",
+      placeholder = "",
+      required = false,
+      wide = false,
     } = options;
 
     return (
-      <div>
-        <label className="mb-2 block text-sm font-bold text-gray-300">
+      <div
+        className={
+          wide
+            ? "md:col-span-2 xl:col-span-3"
+            : ""
+        }
+      >
+        <label className="mb-1.5 block text-xs font-black uppercase tracking-wide text-gray-400">
           {label}
         </label>
 
         {textarea ? (
           <textarea
-            rows="5"
+            rows="2"
             value={
-              form[field] ??
-              ""
+              form[field] ?? ""
             }
+            placeholder={
+              placeholder
+            }
+            required={required}
             onChange={(
               event
             ) =>
               updateField(
                 field,
-                event.target
-                  .value
+                event.target.value
               )
             }
-            className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none focus:border-cyan-400/40"
+            className="min-h-[74px] w-full resize-none rounded-xl border border-white/10 bg-black/30 px-4 py-2.5 text-sm text-white outline-none transition placeholder:text-gray-700 focus:border-cyan-400/50 focus:bg-black/40"
           />
         ) : (
           <input
             type={type}
             value={
-              form[field] ??
-              ""
+              form[field] ?? ""
             }
+            placeholder={
+              placeholder
+            }
+            required={required}
             onChange={(
               event
             ) =>
               updateField(
                 field,
-                event.target
-                  .value
+                event.target.value
               )
             }
-            className="w-full rounded-xl border border-white/10 bg-black/30 px-4 py-3 text-white outline-none focus:border-cyan-400/40"
+            className="h-[44px] w-full rounded-xl border border-white/10 bg-black/30 px-4 text-sm text-white outline-none transition placeholder:text-gray-700 focus:border-cyan-400/50 focus:bg-black/40"
           />
         )}
       </div>
@@ -1029,27 +1427,24 @@ export default function AdminDashboard() {
     field
   ) {
     return (
-      <label className="flex cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 py-3">
+      <label className="flex h-[44px] cursor-pointer items-center gap-3 rounded-xl border border-white/10 bg-white/[0.03] px-4 transition hover:border-cyan-400/20 hover:bg-white/[0.05]">
         <input
           type="checkbox"
-          checked={
-            Boolean(
-              form[field]
-            )
-          }
+          checked={Boolean(
+            form[field]
+          )}
           onChange={(
             event
           ) =>
             updateField(
               field,
-              event.target
-                .checked
+              event.target.checked
             )
           }
-          className="h-4 w-4"
+          className="h-4 w-4 accent-cyan-400"
         />
 
-        <span className="font-semibold text-gray-200">
+        <span className="text-sm font-bold text-gray-200">
           {label}
         </span>
       </label>
@@ -1081,8 +1476,8 @@ export default function AdminDashboard() {
               "Description",
               "description",
               {
-                textarea:
-                  true,
+                textarea: true,
+                wide: true,
               }
             )}
 
@@ -1104,6 +1499,72 @@ export default function AdminDashboard() {
             {textInput(
               "Pricing",
               "pricing"
+            )}
+
+            <div className="grid gap-3 sm:grid-cols-2">
+              {checkbox(
+                "Featured",
+                "featured"
+              )}
+
+              {checkbox(
+                "Trending",
+                "trending"
+              )}
+            </div>
+          </>
+        );
+
+      case "news":
+        return (
+          <>
+            {textInput(
+              "News Title",
+              "title",
+              {
+                required: true,
+              }
+            )}
+
+            {textInput(
+              "Slug",
+              "slug",
+              {
+                required: true,
+              }
+            )}
+
+            {textInput(
+              "Category",
+              "category"
+            )}
+
+            {textInput(
+              "Summary",
+              "summary",
+              {
+                textarea: true,
+                wide: true,
+              }
+            )}
+
+            {textInput(
+              "Image URL",
+              "image_url"
+            )}
+
+            {textInput(
+              "Source URL",
+              "source_url"
+            )}
+
+            {textInput(
+              "Published At",
+              "published_at",
+              {
+                type:
+                  "datetime-local",
+              }
             )}
 
             <div className="grid gap-3 sm:grid-cols-2">
@@ -1696,8 +2157,12 @@ export default function AdminDashboard() {
 
                   <button
                     onClick={() =>
-                      navigate(
-                        "/admin/news"
+                      openModule(
+                        MODULES.find(
+                          (item) =>
+                            item.key ===
+                            "news"
+                        )
                       )
                     }
                     className="rounded-xl border border-white/10 bg-white/5 px-5 py-4 text-left font-bold"
@@ -1931,31 +2396,31 @@ export default function AdminDashboard() {
             ? `Edit ${currentModule?.title || ""}`
             : `Add ${currentModule?.title || ""}`
         }
-        onClose={() =>
-          setModalOpen(
-            false
-          )
-        }
+        onClose={() => {
+          setModalOpen(false);
+          setEditingRecord(null);
+          setForm({});
+        }}
       >
 
         <form
           onSubmit={
             saveRecord
           }
-          className="space-y-5"
+          className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3"
         >
 
           {renderForm()}
 
-          <div className="flex gap-3 pt-3">
+          <div className="flex gap-3 border-t border-white/[0.08] pt-4 md:col-span-2 xl:col-span-3">
 
             <button
               type="button"
-              onClick={() =>
-                setModalOpen(
-                  false
-                )
-              }
+              onClick={() => {
+                setModalOpen(false);
+                setEditingRecord(null);
+                setForm({});
+              }}
               className="flex-1 rounded-xl border border-white/10 py-3 font-bold text-gray-400"
             >
               Cancel
@@ -1963,11 +2428,16 @@ export default function AdminDashboard() {
 
             <button
               type="submit"
-              className="flex-1 rounded-xl bg-cyan-500 py-3 font-black text-black"
+              disabled={saving}
+              className="flex-1 rounded-xl bg-cyan-500 py-3 font-black text-black transition hover:bg-cyan-300 disabled:cursor-not-allowed disabled:opacity-50"
             >
-              {editingRecord
-                ? "Update"
-                : "Add"}
+              {saving
+                ? editingRecord
+                  ? "Updating..."
+                  : "Adding..."
+                : editingRecord
+                  ? "Update"
+                  : "Add"}
             </button>
 
           </div>
