@@ -1,11 +1,18 @@
-import { useEffect, useMemo, useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useMemo,
+  useState,
+} from "react";
+
+import { supabase } from "../supabase/client";
 import { Link, useNavigate, useParams } from "react-router-dom";
 
 /* =========================================================
    COURSE DATA
 ========================================================= */
 
-const courses = [
+const builtInCourses = [
   {
     id: "ai-tools-for-beginners",
     icon: "🤖",
@@ -829,8 +836,8 @@ function isCourseFullyCompleted(course, progressData, quizData) {
   );
 }
 
-function syncCompletedCourses(progressData, quizData) {
-  const completedCourseIds = courses
+function syncCompletedCourses(progressData, quizData, activeCourses) {
+  const completedCourseIds = activeCourses
     .filter((course) =>
       isCourseFullyCompleted(
         course,
@@ -919,6 +926,80 @@ const accentStyles = {
 function Courses() {
   const { courseId } = useParams();
   const navigate = useNavigate();
+  const [courses, setCourses] = useState([]);
+  const [coursesLoading, setCoursesLoading] = useState(true);
+  const [coursesError, setCoursesError] = useState("");
+  const [coursesRetry, setCoursesRetry] = useState(0);
+
+  useEffect(() => {
+    let disposed = false;
+    let requestId = 0;
+
+    async function loadCourses() {
+      const currentRequest = ++requestId;
+      try {
+        const { data, error } = await supabase
+          .from("courses")
+          .select("*")
+          .eq("published", true);
+
+        if (disposed || currentRequest !== requestId) return;
+        if (error) throw error;
+
+        const mergedCourses = (data || [])
+          .slice()
+          .sort((a, b) => (a.sort_order ?? 0) - (b.sort_order ?? 0))
+          .map((row) => {
+            const slug = typeof row.slug === "string" ? row.slug.trim() : "";
+            const builtIn = builtInCourses.find((course) => course.id === slug);
+            // Keep route/storage IDs and learning content stable for existing courses.
+            const metadata = Object.fromEntries(
+              Object.entries(row).filter(([, value]) => value != null)
+            );
+            return {
+              icon: "🎓",
+              title: "Untitled Course",
+              description: "",
+              level: "Beginner",
+              duration: "Coming soon",
+              ...builtIn,
+              ...metadata,
+              id: slug || String(row.id),
+              lessons: builtIn?.lessons || [],
+              quiz: builtIn?.quiz || [],
+              accent: Object.prototype.hasOwnProperty.call(accentStyles, row.accent)
+                ? row.accent
+                : builtIn?.accent || "blue",
+            };
+          });
+
+        setCourses(mergedCourses);
+        setCoursesError("");
+      } catch {
+        if (!disposed && currentRequest === requestId) {
+          setCoursesError("Unable to load courses. Please try again.");
+        }
+      } finally {
+        if (!disposed && currentRequest === requestId) setCoursesLoading(false);
+      }
+    }
+
+    setCoursesLoading(true);
+    setCoursesError("");
+    const channel = supabase
+      .channel("public-courses")
+      .on("postgres_changes", { event: "*", schema: "public", table: "courses" }, loadCourses)
+      .subscribe((status) => {
+        // Refresh after reconnecting to pick up changes missed while offline.
+        if (status === "SUBSCRIBED") loadCourses();
+      });
+    loadCourses();
+
+    return () => {
+      disposed = true;
+      supabase.removeChannel(channel);
+    };
+  }, [coursesRetry]);
 
   const [progressData, setProgressData] = useState(() =>
     readJSON(COURSE_PROGRESS_KEY, {})
@@ -948,7 +1029,7 @@ function Courses() {
 
   const selectedCourse = useMemo(
     () => courses.find((course) => course.id === courseId),
-    [courseId]
+    [courseId, courses]
   );
 
   useEffect(() => {
@@ -976,6 +1057,24 @@ function Courses() {
   /* =======================================================
      INVALID COURSE
   ======================================================= */
+
+  if (coursesLoading || coursesError) {
+    return (
+      <div className="min-h-screen bg-transparent px-6 py-20 text-white">
+        <div className="mx-auto max-w-3xl text-center">
+          <p role={coursesError ? "alert" : "status"} className="text-lg text-gray-400">
+            {coursesError || "Loading courses..."}
+          </p>
+          {coursesError && (
+            <button onClick={() => setCoursesRetry((value) => value + 1)}
+              className="mt-8 rounded-xl border border-blue-500/40 bg-blue-500/10 px-6 py-3 text-blue-400 transition hover:bg-blue-500 hover:text-white">
+              Try Again
+            </button>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   if (courseId && !selectedCourse) {
     return (
@@ -1054,6 +1153,9 @@ function Courses() {
             </div>
           </div>
 
+          {courses.length === 0 && (
+            <p className="text-gray-400">No courses available yet. Please check back soon.</p>
+          )}
           <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {courses.map((course) => {
               const styles =
@@ -1193,6 +1295,32 @@ function Courses() {
      COURSE DETAIL DATA
   ======================================================= */
 
+  // New CMS courses have an overview until learning content is available.
+  if (!selectedCourse.lessons.length || !selectedCourse.quiz.length) {
+    const overviewStyles = accentStyles[selectedCourse.accent] || accentStyles.blue;
+    return (
+      <div className="min-h-screen bg-transparent px-6 py-20 text-white">
+        <div className="mx-auto max-w-3xl">
+          <Link to="/courses" className="text-sm text-gray-400 transition hover:text-white">
+            ← Back to Courses
+          </Link>
+          <section className={`mt-8 rounded-3xl border bg-zinc-950 p-8 md:p-12 ${overviewStyles.border}`}>
+            <div className="mb-6 text-5xl">{selectedCourse.icon}</div>
+            <h1 className="text-3xl font-bold md:text-4xl">{selectedCourse.title}</h1>
+            <p className="mt-5 leading-8 text-gray-400">{selectedCourse.description}</p>
+            <div className={`mt-6 flex flex-wrap gap-4 text-sm ${overviewStyles.text}`}>
+              <span>{selectedCourse.level}</span>
+              <span>{selectedCourse.duration}</span>
+            </div>
+            <div className="mt-8 rounded-2xl border border-zinc-800 bg-black p-6 text-gray-400">
+              Lessons and quiz are coming soon. Please check back for updates.
+            </div>
+          </section>
+        </div>
+      </div>
+    );
+  }
+
   const styles =
     accentStyles[selectedCourse.accent];
 
@@ -1290,7 +1418,8 @@ function Courses() {
 
     syncCompletedCourses(
       updated,
-      quizData
+      quizData,
+      courses
     );
   };
 
@@ -1442,7 +1571,8 @@ function Courses() {
 
     syncCompletedCourses(
       progressData,
-      updated
+      updated,
+      courses
     );
   };
 
