@@ -859,9 +859,12 @@ function Modal({
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-[100] flex items-center justify-center bg-black/85 p-3 backdrop-blur-md">
-      <div className="w-full max-w-[1240px] rounded-[26px] border border-white/10 bg-[#0b1020] p-5 shadow-[0_30px_100px_rgba(0,0,0,.65)] sm:p-6">
-        <div className="mb-4 flex items-center justify-between gap-4 border-b border-white/[0.08] pb-4">
+    <div
+      className="fixed inset-0 flex items-center justify-center bg-black/90 p-3 backdrop-blur-xl"
+      style={{ zIndex: 2147483000 }}
+    >
+      <div className="w-full max-w-[1380px] rounded-[26px] border border-white/10 bg-[#0b1020] p-4 shadow-[0_30px_100px_rgba(0,0,0,.72)] sm:p-5">
+        <div className="mb-3 flex items-center justify-between gap-4 border-b border-white/[0.08] pb-3">
           <div>
             <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-400">
               Master Admin CMS
@@ -2872,7 +2875,7 @@ export default function AdminDashboard() {
 
       if (!query) {
         return allSnapshotItems
-          .slice(0, 12);
+          .slice(0, 8);
       }
 
       return allSnapshotItems
@@ -2884,7 +2887,7 @@ export default function AdminDashboard() {
             recordText(record)
               .includes(query)
         )
-        .slice(0, 18);
+        .slice(0, 8);
     }, [
       allSnapshotItems,
       commandQuery,
@@ -4954,118 +4957,151 @@ export default function AdminDashboard() {
       </Modal>
 
       {/* =====================================================
-          PREVIEW PANEL
+          PREVIEW PANEL — FULL FRAME, NO INTERNAL SCROLL
       ===================================================== */}
       {previewRecord && currentModule && (
-        <div className="fixed inset-0 z-[115] flex items-center justify-center bg-black/80 p-4 backdrop-blur-md">
-          <div className="w-full max-w-3xl overflow-hidden rounded-[30px] border border-white/10 bg-[#090d1a] shadow-[0_30px_100px_rgba(0,0,0,.65)]">
-            <div className="flex items-center justify-between border-b border-white/[0.07] p-5">
-              <div>
-                <p className="text-xs font-black uppercase tracking-[0.18em] text-cyan-300">👁 Content Preview</p>
-                <h3 className="mt-1 text-xl font-black">{getRecordTitle(previewRecord)}</h3>
+        <div
+          className="fixed inset-0 flex items-center justify-center bg-black/90 p-3 backdrop-blur-xl"
+          style={{ zIndex: 2147483010 }}
+        >
+          <div className="w-full max-w-[1480px] rounded-[30px] border border-white/10 bg-[#090d1a] p-4 shadow-[0_30px_100px_rgba(0,0,0,.72)] sm:p-5">
+            <div className="flex items-center justify-between gap-4 border-b border-white/[0.07] pb-3">
+              <div className="min-w-0">
+                <p className="text-[10px] font-black uppercase tracking-[0.18em] text-cyan-300">👁 Content Preview</p>
+                <h3 className="mt-1 truncate text-lg font-black sm:text-xl">{getRecordTitle(previewRecord)}</h3>
               </div>
-              <button type="button" onClick={() => setPreviewRecord(null)} className="grid h-10 w-10 place-items-center rounded-xl border border-white/10 bg-white/[0.04] text-xl text-gray-500 hover:text-white">×</button>
+
+              <button
+                type="button"
+                onClick={() => setPreviewRecord(null)}
+                className="grid h-9 w-9 shrink-0 place-items-center rounded-xl border border-white/10 bg-white/[0.04] text-lg text-gray-500 transition hover:border-red-400/25 hover:bg-red-400/[0.06] hover:text-white"
+              >
+                ×
+              </button>
             </div>
 
-            <div className="p-5 sm:p-6">
-              <div className="grid gap-4 sm:grid-cols-[1fr_auto]">
-                <div>
-                  <div className="flex flex-wrap gap-2">
-                    <StatusBadge className={getKidsSafety(previewRecord).className}>
-                      {getKidsSafety(previewRecord).icon} {getKidsSafety(previewRecord).label}
-                    </StatusBadge>
-                    <StatusBadge className="border-cyan-400/15 bg-cyan-400/[0.05] text-cyan-300">
-                      Quality {getQualityScore(activeModule, previewRecord)}%
-                    </StatusBadge>
-                  </div>
-
-                  <p className="mt-5 whitespace-pre-wrap text-sm leading-7 text-gray-400">
-                    {getRecordSubtitle(previewRecord)}
-                  </p>
+            <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_auto] xl:items-center">
+              <div className="min-w-0">
+                <div className="flex flex-wrap gap-2">
+                  <StatusBadge className={getKidsSafety(previewRecord).className}>
+                    {getKidsSafety(previewRecord).icon} {getKidsSafety(previewRecord).label}
+                  </StatusBadge>
+                  <StatusBadge className="border-cyan-400/15 bg-cyan-400/[0.05] text-cyan-300">
+                    Quality {getQualityScore(activeModule, previewRecord)}%
+                  </StatusBadge>
                 </div>
 
-                <HealthRing value={getQualityScore(activeModule, previewRecord)} size={92} />
+                <p className="mt-3 line-clamp-3 whitespace-pre-wrap text-sm leading-6 text-gray-400">
+                  {getRecordSubtitle(previewRecord)}
+                </p>
               </div>
 
-              {getAttentionIssues(activeModule, previewRecord).length > 0 && (
-                <div className="mt-5 rounded-2xl border border-orange-400/15 bg-orange-400/[0.045] p-4">
-                  <p className="text-xs font-black uppercase tracking-wider text-orange-300">⚠️ Content Review</p>
-                  <div className="mt-2 flex flex-wrap gap-2">
-                    {getAttentionIssues(activeModule, previewRecord).map((issue) => (
-                      <span key={issue} className="rounded-lg bg-orange-400/[0.07] px-2.5 py-1.5 text-xs font-bold text-orange-200">{issue}</span>
-                    ))}
-                  </div>
-                </div>
-              )}
+              <div className="hidden xl:block">
+                <HealthRing value={getQualityScore(activeModule, previewRecord)} size={76} />
+              </div>
+            </div>
 
-              <div className="mt-5 rounded-2xl border border-white/[0.07] bg-black/20 p-4">
-                <p className="mb-3 text-xs font-black uppercase tracking-wider text-gray-500">Raw CMS Data</p>
-                <div className="grid gap-2 sm:grid-cols-2">
-                  {Object.entries(previewRecord)
-                    .filter(([, value]) => value !== null && value !== undefined && value !== "")
-                    .slice(0, 16)
-                    .map(([key, value]) => (
-                      <div key={key} className="rounded-xl border border-white/[0.05] bg-white/[0.02] p-3">
-                        <p className="text-[10px] font-black uppercase tracking-wide text-gray-700">{key}</p>
-                        <p className="mt-1 break-words text-xs text-gray-400">
-                          {typeof value === "object" ? JSON.stringify(value) : String(value)}
-                        </p>
-                      </div>
-                    ))}
+            {getAttentionIssues(activeModule, previewRecord).length > 0 && (
+              <div className="mt-4 rounded-2xl border border-orange-400/15 bg-orange-400/[0.045] px-4 py-3">
+                <div className="flex flex-wrap items-center gap-2">
+                  <p className="mr-1 text-[10px] font-black uppercase tracking-wider text-orange-300">⚠️ Content Review</p>
+                  {getAttentionIssues(activeModule, previewRecord).map((issue) => (
+                    <span key={issue} className="rounded-lg bg-orange-400/[0.07] px-2.5 py-1 text-[11px] font-bold text-orange-200">
+                      {issue}
+                    </span>
+                  ))}
                 </div>
               </div>
+            )}
 
-              <div className="mt-5 flex justify-end gap-2">
-                <button type="button" onClick={() => setPreviewRecord(null)} className="rounded-xl border border-white/10 px-5 py-3 text-sm font-black text-gray-400">Close</button>
-                <button
-                  type="button"
-                  onClick={() => {
-                    const record = previewRecord;
-                    setPreviewRecord(null);
-                    editRecord(record);
-                  }}
-                  className="rounded-xl bg-cyan-400 px-5 py-3 text-sm font-black text-black"
-                >
-                  Edit This Record →
-                </button>
+            <div className="mt-4 rounded-2xl border border-white/[0.07] bg-black/20 p-3">
+              <div className="mb-2 flex items-center justify-between gap-3">
+                <p className="text-[10px] font-black uppercase tracking-wider text-gray-500">Raw CMS Data</p>
+                <span className="text-[10px] font-bold text-gray-700">Full record overview</span>
               </div>
+
+              <div className="grid grid-cols-2 gap-2 md:grid-cols-3 xl:grid-cols-4">
+                {Object.entries(previewRecord)
+                  .filter(([, value]) => value !== null && value !== undefined && value !== "")
+                  .slice(0, 16)
+                  .map(([key, value]) => (
+                    <div key={key} className="min-w-0 rounded-xl border border-white/[0.05] bg-white/[0.02] px-3 py-2">
+                      <p className="truncate text-[9px] font-black uppercase tracking-wide text-gray-700">{key}</p>
+                      <p className="mt-1 line-clamp-2 break-words text-[11px] leading-4 text-gray-400">
+                        {typeof value === "object" ? JSON.stringify(value) : String(value)}
+                      </p>
+                    </div>
+                  ))}
+              </div>
+            </div>
+
+            <div className="mt-4 flex flex-wrap justify-end gap-2 border-t border-white/[0.06] pt-3">
+              <button
+                type="button"
+                onClick={() => setPreviewRecord(null)}
+                className="rounded-xl border border-white/10 px-5 py-2.5 text-sm font-black text-gray-400 transition hover:bg-white/[0.04] hover:text-white"
+              >
+                Close
+              </button>
+
+              <button
+                type="button"
+                onClick={() => {
+                  const record = previewRecord;
+                  setPreviewRecord(null);
+                  editRecord(record);
+                }}
+                className="rounded-xl bg-cyan-400 px-5 py-2.5 text-sm font-black text-black transition hover:bg-cyan-300"
+              >
+                Edit This Record →
+              </button>
             </div>
           </div>
         </div>
       )}
 
       {/* =====================================================
-          COMMAND PALETTE
+          COMMAND PALETTE — FULL FRAME, NO INTERNAL SCROLL
       ===================================================== */}
       {commandOpen && (
-        <div className="fixed inset-0 z-[130] flex items-start justify-center bg-black/80 px-4 pt-[8vh] backdrop-blur-lg">
-          <div className="w-full max-w-3xl overflow-hidden rounded-[30px] border border-purple-400/20 bg-[#090d1a] shadow-[0_35px_120px_rgba(0,0,0,.7)]">
-            <div className="border-b border-white/[0.07] p-4">
-              <div className="flex items-center gap-3 rounded-2xl border border-purple-400/15 bg-purple-400/[0.045] px-4">
-                <span className="text-xl">🔎</span>
-                <input
-                  ref={commandInputRef}
-                  value={commandQuery}
-                  onChange={(event) => setCommandQuery(event.target.value)}
-                  placeholder="Search every CMS module, record, category, slug..."
-                  className="h-14 flex-1 bg-transparent text-sm font-bold text-white outline-none placeholder:text-gray-700"
-                />
-                <button type="button" onClick={() => setCommandOpen(false)} className="rounded-lg border border-white/10 px-2 py-1 text-xs font-bold text-gray-600">ESC</button>
-              </div>
+        <div
+          className="fixed inset-0 flex items-center justify-center bg-black/90 p-3 backdrop-blur-xl"
+          style={{ zIndex: 2147483020 }}
+        >
+          <div className="w-full max-w-5xl rounded-[30px] border border-purple-400/20 bg-[#090d1a] p-4 shadow-[0_35px_120px_rgba(0,0,0,.72)] sm:p-5">
+            <div className="flex items-center gap-3 rounded-2xl border border-purple-400/15 bg-purple-400/[0.045] px-4">
+              <span className="text-xl">🔎</span>
+              <input
+                ref={commandInputRef}
+                value={commandQuery}
+                onChange={(event) => setCommandQuery(event.target.value)}
+                placeholder="Search every CMS module, record, category, slug..."
+                className="h-14 flex-1 bg-transparent text-sm font-bold text-white outline-none placeholder:text-gray-700"
+              />
+              <button
+                type="button"
+                onClick={() => setCommandOpen(false)}
+                className="rounded-lg border border-white/10 px-2 py-1 text-xs font-bold text-gray-600 transition hover:text-white"
+              >
+                ESC
+              </button>
             </div>
 
-            <div className="max-h-[62vh] overflow-y-auto p-4">
-              <p className="mb-3 text-[10px] font-black uppercase tracking-[0.2em] text-gray-700">
-                {commandQuery ? `${commandResults.length} search results` : "Quick CMS results"}
-              </p>
+            <div className="mt-4">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <p className="text-[10px] font-black uppercase tracking-[0.2em] text-gray-700">
+                  {commandQuery ? `${commandResults.length} top search results` : "Quick CMS results"}
+                </p>
+                <span className="text-[10px] font-bold text-gray-700">No scroll • top 8 results</span>
+              </div>
 
-              <div className="space-y-2">
-                {commandResults.length === 0 ? (
-                  <div className="rounded-2xl border border-dashed border-white/10 p-10 text-center text-sm text-gray-600">
-                    No matching CMS content found.
-                  </div>
-                ) : (
-                  commandResults.map(({ module, record, key }) => (
+              {commandResults.length === 0 ? (
+                <div className="rounded-2xl border border-dashed border-white/10 p-10 text-center text-sm text-gray-600">
+                  No matching CMS content found.
+                </div>
+              ) : (
+                <div className="grid gap-2 md:grid-cols-2">
+                  {commandResults.map(({ module, record, key }) => (
                     <button
                       type="button"
                       key={key}
@@ -5075,24 +5111,28 @@ export default function AdminDashboard() {
                         await openModule(module);
                         setSearch(getRecordTitle(record));
                       }}
-                      className="flex w-full items-center gap-3 rounded-2xl border border-white/[0.055] bg-white/[0.02] p-3.5 text-left transition hover:border-purple-400/20 hover:bg-purple-400/[0.04]"
+                      className="flex min-w-0 items-center gap-3 rounded-2xl border border-white/[0.055] bg-white/[0.02] p-3 text-left transition hover:border-purple-400/20 hover:bg-purple-400/[0.04]"
                     >
-                      <div className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-white/[0.07] bg-black/20 text-xl">{module.icon}</div>
+                      <div className="grid h-10 w-10 shrink-0 place-items-center rounded-xl border border-white/[0.07] bg-black/20 text-lg">
+                        {module.icon}
+                      </div>
                       <div className="min-w-0 flex-1">
                         <div className="flex items-center gap-2">
                           <p className="truncate text-sm font-black">{getRecordTitle(record)}</p>
                           {isKidsRecord(record) && <span className="text-xs">🧒</span>}
                         </div>
-                        <p className="mt-1 truncate text-xs text-gray-600">{module.title} • {getRecordSubtitle(record)}</p>
+                        <p className="mt-1 truncate text-[11px] text-gray-600">
+                          {module.title} • {getRecordSubtitle(record)}
+                        </p>
                       </div>
                       <span className="text-gray-700">↵</span>
                     </button>
-                  ))
-                )}
-              </div>
+                  ))}
+                </div>
+              )}
             </div>
 
-            <div className="flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] bg-black/15 px-5 py-3 text-[10px] font-bold text-gray-700">
+            <div className="mt-4 flex flex-wrap items-center justify-between gap-3 border-t border-white/[0.06] pt-3 text-[10px] font-bold text-gray-700">
               <span>Ctrl K — open anywhere</span>
               <span>Searches cached admin data across {MODULES.length} modules</span>
             </div>
@@ -5104,7 +5144,7 @@ export default function AdminDashboard() {
           TOAST
       ===================================================== */}
       {toast && (
-        <div className="fixed bottom-5 right-5 z-[160] w-[min(92vw,380px)]">
+        <div className="fixed bottom-5 right-5 w-[min(92vw,380px)]" style={{ zIndex: 2147483030 }}>
           <div
             className={`rounded-2xl border p-4 shadow-[0_25px_80px_rgba(0,0,0,.45)] backdrop-blur-2xl ${
               toast.type === "success"
