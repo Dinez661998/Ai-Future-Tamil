@@ -1,169 +1,15 @@
-import { useState } from "react";
+import {
+  useCallback,
+  useEffect,
+  useState,
+} from "react";
+
 import { Link } from "react-router-dom";
-import { supabase } from "../supabase/supabaseClient";
+
+import { supabase } from "../supabase/client";
 
 /* =========================================================
-   PRICING DATA
-========================================================= */
-
-const plans = [
-  {
-    name: "Free",
-    icon: "🌱",
-    monthly: 0,
-    yearly: 0,
-    description:
-      "Start exploring AI Future Tamil for free.",
-    badge: null,
-    accent: "gray",
-
-    features: [
-      "Access Basic AI Tools",
-      "Browse AI News",
-      "Basic Prompt Library",
-      "Save Prompts",
-      "Basic Creator Resources",
-      "Basic YouTube Tools",
-      "Community Access",
-    ],
-  },
-
-  {
-    name: "Starter",
-    icon: "⚡",
-    monthly: 5,
-    yearly: 50,
-    description:
-      "Low-cost access for students and beginners.",
-    badge: "START HERE",
-    accent: "cyan",
-
-    features: [
-      "Everything in Free",
-      "More AI Tool Access",
-      "More Prompt Access",
-      "Starter Prompt Packs",
-      "More Saved Resources",
-      "Creator Starter Tools",
-      "Starter Templates",
-      "Basic Download Resources",
-    ],
-  },
-
-  {
-    name: "Creator",
-    icon: "🎬",
-    monthly: 10,
-    yearly: 100,
-    description:
-      "Built for YouTubers and digital creators.",
-    badge: "MOST POPULAR",
-    accent: "pink",
-
-    features: [
-      "Everything in Starter",
-      "Full YouTube Creator Toolkit",
-      "Creator Prompt Collection",
-      "Video Idea Tools",
-      "Title & Hook Tools",
-      "Script Tools",
-      "Thumbnail Resources",
-      "SEO Creator Tools",
-      "Shorts Tools",
-      "Content Calendar",
-      "Creator Checklists",
-      "Premium Creator Resources",
-    ],
-  },
-
-  {
-    name: "Pro",
-    icon: "🚀",
-    monthly: 25,
-    yearly: 250,
-    description:
-      "Advanced tools for regular AI and creator users.",
-    badge: "PRO",
-    accent: "blue",
-
-    features: [
-      "Everything in Creator",
-      "Advanced AI Resources",
-      "Advanced Prompt Packs",
-      "Advanced Creator Tools",
-      "Premium Templates",
-      "Advanced Workflows",
-      "More Saved Content",
-      "Professional Resources",
-      "Early Feature Access",
-    ],
-  },
-
-  {
-    name: "Premium",
-    icon: "💎",
-    monthly: 50,
-    yearly: 500,
-    description:
-      "Maximum access to available premium resources.",
-    badge: "BEST VALUE",
-    accent: "purple",
-
-    features: [
-      "Everything in Pro",
-      "Full Premium Resource Library",
-      "Exclusive Creator Packs",
-      "Premium AI Resources",
-      "Premium Tutorials",
-      "Premium Workflows",
-      "Premium Template Packs",
-      "Early Access to New Features",
-      "Priority Feature Access",
-      "Priority Support",
-    ],
-  },
-];
-
-/* =========================================================
-   ONE-TIME PACKS
-========================================================= */
-
-const oneTimePacks = [
-  {
-    icon: "🧠",
-    name: "Prompt Pack",
-    price: "₹5",
-    description:
-      "Useful prompt templates for AI and creator workflows.",
-  },
-
-  {
-    icon: "🖼️",
-    name: "Thumbnail Starter Pack",
-    price: "₹10",
-    description:
-      "Thumbnail planning resources and creator templates.",
-  },
-
-  {
-    icon: "▶️",
-    name: "YouTube Starter Pack",
-    price: "₹15",
-    description:
-      "YouTube planning, title, hook and script resources.",
-  },
-
-  {
-    icon: "🎬",
-    name: "Creator Bundle",
-    price: "₹25",
-    description:
-      "A larger collection of useful creator resources.",
-  },
-];
-
-/* =========================================================
-   LOAD RAZORPAY CHECKOUT
+   RAZORPAY
 ========================================================= */
 
 function loadRazorpayScript() {
@@ -173,44 +19,72 @@ function loadRazorpayScript() {
       return;
     }
 
-    const oldScript = document.querySelector(
-      'script[src="https://checkout.razorpay.com/v1/checkout.js"]'
-    );
+    const oldScript =
+      document.querySelector(
+        'script[src="https://checkout.razorpay.com/v1/checkout.js"]'
+      );
 
     if (oldScript) {
-      oldScript.onload = () => resolve(true);
-      oldScript.onerror = () => resolve(false);
+      oldScript.onload = () =>
+        resolve(true);
+
+      oldScript.onerror = () =>
+        resolve(false);
+
       return;
     }
 
     const script =
-      document.createElement("script");
+      document.createElement(
+        "script"
+      );
 
     script.src =
       "https://checkout.razorpay.com/v1/checkout.js";
 
     script.async = true;
 
-    script.onload = () => {
+    script.onload = () =>
       resolve(true);
-    };
 
-    script.onerror = () => {
+    script.onerror = () =>
       resolve(false);
-    };
 
-    document.body.appendChild(script);
+    document.body.appendChild(
+      script
+    );
   });
 }
 
 /* =========================================================
-   ACCENT STYLES
+   HELPERS
 ========================================================= */
 
-function getAccentClasses(accent) {
+function parsePrice(value) {
+  const parsed =
+    parseFloat(
+      String(value ?? "0").replace(
+        /[^0-9.]/g,
+        ""
+      )
+    );
+
+  return Number.isFinite(parsed)
+    ? parsed
+    : 0;
+}
+
+/* =========================================================
+   STYLE
+========================================================= */
+
+function getAccentClasses(
+  accent
+) {
   const styles = {
     gray: {
-      border: "border-white/10",
+      border:
+        "border-white/10",
 
       glow: "",
 
@@ -252,7 +126,7 @@ function getAccentClasses(accent) {
         "bg-pink-400/[0.08] border-pink-400/25",
 
       button:
-        "bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-400 text-white",
+        "bg-gradient-to-r from-pink-500 via-purple-500 to-cyan-400",
 
       badge:
         "border-pink-400/30 bg-pink-400/[0.10] text-pink-300",
@@ -269,7 +143,7 @@ function getAccentClasses(accent) {
         "bg-blue-400/[0.07] border-blue-400/20",
 
       button:
-        "border border-blue-400/25 bg-blue-400/[0.07] text-blue-200 hover:bg-blue-400/[0.12]",
+        "border border-blue-400/25 bg-blue-400/[0.07] text-blue-200",
 
       badge:
         "border-blue-400/25 bg-blue-400/[0.08] text-blue-300",
@@ -286,36 +160,214 @@ function getAccentClasses(accent) {
         "bg-purple-400/[0.08] border-purple-400/25",
 
       button:
-        "border border-purple-400/30 bg-purple-400/[0.08] text-purple-200 hover:bg-purple-400/[0.14]",
+        "border border-purple-400/30 bg-purple-400/[0.08] text-purple-200",
 
       badge:
         "border-purple-400/30 bg-purple-400/[0.10] text-purple-300",
     },
   };
 
-  return styles[accent] || styles.gray;
+  return (
+    styles[accent] ||
+    styles.gray
+  );
 }
 
 /* =========================================================
-   PRICING COMPONENT
+   PRICING
 ========================================================= */
 
 function Pricing() {
-  const [billing, setBilling] =
-    useState("monthly");
+  const [
+    plans,
+    setPlans,
+  ] = useState([]);
 
-  const [message, setMessage] =
-    useState("");
+  const [
+    pageLoading,
+    setPageLoading,
+  ] = useState(true);
 
-  const [messageType, setMessageType] =
-    useState("");
+  const [
+    billing,
+    setBilling,
+  ] = useState("monthly");
 
-  const [loadingPlan, setLoadingPlan] =
-    useState("");
+  const [
+    message,
+    setMessage,
+  ] = useState("");
 
-  /* =======================================================
-     SHOW MESSAGE
-  ======================================================= */
+  const [
+    messageType,
+    setMessageType,
+  ] = useState("");
+
+  const [
+    loadingPlan,
+    setLoadingPlan,
+  ] = useState("");
+
+  /* =========================================================
+     LOAD CMS PRICING
+  ========================================================= */
+
+  const loadPlans =
+    useCallback(async () => {
+      try {
+        setPageLoading(true);
+
+        const {
+          data,
+          error,
+        } =
+          await supabase
+            .from(
+              "pricing_plans"
+            )
+            .select("*")
+            .eq(
+              "active",
+              true
+            )
+            .order(
+              "sort_order",
+              {
+                ascending:
+                  true,
+              }
+            );
+
+        if (error) {
+          throw error;
+        }
+
+        const formattedPlans =
+          (data || []).map(
+            (plan) => {
+              const monthly =
+                Number(
+                  plan.monthly_price ??
+                    parsePrice(
+                      plan.price
+                    )
+                );
+
+              const yearly =
+                Number(
+                  plan.yearly_price ??
+                    0
+                );
+
+              return {
+                ...plan,
+
+                features:
+                  Array.isArray(
+                    plan.features
+                  )
+                    ? plan.features
+                    : [],
+
+                icon:
+                  plan.icon ||
+                  (
+                    plan.name ===
+                    "Free"
+                      ? "🌱"
+                      : "💎"
+                  ),
+
+                accent:
+                  plan.accent ||
+                  (
+                    plan.popular
+                      ? "pink"
+                      : "purple"
+                  ),
+
+                monthly:
+                  Number.isFinite(
+                    monthly
+                  )
+                    ? monthly
+                    : 0,
+
+                yearly:
+                  Number.isFinite(
+                    yearly
+                  )
+                    ? yearly
+                    : 0,
+              };
+            }
+          );
+
+        setPlans(
+          formattedPlans
+        );
+
+      } catch (error) {
+        console.error(
+          "Pricing load error:",
+          error
+        );
+
+        setMessage(
+          `❌ ${
+            error?.message ||
+            "Unable to load pricing plans."
+          }`
+        );
+
+        setMessageType(
+          "error"
+        );
+
+      } finally {
+        setPageLoading(
+          false
+        );
+      }
+    }, []);
+
+  /* =========================================================
+     REALTIME CMS
+  ========================================================= */
+
+  useEffect(() => {
+    loadPlans();
+
+    const channel =
+      supabase
+        .channel(
+          "pricing-cms-public"
+        )
+        .on(
+          "postgres_changes",
+          {
+            event: "*",
+            schema:
+              "public",
+            table:
+              "pricing_plans",
+          },
+          () => {
+            loadPlans();
+          }
+        )
+        .subscribe();
+
+    return () => {
+      supabase.removeChannel(
+        channel
+      );
+    };
+  }, [loadPlans]);
+
+  /* =========================================================
+     MESSAGE
+  ========================================================= */
 
   function showMessage(
     text,
@@ -323,48 +375,57 @@ function Pricing() {
   ) {
     setMessage(text);
 
-    setMessageType(type);
+    setMessageType(
+      type
+    );
 
-    window.setTimeout(() => {
+    setTimeout(() => {
       document
         .getElementById(
           "pricing-message"
         )
         ?.scrollIntoView({
-          behavior: "smooth",
-          block: "center",
+          behavior:
+            "smooth",
+          block:
+            "center",
         });
     }, 100);
   }
 
-  /* =======================================================
-     GET LOGGED-IN SESSION
-  ======================================================= */
+  /* =========================================================
+     SESSION
+  ========================================================= */
 
   async function getLoggedInSession() {
     const {
       data,
       error,
     } =
-      await supabase.auth.getSession();
+      await supabase.auth
+        .getSession();
 
     if (error) {
       console.error(
-        "Supabase session error:",
         error
       );
 
       return null;
     }
 
-    return data?.session || null;
+    return (
+      data?.session ||
+      null
+    );
   }
 
-  /* =======================================================
-     START PAID PLAN
-  ======================================================= */
+  /* =========================================================
+     PAYMENT
+  ========================================================= */
 
-  async function handlePaidPlan(plan) {
+  async function handlePaidPlan(
+    plan
+  ) {
     if (loadingPlan) {
       return;
     }
@@ -374,11 +435,9 @@ function Pricing() {
 
       setMessageType("");
 
-      setLoadingPlan(plan.name);
-
-      /* ===================================================
-         1. CHECK USER LOGIN
-      =================================================== */
+      setLoadingPlan(
+        plan.name
+      );
 
       const session =
         await getLoggedInSession();
@@ -390,35 +449,44 @@ function Pricing() {
         setLoadingPlan("");
 
         showMessage(
-          "🔐 Please login to your AI Future Tamil account before purchasing a plan.",
+          "🔐 Please login before purchasing a plan.",
           "error"
         );
 
         return;
       }
 
-      /* ===================================================
-         2. LOAD RAZORPAY SCRIPT
-      =================================================== */
-
       const razorpayLoaded =
         await loadRazorpayScript();
 
-      if (!razorpayLoaded) {
+      if (
+        !razorpayLoaded
+      ) {
         throw new Error(
-          "Unable to load Razorpay Checkout. Please check your internet connection."
+          "Unable to load Razorpay Checkout."
         );
       }
 
-      /* ===================================================
-         3. CREATE ORDER
-      =================================================== */
+      /*
+        IMPORTANT:
+        Price frontend-la
+        send pannala.
+
+        Backend plan name +
+        billing base panni
+        amount decide pannum.
+
+        Existing secure
+        payment system
+        preserve aagudhu.
+      */
 
       const orderResponse =
         await fetch(
           "/api/create-order",
           {
-            method: "POST",
+            method:
+              "POST",
 
             headers: {
               "Content-Type":
@@ -428,36 +496,37 @@ function Pricing() {
                 `Bearer ${session.access_token}`,
             },
 
-            body: JSON.stringify({
-              plan: plan.name,
-              billing,
-            }),
+            body:
+              JSON.stringify(
+                {
+                  plan:
+                    plan.name,
+
+                  billing,
+                }
+              ),
           }
         );
 
-      let orderData = null;
+      let orderData;
 
       try {
         orderData =
-          await orderResponse.json();
+          await orderResponse
+            .json();
+
       } catch {
         throw new Error(
-          "Server returned an invalid response."
+          "Server returned invalid response."
         );
       }
 
-      if (!orderResponse.ok) {
-        if (
-          orderResponse.status === 401
-        ) {
-          throw new Error(
-            "Your login session expired. Please logout and login again."
-          );
-        }
-
+      if (
+        !orderResponse.ok
+      ) {
         throw new Error(
           orderData?.error ||
-            "Unable to create payment order."
+          "Unable to create payment order."
         );
       }
 
@@ -467,13 +536,9 @@ function Pricing() {
         !orderData?.keyId
       ) {
         throw new Error(
-          "Payment order information is incomplete."
+          "Payment information incomplete."
         );
       }
-
-      /* ===================================================
-         4. RAZORPAY OPTIONS
-      =================================================== */
 
       const options = {
         key:
@@ -491,7 +556,8 @@ function Pricing() {
 
         description:
           `${plan.name} Plan - ${
-            billing === "monthly"
+            billing ===
+            "monthly"
               ? "Monthly"
               : "Yearly"
           }`,
@@ -499,41 +565,27 @@ function Pricing() {
         order_id:
           orderData.orderId,
 
-        /* =================================================
-           SUCCESS HANDLER
-        ================================================= */
-
         handler:
           async function (
             razorpayResponse
           ) {
             try {
               showMessage(
-                "🔐 Payment received. Securely verifying your payment...",
+                "🔐 Payment received. Verifying securely...",
                 "info"
               );
-
-              /*
-               * Get session again.
-               * This avoids using an old token if checkout
-               * was kept open for some time.
-               */
 
               const latestSession =
                 await getLoggedInSession();
 
               if (
-                !latestSession ||
-                !latestSession.access_token
+                !latestSession
+                  ?.access_token
               ) {
                 throw new Error(
-                  "Your login session expired during payment. Please login again and contact support with your payment ID."
+                  "Login session expired."
                 );
               }
-
-              /* ===========================================
-                 5. VERIFY PAYMENT SERVER-SIDE
-              =========================================== */
 
               const verifyResponse =
                 await fetch(
@@ -569,61 +621,61 @@ function Pricing() {
                   }
                 );
 
-              let verifyData =
-                null;
+              let verifyData;
 
               try {
                 verifyData =
-                  await verifyResponse.json();
+                  await verifyResponse
+                    .json();
+
               } catch {
                 throw new Error(
-                  "Payment verification server returned an invalid response."
+                  "Payment verification server returned invalid response."
                 );
               }
 
               if (
                 !verifyResponse.ok ||
-                !verifyData?.success ||
-                !verifyData?.verified
+                !verifyData
+                  ?.success ||
+                !verifyData
+                  ?.verified
               ) {
                 throw new Error(
-                  verifyData?.error ||
-                    "Payment verification failed."
+                  verifyData
+                    ?.error ||
+                  "Payment verification failed."
                 );
               }
 
-              /* ===========================================
-                 6. PAYMENT + SUBSCRIPTION SUCCESS
-              =========================================== */
-
-              let expiryText = "";
+              let expiryText =
+                "";
 
               if (
-                verifyData.expiresAt
+                verifyData
+                  .expiresAt
               ) {
-                const expiryDate =
-                  new Date(
-                    verifyData.expiresAt
-                  );
-
                 expiryText =
-                  ` Valid until ${expiryDate.toLocaleDateString(
-                    "en-IN",
-                    {
-                      day: "2-digit",
-                      month: "short",
-                      year: "numeric",
-                    }
+                  ` Valid until ${new Date(
+                    verifyData
+                      .expiresAt
+                  ).toLocaleDateString(
+                    "en-IN"
                   )}.`;
               }
 
               showMessage(
-                `✅ Payment verified! Your ${verifyData.plan || plan.name} plan is now active.${expiryText}`,
+                `✅ Payment verified! ${
+                  verifyData.plan ||
+                  plan.name
+                } plan activated.${expiryText}`,
                 "success"
               );
-            } catch (error) {
+
+            } catch (
+              error
+            ) {
               console.error(
-                "Payment verification error:",
                 error
               );
 
@@ -634,44 +686,37 @@ function Pricing() {
                 }`,
                 "error"
               );
+
             } finally {
-              setLoadingPlan("");
+              setLoadingPlan(
+                ""
+              );
             }
           },
-
-        /* =================================================
-           CHECKOUT THEME
-        ================================================= */
 
         theme: {
           color:
             "#8b5cf6",
         },
 
-        /* =================================================
-           MODAL
-        ================================================= */
-
         modal: {
-          ondismiss:
-            function () {
-              setLoadingPlan("");
-
-              showMessage(
-                "Payment checkout closed. No new plan was activated.",
-                "info"
-              );
-            },
-
-          escape: true,
+          escape:
+            true,
 
           backdropclose:
             false,
-        },
 
-        /* =================================================
-           ORDER NOTES
-        ================================================= */
+          ondismiss() {
+            setLoadingPlan(
+              ""
+            );
+
+            showMessage(
+              "Payment checkout closed.",
+              "info"
+            );
+          },
+        },
 
         notes: {
           plan:
@@ -684,38 +729,29 @@ function Pricing() {
         },
 
         retry: {
-          enabled: true,
+          enabled:
+            true,
         },
       };
-
-      /* ===================================================
-         7. OPEN RAZORPAY
-      =================================================== */
 
       const razorpay =
         new window.Razorpay(
           options
         );
 
-      /* ===================================================
-         PAYMENT FAILED
-      =================================================== */
-
       razorpay.on(
         "payment.failed",
-        function (response) {
-          console.error(
-            "Razorpay payment failed:",
-            response?.error
+        (response) => {
+          setLoadingPlan(
+            ""
           );
-
-          setLoadingPlan("");
 
           showMessage(
             `❌ ${
-              response?.error
+              response
+                ?.error
                 ?.description ||
-              "Payment failed. Please try again."
+              "Payment failed."
             }`,
             "error"
           );
@@ -723,9 +759,9 @@ function Pricing() {
       );
 
       razorpay.open();
+
     } catch (error) {
       console.error(
-        "Razorpay checkout error:",
         error
       );
 
@@ -741,139 +777,73 @@ function Pricing() {
     }
   }
 
-  /* =======================================================
+  /* =========================================================
      MESSAGE STYLE
-  ======================================================= */
+  ========================================================= */
 
   function getMessageStyle() {
     if (
-      messageType === "success"
+      messageType ===
+      "success"
     ) {
-      return `
-        border-green-400/30
-        bg-green-400/[0.07]
-        text-green-200
-      `;
+      return "border-green-400/30 bg-green-400/[0.07] text-green-200";
     }
 
     if (
-      messageType === "error"
+      messageType ===
+      "error"
     ) {
-      return `
-        border-red-400/30
-        bg-red-400/[0.07]
-        text-red-200
-      `;
+      return "border-red-400/30 bg-red-400/[0.07] text-red-200";
     }
 
-    return `
-      border-cyan-400/20
-      bg-cyan-400/[0.05]
-      text-cyan-200
-    `;
+    return "border-cyan-400/20 bg-cyan-400/[0.05] text-cyan-200";
   }
 
-  /* =======================================================
+  /* =========================================================
      UI
-  ======================================================= */
+  ========================================================= */
 
   return (
     <main className="min-h-screen bg-transparent px-5 py-16 text-white sm:px-6 sm:py-20">
 
       {/* =====================================================
-          HERO
-      ====================================================== */}
+          HEADER
+      ===================================================== */}
 
       <section className="mx-auto max-w-5xl text-center">
 
-        <div
-          className="
-            mx-auto
-            inline-flex
-            items-center
-            gap-2
-            rounded-full
-            border
-            border-purple-400/20
-            bg-purple-400/[0.06]
-            px-4
-            py-2
-            text-sm
-            font-bold
-            text-purple-300
-          "
-        >
-          💎 Simple & Affordable Pricing
+        <div className="inline-flex rounded-full border border-purple-400/20 bg-purple-400/[0.06] px-4 py-2 text-sm font-bold text-purple-300">
+          💎 Simple & Affordable
+          Pricing
         </div>
 
-        <h1
-          className="
-            mt-6
-            bg-gradient-to-r
-            from-white
-            via-cyan-200
-            to-purple-300
-            bg-clip-text
-            text-4xl
-            font-black
-            text-transparent
-            sm:text-5xl
-            md:text-6xl
-          "
-        >
+        <h1 className="mt-6 bg-gradient-to-r from-white via-cyan-200 to-purple-300 bg-clip-text text-4xl font-black text-transparent sm:text-5xl md:text-6xl">
           Choose Your Plan
         </h1>
 
-        <p
-          className="
-            mx-auto
-            mt-5
-            max-w-3xl
-            text-base
-            leading-8
-            text-gray-400
-            sm:text-lg
-          "
-        >
-          Start free and upgrade only when you
-          need more creator tools, premium
-          resources and advanced features.
+        <p className="mx-auto mt-5 max-w-3xl text-gray-400">
+          Start free and upgrade
+          whenever you need more
+          resources.
         </p>
 
-        {/* BILLING TOGGLE */}
+        {/* BILLING SWITCH */}
 
-        <div
-          className="
-            mx-auto
-            mt-8
-            inline-flex
-            rounded-2xl
-            border
-            border-white/10
-            bg-black/30
-            p-1.5
-          "
-        >
+        <div className="mx-auto mt-8 inline-flex rounded-2xl border border-white/10 bg-black/30 p-1.5">
 
           <button
             type="button"
             onClick={() =>
-              setBilling("monthly")
-            }
-            className={`
-              rounded-xl
-              px-5
-              py-2.5
-              text-sm
-              font-bold
-              transition
-              ${
-                billing ===
+              setBilling(
                 "monthly"
-                  ? "bg-white text-black"
-                  : "text-gray-400 hover:text-white"
-              }
-            `}
+              )
+            }
+            className={`rounded-xl px-5 py-2.5 text-sm font-bold transition ${
+              billing ===
+              "monthly"
+                ? "bg-white text-black"
+                : "text-gray-400 hover:text-white"
+            }`}
           >
             Monthly
           </button>
@@ -881,29 +851,18 @@ function Pricing() {
           <button
             type="button"
             onClick={() =>
-              setBilling("yearly")
-            }
-            className={`
-              rounded-xl
-              px-5
-              py-2.5
-              text-sm
-              font-bold
-              transition
-              ${
-                billing ===
+              setBilling(
                 "yearly"
-                  ? "bg-white text-black"
-                  : "text-gray-400 hover:text-white"
-              }
-            `}
+              )
+            }
+            className={`rounded-xl px-5 py-2.5 text-sm font-bold transition ${
+              billing ===
+              "yearly"
+                ? "bg-white text-black"
+                : "text-gray-400 hover:text-white"
+            }`}
           >
             Yearly
-
-            <span className="ml-2 text-[10px] text-green-500">
-              SAVE
-            </span>
-
           </button>
 
         </div>
@@ -911,724 +870,264 @@ function Pricing() {
       </section>
 
       {/* =====================================================
-          PAYMENT MESSAGE
-      ====================================================== */}
+          MESSAGE
+      ===================================================== */}
 
       {message && (
         <section
           id="pricing-message"
-          className={`
-            mx-auto
-            mt-8
-            max-w-4xl
-            rounded-2xl
-            border
-            p-5
-            text-center
-            ${getMessageStyle()}
-          `}
+          className={`mx-auto mt-8 max-w-4xl rounded-2xl border p-5 text-center ${getMessageStyle()}`}
         >
-
-          <p className="font-semibold">
-            {message}
-          </p>
-
-          {messageType ===
-            "success" && (
-            <p className="mt-2 text-xs text-green-300/70">
-              Your subscription was verified
-              by the secure payment backend.
-            </p>
-          )}
-
-          {messageType ===
-            "error" && (
-            <p className="mt-2 text-xs text-gray-500">
-              Your paid plan is not activated
-              unless server verification
-              succeeds.
-            </p>
-          )}
-
+          {message}
         </section>
       )}
 
       {/* =====================================================
-          PRICING CARDS
-      ====================================================== */}
+          LOADING
+      ===================================================== */}
 
-      <section
-        className="
-          mx-auto
-          mt-14
-          grid
-          max-w-[1500px]
-          grid-cols-1
-          gap-6
-          md:grid-cols-2
-          xl:grid-cols-5
-        "
-      >
+      {pageLoading ? (
 
-        {plans.map((plan) => {
-          const accent =
-            getAccentClasses(
-              plan.accent
-            );
+        <div className="py-24 text-center">
 
-          const price =
-            billing === "monthly"
-              ? plan.monthly
-              : plan.yearly;
+          <div className="mx-auto h-11 w-11 animate-spin rounded-full border-4 border-white/10 border-t-purple-400" />
 
-          const period =
-            billing === "monthly"
-              ? "/month"
-              : "/year";
-
-          const isLoading =
-            loadingPlan ===
-            plan.name;
-
-          return (
-            <article
-              key={plan.name}
-              className={`
-                relative
-                flex
-                h-full
-                flex-col
-                rounded-[28px]
-                border
-                bg-[#08090d]/90
-                p-6
-                backdrop-blur-xl
-                transition
-                ${accent.border}
-                ${accent.glow}
-                ${
-                  plan.name ===
-                  "Creator"
-                    ? "xl:-translate-y-3"
-                    : ""
-                }
-              `}
-            >
-
-              {/* BADGE */}
-
-              {plan.badge && (
-                <div className="mb-5">
-
-                  <span
-                    className={`
-                      inline-flex
-                      rounded-full
-                      border
-                      px-3
-                      py-1.5
-                      text-[10px]
-                      font-black
-                      tracking-wider
-                      ${accent.badge}
-                    `}
-                  >
-                    {plan.badge}
-                  </span>
-
-                </div>
-              )}
-
-              {/* ICON */}
-
-              <div
-                className={`
-                  flex
-                  h-12
-                  w-12
-                  items-center
-                  justify-center
-                  rounded-2xl
-                  border
-                  text-2xl
-                  ${accent.icon}
-                `}
-              >
-                {plan.icon}
-              </div>
-
-              {/* PLAN */}
-
-              <h2 className="mt-5 text-2xl font-black">
-                {plan.name}
-              </h2>
-
-              <p className="mt-2 min-h-[72px] text-sm leading-6 text-gray-500">
-                {plan.description}
-              </p>
-
-              {/* PRICE */}
-
-              <div className="mt-6">
-
-                <div className="flex items-end gap-2">
-
-                  <span className="text-4xl font-black">
-                    ₹{price}
-                  </span>
-
-                  <span className="pb-1 text-sm text-gray-600">
-                    {period}
-                  </span>
-
-                </div>
-
-                {billing ===
-                  "yearly" &&
-                  plan.monthly >
-                    0 && (
-                    <p className="mt-2 text-xs text-green-400">
-                      Save ₹
-                      {plan.monthly *
-                        12 -
-                        plan.yearly}{" "}
-                      per year
-                    </p>
-                  )}
-
-                {plan.monthly ===
-                  0 && (
-                  <p className="mt-2 text-xs text-gray-600">
-                    No payment required
-                  </p>
-                )}
-
-              </div>
-
-              {/* BUTTON */}
-
-              <div className="mt-7">
-
-                {plan.name ===
-                "Free" ? (
-
-                  <Link
-                    to="/ai-tools"
-                    className="
-                      block
-                      w-full
-                      rounded-xl
-                      border
-                      border-white/15
-                      bg-white/[0.04]
-                      px-4
-                      py-3
-                      text-center
-                      text-sm
-                      font-black
-                      transition
-                      hover:bg-white/[0.08]
-                    "
-                  >
-                    Continue Free →
-                  </Link>
-
-                ) : (
-
-                  <button
-                    type="button"
-                    disabled={Boolean(
-                      loadingPlan
-                    )}
-                    onClick={() =>
-                      handlePaidPlan(
-                        plan
-                      )
-                    }
-                    className={`
-                      w-full
-                      rounded-xl
-                      px-4
-                      py-3
-                      text-sm
-                      font-black
-                      transition
-                      disabled:cursor-not-allowed
-                      disabled:opacity-60
-                      ${accent.button}
-                    `}
-                  >
-                    {isLoading
-                      ? "Opening Payment..."
-                      : `Choose ${plan.name} →`}
-                  </button>
-
-                )}
-
-              </div>
-
-              {/* DIVIDER */}
-
-              <div className="my-7 border-t border-white/[0.07]" />
-
-              {/* FEATURES */}
-
-              <div className="flex-1">
-
-                <p className="mb-5 text-sm font-black">
-                  What's included
-                </p>
-
-                <ul className="space-y-4">
-
-                  {plan.features.map(
-                    (
-                      feature
-                    ) => (
-                      <li
-                        key={
-                          feature
-                        }
-                        className="
-                          flex
-                          items-start
-                          gap-3
-                          text-sm
-                          leading-5
-                          text-gray-400
-                        "
-                      >
-                        <span className="mt-[1px] text-green-400">
-                          ✓
-                        </span>
-
-                        <span>
-                          {
-                            feature
-                          }
-                        </span>
-
-                      </li>
-                    )
-                  )}
-
-                </ul>
-
-              </div>
-
-            </article>
-          );
-        })}
-
-      </section>
-
-      {/* =====================================================
-          SECURE PAYMENT INFO
-      ====================================================== */}
-
-      <section className="mx-auto mt-20 max-w-5xl">
-
-        <div
-          className="
-            grid
-            grid-cols-1
-            gap-4
-            rounded-[28px]
-            border
-            border-green-400/15
-            bg-green-400/[0.03]
-            p-6
-            sm:grid-cols-3
-            sm:p-8
-          "
-        >
-
-          <div className="text-center">
-
-            <div className="text-2xl">
-              🔐
-            </div>
-
-            <p className="mt-2 font-black">
-              Secure Checkout
-            </p>
-
-            <p className="mt-1 text-xs text-gray-500">
-              Payments are securely handled
-              through Razorpay.
-            </p>
-
-          </div>
-
-          <div className="text-center">
-
-            <div className="text-2xl">
-              📱
-            </div>
-
-            <p className="mt-2 font-black">
-              Multiple Methods
-            </p>
-
-            <p className="mt-1 text-xs text-gray-500">
-              Use available UPI apps, cards,
-              netbanking and other supported
-              methods.
-            </p>
-
-          </div>
-
-          <div className="text-center">
-
-            <div className="text-2xl">
-              ✅
-            </div>
-
-            <p className="mt-2 font-black">
-              Server Verified
-            </p>
-
-            <p className="mt-1 text-xs text-gray-500">
-              Paid access is activated only
-              after secure server
-              verification.
-            </p>
-
-          </div>
+          <p className="mt-5 text-gray-500">
+            Loading pricing...
+          </p>
 
         </div>
 
-      </section>
+      ) : plans.length ===
+        0 ? (
 
-      {/* =====================================================
-          WHY UPGRADE
-      ====================================================== */}
+        /* ===================================================
+           EMPTY
+        =================================================== */
 
-      <section className="mx-auto mt-24 max-w-7xl">
+        <section className="mx-auto mt-14 max-w-3xl rounded-[28px] border border-white/10 bg-white/[0.03] p-10 text-center">
 
-        <div className="text-center">
+          <div className="text-5xl">
+            💳
+          </div>
 
-          <p className="text-sm font-black text-cyan-400">
-            ✨ WHY UPGRADE?
-          </p>
-
-          <h2 className="mt-2 text-3xl font-black sm:text-4xl">
-            More tools. More resources.
-            More possibilities.
+          <h2 className="mt-5 text-2xl font-black">
+            Pricing plans coming
+            soon
           </h2>
 
-        </div>
-
-        <div
-          className="
-            mt-10
-            grid
-            grid-cols-1
-            gap-5
-            sm:grid-cols-2
-            lg:grid-cols-4
-          "
-        >
-
-          {[
-            [
-              "🤖",
-              "AI Resources",
-              "Explore additional AI resources and useful workflows.",
-            ],
-
-            [
-              "🎬",
-              "Creator Tools",
-              "Unlock more tools designed for YouTube and digital creators.",
-            ],
-
-            [
-              "📚",
-              "Premium Library",
-              "Access additional templates, prompts and creator resources.",
-            ],
-
-            [
-              "🚀",
-              "Future Features",
-              "Higher plans can receive access to selected new features earlier.",
-            ],
-          ].map(
-            ([
-              icon,
-              title,
-              text,
-            ]) => (
-              <article
-                key={title}
-                className="
-                  rounded-3xl
-                  border
-                  border-white/[0.08]
-                  bg-black/25
-                  p-6
-                "
-              >
-
-                <div className="text-3xl">
-                  {icon}
-                </div>
-
-                <h3 className="mt-4 text-lg font-black">
-                  {title}
-                </h3>
-
-                <p className="mt-2 text-sm leading-6 text-gray-500">
-                  {text}
-                </p>
-
-              </article>
-            )
-          )}
-
-        </div>
-
-      </section>
-
-      {/* =====================================================
-          ONE TIME PACKS
-      ====================================================== */}
-
-      <section className="mx-auto mt-24 max-w-7xl">
-
-        <div className="text-center">
-
-          <p className="text-sm font-black text-pink-400">
-            🛍️ NO SUBSCRIPTION?
+          <p className="mt-3 text-gray-500">
+            Pricing plans can be
+            managed from Admin CMS.
           </p>
 
-          <h2 className="mt-2 text-3xl font-black sm:text-4xl">
-            One-Time Creator Packs
-          </h2>
+        </section>
 
-          <p className="mx-auto mt-3 max-w-2xl text-gray-500">
-            Creator packs can be purchased
-            separately when individual pack
-            checkout is enabled.
-          </p>
+      ) : (
 
-        </div>
+        /* ===================================================
+           PRICING GRID
+        =================================================== */
 
-        <div
-          className="
-            mt-10
-            grid
-            grid-cols-1
-            gap-5
-            sm:grid-cols-2
-            lg:grid-cols-4
-          "
-        >
+        <section className="mx-auto mt-14 grid max-w-[1500px] grid-cols-1 gap-6 md:grid-cols-2 xl:grid-cols-5">
 
-          {oneTimePacks.map(
-            (pack) => (
-              <article
-                key={pack.name}
-                className="
-                  rounded-[26px]
-                  border
-                  border-white/[0.08]
-                  bg-[#090a0f]/85
-                  p-6
-                "
-              >
+          {plans.map(
+            (plan) => {
+              const accent =
+                getAccentClasses(
+                  plan.accent
+                );
 
-                <div className="text-3xl">
-                  {pack.icon}
-                </div>
+              const price =
+                billing ===
+                "monthly"
+                  ? plan.monthly
+                  : plan.yearly;
 
-                <h3 className="mt-5 text-lg font-black">
-                  {pack.name}
-                </h3>
+              const free =
+                Number(
+                  plan.monthly
+                ) === 0 &&
+                Number(
+                  plan.yearly
+                ) === 0;
 
-                <p className="mt-2 min-h-[72px] text-sm leading-6 text-gray-500">
-                  {
-                    pack.description
-                  }
-                </p>
-
-                <p className="mt-5 text-3xl font-black">
-                  {pack.price}
-                </p>
-
-                <button
-                  type="button"
-                  onClick={() =>
-                    showMessage(
-                      `${pack.icon} ${pack.name} individual checkout will be enabled separately.`,
-                      "info"
-                    )
-                  }
-                  className="
-                    mt-5
-                    w-full
-                    rounded-xl
-                    border
-                    border-white/10
-                    bg-white/[0.035]
-                    px-4
-                    py-3
-                    text-sm
-                    font-bold
-                    transition
-                    hover:border-pink-400/30
-                    hover:text-pink-300
-                  "
+              return (
+                <article
+                  key={plan.id}
+                  className={`relative flex h-full flex-col overflow-hidden rounded-[28px] border bg-[#08090d]/90 p-6 transition-all duration-300 hover:-translate-y-1 ${accent.border} ${accent.glow}`}
                 >
-                  Coming Soon
-                </button>
 
-              </article>
-            )
+                  {/* POPULAR GLOW */}
+
+                  {plan.popular && (
+                    <div className="pointer-events-none absolute -right-20 -top-20 h-52 w-52 rounded-full bg-purple-500/10 blur-3xl" />
+                  )}
+
+                  {/* BADGE */}
+
+                  {(plan.badge ||
+                    plan.popular) && (
+
+                    <div className="relative mb-5">
+
+                      <span
+                        className={`rounded-full border px-3 py-1.5 text-[10px] font-black ${accent.badge}`}
+                      >
+                        {plan.badge ||
+                          "POPULAR"}
+                      </span>
+
+                    </div>
+                  )}
+
+                  {/* ICON */}
+
+                  <div
+                    className={`relative flex h-12 w-12 items-center justify-center rounded-2xl border text-2xl ${accent.icon}`}
+                  >
+                    {plan.icon}
+                  </div>
+
+                  {/* TITLE */}
+
+                  <h2 className="relative mt-5 text-2xl font-black">
+                    {plan.name}
+                  </h2>
+
+                  {/* DESCRIPTION */}
+
+                  <p className="relative mt-2 min-h-[72px] text-sm leading-6 text-gray-500">
+                    {plan.description}
+                  </p>
+
+                  {/* PRICE */}
+
+                  <div className="relative mt-6">
+
+                    <div className="flex items-end gap-2">
+
+                      <span className="text-4xl font-black">
+                        ₹{price}
+                      </span>
+
+                      {!free && (
+                        <span className="pb-1 text-sm text-gray-600">
+
+                          {billing ===
+                          "monthly"
+                            ? "/month"
+                            : "/year"}
+
+                        </span>
+                      )}
+
+                    </div>
+
+                  </div>
+
+                  {/* BUTTON */}
+
+                  <div className="relative mt-7">
+
+                    {free ? (
+
+                      <Link
+                        to={
+                          plan.button_url ||
+                          "/ai-tools"
+                        }
+                        className="block rounded-xl border border-white/15 bg-white/[0.04] px-4 py-3 text-center font-black transition hover:bg-white/[0.08]"
+                      >
+                        {plan.button_text ||
+                          "Continue Free"}
+                      </Link>
+
+                    ) : (
+
+                      <button
+                        type="button"
+                        disabled={Boolean(
+                          loadingPlan
+                        )}
+                        onClick={() =>
+                          handlePaidPlan(
+                            plan
+                          )
+                        }
+                        className={`w-full rounded-xl px-4 py-3 text-sm font-black transition disabled:cursor-not-allowed disabled:opacity-50 ${accent.button}`}
+                      >
+
+                        {loadingPlan ===
+                        plan.name
+                          ? "Opening Payment..."
+                          : plan.button_text ||
+                            `Choose ${plan.name}`}
+
+                      </button>
+
+                    )}
+
+                  </div>
+
+                  <div className="relative my-7 border-t border-white/[0.07]" />
+
+                  {/* FEATURES */}
+
+                  <div className="relative flex-1">
+
+                    <p className="mb-5 font-black">
+                      What's included
+                    </p>
+
+                    {plan.features
+                      .length > 0 ? (
+
+                      <ul className="space-y-4">
+
+                        {plan.features.map(
+                          (
+                            feature,
+                            index
+                          ) => (
+
+                            <li
+                              key={`${plan.id}-${index}-${feature}`}
+                              className="flex gap-3 text-sm text-gray-400"
+                            >
+
+                              <span className="shrink-0 text-green-400">
+                                ✓
+                              </span>
+
+                              <span>
+                                {feature}
+                              </span>
+
+                            </li>
+                          )
+                        )}
+
+                      </ul>
+
+                    ) : (
+
+                      <p className="text-sm text-gray-600">
+                        Features will
+                        be updated soon.
+                      </p>
+
+                    )}
+
+                  </div>
+
+                </article>
+              );
+            }
           )}
 
-        </div>
-
-      </section>
-
-      {/* =====================================================
-          FAQ
-      ====================================================== */}
-
-      <section className="mx-auto mt-24 max-w-4xl">
-
-        <div className="text-center">
-
-          <p className="text-sm font-black text-purple-400">
-            ❓ PRICING FAQ
-          </p>
-
-          <h2 className="mt-2 text-3xl font-black">
-            Simple Questions
-          </h2>
-
-        </div>
-
-        <div className="mt-8 space-y-4">
-
-          {[
-            [
-              "Can I use AI Future Tamil for free?",
-              "Yes. The Free plan is available at ₹0 and provides access to selected basic features.",
-            ],
-
-            [
-              "Do I need an account before payment?",
-              "Yes. Please login first so your verified payment can be securely connected to your AI Future Tamil account.",
-            ],
-
-            [
-              "How is my payment verified?",
-              "After Razorpay Checkout completes, the payment signature is securely verified on the AI Future Tamil backend before paid access is activated.",
-            ],
-
-            [
-              "When does my plan become active?",
-              "After successful server verification, your subscription is saved to your account and marked active.",
-            ],
-
-            [
-              "How long does my plan last?",
-              "Monthly plans receive approximately one month of access and yearly plans receive one year of access from activation.",
-            ],
-          ].map(
-            ([
-              question,
-              answer,
-            ]) => (
-              <details
-                key={
-                  question
-                }
-                className="
-                  rounded-2xl
-                  border
-                  border-white/[0.08]
-                  bg-black/25
-                  p-5
-                "
-              >
-
-                <summary className="cursor-pointer font-bold">
-                  {
-                    question
-                  }
-                </summary>
-
-                <p className="mt-4 text-sm leading-7 text-gray-500">
-                  {answer}
-                </p>
-
-              </details>
-            )
-          )}
-
-        </div>
-
-      </section>
-
-      {/* =====================================================
-          BOTTOM CTA
-      ====================================================== */}
-
-      <section
-        className="
-          mx-auto
-          mt-24
-          max-w-5xl
-          rounded-[32px]
-          border
-          border-purple-400/20
-          bg-gradient-to-r
-          from-cyan-500/[0.05]
-          via-purple-500/[0.07]
-          to-pink-500/[0.05]
-          px-6
-          py-12
-          text-center
-          sm:px-10
-        "
-      >
-
-        <div className="text-4xl">
-          🚀
-        </div>
-
-        <h2 className="mt-4 text-3xl font-black">
-          Start with Free
-        </h2>
-
-        <p className="mx-auto mt-3 max-w-2xl text-gray-400">
-          Explore AI Future Tamil first.
-          Upgrade later when you need additional
-          tools and resources.
-        </p>
-
-        <Link
-          to="/ai-tools"
-          className="
-            mt-7
-            inline-block
-            rounded-xl
-            bg-white
-            px-8
-            py-4
-            font-black
-            text-black
-            transition
-            hover:bg-gray-200
-          "
-        >
-          Start Exploring →
-        </Link>
-
-      </section>
+        </section>
+      )}
 
     </main>
   );

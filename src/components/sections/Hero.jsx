@@ -1,12 +1,71 @@
 import { Link } from "react-router-dom";
 import { useLanguage } from "../../context/LanguageContext.jsx";
+import { useCmsSection } from "../../hooks/useCms";
 
 function Hero() {
-  const { language } = useLanguage();
+  const { language } =
+    useLanguage();
 
-  const tamil = language === "ta";
+  const tamil =
+    language === "ta";
 
-  const t = (en, ta) => (tamil ? ta : en);
+  const t = (en, ta) =>
+    tamil ? ta : en;
+
+  const {
+    section: englishHero,
+  } = useCmsSection(
+    "home",
+    "hero"
+  );
+
+  const {
+    section: tamilHero,
+  } = useCmsSection(
+    "home-ta",
+    "hero"
+  );
+
+  const cmsHero =
+    tamil && tamilHero
+      ? tamilHero
+      : englishHero;
+
+  const heroTitle =
+    cmsHero?.title ||
+    t(
+      "Learn AI.",
+      "AI கற்றுக்கொள்ளுங்கள்."
+    );
+
+  const heroSubtitle =
+    cmsHero?.subtitle ||
+    t(
+      "Build Your Future.",
+      "உங்கள் எதிர்காலத்தை உருவாக்குங்கள்."
+    );
+
+  const heroDescription =
+    cmsHero?.description ||
+    t(
+      "Learn AI, YouTube, Instagram, Content Creation, Technology, Android Apps, Digital Products and more — all in one place.",
+      "AI, YouTube, Instagram, Content Creation, Technology, Android Apps, Digital Products மற்றும் பலவற்றை ஒரே இடத்தில் கற்றுக்கொள்ளுங்கள்."
+    );
+
+  const heroButtonText =
+    cmsHero?.button_text ||
+    t(
+      "Start Learning",
+      "கற்க தொடங்கு"
+    );
+
+  const heroButtonUrl =
+    cmsHero?.button_url ||
+    "/courses";
+
+  const heroImage =
+    cmsHero?.image_url ||
+    "/dinesh-hero.png";
 
   return (
     <section
@@ -405,10 +464,7 @@ function Hero() {
                   text-transparent
                 "
               >
-                {t(
-                  "Learn AI.",
-                  "AI கற்றுக்கொள்ளுங்கள்."
-                )}
+                {heroTitle}
               </span>
 
               <br />
@@ -424,10 +480,7 @@ function Hero() {
                   text-transparent
                 "
               >
-                {t(
-                  "Build Your Future.",
-                  "உங்கள் எதிர்காலத்தை உருவாக்குங்கள்."
-                )}
+                {heroSubtitle}
               </span>
             </h1>
 
@@ -443,10 +496,7 @@ function Hero() {
                 sm:text-[18px]
               "
             >
-              {t(
-                "Learn AI, YouTube, Instagram, Content Creation, Technology, Android Apps, Digital Products and more — all in one place.",
-                "AI, YouTube, Instagram, Content Creation, Technology, Android Apps, Digital Products மற்றும் பலவற்றை ஒரே இடத்தில் கற்றுக்கொள்ளுங்கள்."
-              )}
+              {heroDescription}
             </p>
 
             {/* =================================================
@@ -464,7 +514,7 @@ function Hero() {
               "
             >
               <Link
-                to="/courses"
+                to={heroButtonUrl}
                 className="
                   hero-shine
                   inline-flex
@@ -491,10 +541,7 @@ function Hero() {
               >
                 🚀
 
-                {t(
-                  "Start Learning",
-                  "கற்க தொடங்கு"
-                )}
+                {heroButtonText}
 
                 <span>
                   →
@@ -1171,7 +1218,7 @@ function Hero() {
               "
             >
               <img
-                src="/dinesh-hero.png"
+                src={heroImage}
                 alt="AI Future Tamil Founder"
                 className="
                   h-full
@@ -1537,7 +1584,7 @@ function Hero() {
                 "
               >
                 <img
-                  src="/dinesh-hero.png"
+                  src={heroImage}
                   alt="AI Future Tamil Founder"
                   className="
                     h-full
