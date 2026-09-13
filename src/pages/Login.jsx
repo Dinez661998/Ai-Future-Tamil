@@ -1,6 +1,5 @@
 import {
   useEffect,
-  useMemo,
   useState,
 } from "react";
 
@@ -10,9 +9,7 @@ import {
   useNavigate,
 } from "react-router-dom";
 
-import {
-  supabase,
-} from "../supabase/client";
+import { supabase } from "../supabase/client";
 
 /* =========================================================
    ICONS
@@ -123,11 +120,6 @@ function PasswordInput({
               ? "Hide password"
               : "Show password"
           }
-          title={
-            visible
-              ? "Hide password"
-              : "Show password"
-          }
           className="
             absolute
             right-2
@@ -140,13 +132,9 @@ function PasswordInput({
             justify-center
             rounded-lg
             text-zinc-500
-            transition-all
-            duration-200
+            transition
             hover:bg-white/[0.06]
             hover:text-blue-400
-            focus:outline-none
-            focus:ring-2
-            focus:ring-blue-500/30
           "
         >
           {visible ? (
@@ -161,7 +149,132 @@ function PasswordInput({
 }
 
 /* =========================================================
-   LOGIN
+   ADMIN CHECK
+========================================================= */
+
+async function checkUserIsAdmin(
+  userId
+) {
+  try {
+    /* ===============================================
+       FIRST MAKE SURE SESSION EXISTS
+    =============================================== */
+
+    const {
+      data: {
+        session,
+      },
+      error:
+        sessionError,
+    } =
+      await supabase.auth.getSession();
+
+    if (
+      sessionError
+    ) {
+      console.error(
+        "Session check error:",
+        sessionError
+      );
+    }
+
+    if (
+      !session?.user
+    ) {
+      return false;
+    }
+
+    /* ===============================================
+       METHOD 1:
+       EXISTING is_admin() RPC
+    =============================================== */
+
+    const {
+      data:
+        rpcResult,
+      error:
+        rpcError,
+    } =
+      await supabase.rpc(
+        "is_admin"
+      );
+
+    if (
+      !rpcError &&
+      rpcResult === true
+    ) {
+      console.log(
+        "✅ Admin confirmed using is_admin()"
+      );
+
+      return true;
+    }
+
+    if (
+      rpcError
+    ) {
+      console.error(
+        "is_admin RPC error:",
+        rpcError
+      );
+    }
+
+    /* ===============================================
+       METHOD 2:
+       FALLBACK TO user_roles TABLE
+    =============================================== */
+
+    const {
+      data:
+        roleData,
+      error:
+        roleError,
+    } =
+      await supabase
+        .from("user_roles")
+        .select("role")
+        .eq(
+          "user_id",
+          userId
+        )
+        .maybeSingle();
+
+    if (
+      roleError
+    ) {
+      console.error(
+        "user_roles check error:",
+        roleError
+      );
+
+      return false;
+    }
+
+    const admin =
+      roleData?.role ===
+      "admin";
+
+    console.log(
+      "Admin role result:",
+      admin
+    );
+
+    return admin;
+
+  } catch (
+    error
+  ) {
+    console.error(
+      "Admin verification error:",
+      error
+    );
+
+    return false;
+  }
+}
+
+/* =========================================================
+   LOGIN PAGE
 ========================================================= */
 
 function Login() {
@@ -235,60 +348,27 @@ function Login() {
   ] = useState(false);
 
   /* =========================================================
-     SAFE REDIRECT
+     ADMIN LOGIN SOURCE
   ========================================================= */
 
-  const redirectTo =
-    useMemo(() => {
-      const params =
-        new URLSearchParams(
-          location.search
-        );
+  const requestedPath =
+    location.state?.from;
 
-      const stateFrom =
-        location.state?.from;
-
-      const queryFrom =
-        params.get("next");
-
-      const destination =
-        stateFrom ||
-        queryFrom ||
-        "/dashboard";
-
-      /*
-        Security:
-        Only internal website paths allowed.
-      */
-
-      if (
-        typeof destination ===
-          "string" &&
-        destination.startsWith("/") &&
-        !destination.startsWith("//")
-      ) {
-        return destination;
-      }
-
-      return "/dashboard";
-    }, [
-      location.state,
-      location.search,
-    ]);
-
-  const adminLogin =
-    redirectTo.startsWith(
+  const cameFromAdmin =
+    typeof requestedPath ===
+      "string" &&
+    requestedPath.startsWith(
       "/admin"
     );
 
   /* =========================================================
-     PASSWORD RECOVERY + EXISTING SESSION
+     PASSWORD RECOVERY
   ========================================================= */
 
   useEffect(() => {
     let mounted = true;
 
-    async function checkAuthState() {
+    async function checkRecovery() {
       try {
         const params =
           new URLSearchParams(
@@ -298,55 +378,13 @@ function Login() {
         const resetParam =
           params.get("reset");
 
-        /* ===============================================
-           PASSWORD RESET MODE
-        =============================================== */
-
         if (
-          resetParam === "1"
+          resetParam ===
+            "1" &&
+          mounted
         ) {
-          if (mounted) {
-            setRecoveryMode(
-              true
-            );
-          }
-
-          return;
-        }
-
-        /* ===============================================
-           NORMAL LOGIN SESSION CHECK
-        =============================================== */
-
-        const {
-          data: {
-            session,
-          },
-        } =
-          await supabase.auth.getSession();
-
-        if (
-          !mounted
-        ) {
-          return;
-        }
-
-        /*
-          User already logged in:
-
-          /admin -> login -> /admin
-
-          normal /login -> /dashboard
-        */
-
-        if (
-          session?.user
-        ) {
-          navigate(
-            redirectTo,
-            {
-              replace: true,
-            }
+          setRecoveryMode(
+            true
           );
         }
 
@@ -354,17 +392,13 @@ function Login() {
         err
       ) {
         console.error(
-          "Login session check error:",
+          "Recovery check error:",
           err
         );
       }
     }
 
-    checkAuthState();
-
-    /* ===============================================
-       AUTH EVENTS
-    =============================================== */
+    checkRecovery();
 
     const {
       data: {
@@ -398,189 +432,185 @@ function Login() {
       subscription?.unsubscribe();
     };
 
-  }, [
-    navigate,
-    redirectTo,
-  ]);
+  }, []);
 
   /* =========================================================
-     LOGIN WITH EMAIL
+     EMAIL + PASSWORD LOGIN
   ========================================================= */
 
   const handleLogin =
-  async (e) => {
-    e.preventDefault();
+    async (e) => {
+      e.preventDefault();
 
-    setError("");
-    setSuccess("");
-
-    if (
-      !email.trim() ||
-      !password
-    ) {
-      setError(
-        "Please enter email and password."
-      );
-
-      return;
-    }
-
-    try {
-      setLoading(true);
-
-      // =====================================================
-      // LOGIN USER
-      // =====================================================
-
-      const {
-        data,
-        error:
-          loginError,
-      } =
-        await supabase.auth.signInWithPassword(
-          {
-            email:
-              email.trim(),
-
-            password,
-          }
-        );
+      setError("");
+      setSuccess("");
 
       if (
-        loginError
+        !email.trim() ||
+        !password
       ) {
         setError(
-          loginError.message
+          "Please enter email and password."
         );
 
         return;
       }
 
-      if (
-        !data?.user
-      ) {
-        setError(
-          "Login failed. Please try again."
+      try {
+        setLoading(
+          true
         );
 
-        return;
-      }
+        /* ===============================================
+           LOGIN
+        =============================================== */
 
-      // =====================================================
-      // SAVE BASIC USER DETAILS
-      // =====================================================
+        const {
+          data,
+          error:
+            loginError,
+        } =
+          await supabase.auth.signInWithPassword(
+            {
+              email:
+                email.trim(),
 
-      localStorage.setItem(
-        "isLoggedIn",
-        "true"
-      );
+              password,
+            }
+          );
 
-      localStorage.setItem(
-        "userEmail",
-        data.user.email || ""
-      );
+        if (
+          loginError
+        ) {
+          setError(
+            loginError.message
+          );
 
-      const userName =
-        data.user
-          .user_metadata
-          ?.full_name ||
-        data.user
-          .user_metadata
-          ?.name ||
-        data.user.email
-          ?.split("@")[0] ||
-        "User";
+          return;
+        }
 
-      localStorage.setItem(
-        "userName",
-        userName
-      );
+        if (
+          !data?.user
+        ) {
+          setError(
+            "Login failed. Please try again."
+          );
 
-      window.dispatchEvent(
-        new Event(
-          "dashboard-data-updated"
-        )
-      );
+          return;
+        }
 
-      window.dispatchEvent(
-        new Event(
-          "ai-future-data-change"
-        )
-      );
+        /* ===============================================
+           SAVE USER DATA
+        =============================================== */
 
-      // =====================================================
-      // CHECK WHETHER LOGGED-IN USER IS ADMIN
-      // =====================================================
+        const loggedUser =
+          data.user;
 
-      const {
-        data:
-          adminResult,
-        error:
-          adminError,
-      } =
-        await supabase.rpc(
-          "is_admin"
+        localStorage.setItem(
+          "isLoggedIn",
+          "true"
         );
 
-      if (
-        adminError
-      ) {
-        console.error(
-          "Admin role check error:",
-          adminError
+        localStorage.setItem(
+          "userEmail",
+          loggedUser.email ||
+            ""
         );
-      }
 
-      // =====================================================
-      // ADMIN ACCOUNT
-      // =====================================================
+        const userName =
+          loggedUser
+            .user_metadata
+            ?.full_name ||
+          loggedUser
+            .user_metadata
+            ?.name ||
+          loggedUser.email
+            ?.split("@")[0] ||
+          "User";
 
-      if (
-        adminResult === true
-      ) {
+        localStorage.setItem(
+          "userName",
+          userName
+        );
+
+        window.dispatchEvent(
+          new Event(
+            "dashboard-data-updated"
+          )
+        );
+
+        window.dispatchEvent(
+          new Event(
+            "ai-future-data-change"
+          )
+        );
+
+        /* ===============================================
+           VERY IMPORTANT:
+           CHECK ADMIN AFTER LOGIN
+        =============================================== */
+
+        const isAdmin =
+          await checkUserIsAdmin(
+            loggedUser.id
+          );
+
+        console.log(
+          "Logged user:",
+          loggedUser.email
+        );
+
+        console.log(
+          "Is Admin:",
+          isAdmin
+        );
+
+        /* ===============================================
+           ADMIN
+        =============================================== */
+
+        if (
+          isAdmin
+        ) {
+          navigate(
+            "/admin",
+            {
+              replace: true,
+            }
+          );
+
+          return;
+        }
+
+        /* ===============================================
+           NORMAL USER
+        =============================================== */
+
         navigate(
-          "/admin",
+          "/dashboard",
           {
             replace: true,
           }
         );
 
-        return;
-      }
-
-      // =====================================================
-      // NORMAL USER
-      // =====================================================
-
-      navigate(
-        redirectTo.startsWith(
-          "/admin"
-        )
-          ? "/dashboard"
-          : redirectTo,
-        {
-          replace: true,
-        }
-      );
-
-    } catch (
-      err
-    ) {
-      console.error(
-        "Login error:",
+      } catch (
         err
-      );
+      ) {
+        console.error(
+          "Login error:",
+          err
+        );
 
-      setError(
-        "Something went wrong. Please try again."
-      );
+        setError(
+          "Something went wrong. Please try again."
+        );
 
-    } finally {
-      setLoading(
-        false
-      );
-    }
-  };
+      } finally {
+        setLoading(
+          false
+        );
+      }
+    };
 
   /* =========================================================
      FORGOT PASSWORD
@@ -767,6 +797,10 @@ function Login() {
           "userEmail"
         );
 
+        localStorage.removeItem(
+          "userName"
+        );
+
         setTimeout(() => {
           setRecoveryMode(
             false
@@ -814,19 +848,15 @@ function Login() {
 
       try {
         /*
-          Normal login:
-          Google -> /dashboard
+          OAuth-ku direct admin decide
+          panna mudiyadhu before Google auth.
 
-          Admin login:
-          Google -> /admin
+          So Google login mudinja
+          dashboard-ku varum.
 
-          Supabase OAuth completes first,
-          then browser returns directly
-          to intended route.
+          Email/password admin flow
+          automatic-aa /admin pogum.
         */
-
-        const googleRedirect =
-          `${window.location.origin}${redirectTo}`;
 
         const {
           error:
@@ -839,7 +869,7 @@ function Login() {
 
               options: {
                 redirectTo:
-                  googleRedirect,
+                  `${window.location.origin}/dashboard`,
               },
             }
           );
@@ -867,25 +897,15 @@ function Login() {
     };
 
   /* =========================================================
-     RESET PASSWORD SCREEN
+     PASSWORD RESET SCREEN
   ========================================================= */
 
   if (
     recoveryMode
   ) {
     return (
-      <main
-        className="
-          flex
-          min-h-screen
-          items-center
-          justify-center
-          bg-transparent
-          px-6
-          py-20
-          text-white
-        "
-      >
+      <main className="flex min-h-screen items-center justify-center bg-transparent px-6 py-20 text-white">
+
         <div className="w-full max-w-md">
 
           <div className="mb-10 text-center">
@@ -899,20 +919,7 @@ function Login() {
 
             <div className="mb-5 mt-8 flex items-center justify-center">
 
-              <div
-                className="
-                  flex
-                  h-16
-                  w-16
-                  items-center
-                  justify-center
-                  rounded-2xl
-                  border
-                  border-blue-500/30
-                  bg-blue-500/10
-                  text-3xl
-                "
-              >
+              <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-blue-500/30 bg-blue-500/10 text-3xl">
                 🔐
               </div>
 
@@ -932,43 +939,17 @@ function Login() {
             onSubmit={
               handleUpdatePassword
             }
-            className="
-              rounded-3xl
-              border
-              border-zinc-800
-              bg-zinc-900
-              p-8
-            "
+            className="rounded-3xl border border-zinc-800 bg-zinc-900 p-8"
           >
 
             {error && (
-              <div
-                className="
-                  mb-6
-                  rounded-xl
-                  border
-                  border-red-500/40
-                  bg-red-500/10
-                  p-4
-                  text-red-400
-                "
-              >
+              <div className="mb-6 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-red-400">
                 {error}
               </div>
             )}
 
             {success && (
-              <div
-                className="
-                  mb-6
-                  rounded-xl
-                  border
-                  border-green-500/40
-                  bg-green-500/10
-                  p-4
-                  text-green-400
-                "
-              >
+              <div className="mb-6 rounded-xl border border-green-500/40 bg-green-500/10 p-4 text-green-400">
                 {success}
               </div>
             )}
@@ -1044,17 +1025,7 @@ function Login() {
               disabled={
                 updateLoading
               }
-              className="
-                w-full
-                rounded-xl
-                bg-white
-                py-3
-                font-semibold
-                text-black
-                transition
-                hover:bg-gray-200
-                disabled:opacity-50
-              "
+              className="w-full rounded-xl bg-white py-3 font-semibold text-black transition hover:bg-gray-200 disabled:opacity-50"
             >
               {updateLoading
                 ? "Updating Password..."
@@ -1072,33 +1043,13 @@ function Login() {
 
                 setSuccess("");
 
-                setShowNewPassword(
-                  false
-                );
-
-                setShowConfirmPassword(
-                  false
-                );
-
                 window.history.replaceState(
                   {},
                   "",
                   "/login"
                 );
               }}
-              className="
-                mt-4
-                w-full
-                rounded-xl
-                border
-                border-zinc-700
-                py-3
-                font-semibold
-                text-gray-300
-                transition
-                hover:border-white
-                hover:text-white
-              "
+              className="mt-4 w-full rounded-xl border border-zinc-700 py-3 font-semibold text-gray-300 transition hover:border-white hover:text-white"
             >
               ← Back to Login
             </button>
@@ -1106,6 +1057,7 @@ function Login() {
           </form>
 
         </div>
+
       </main>
     );
   }
@@ -1115,18 +1067,8 @@ function Login() {
   ========================================================= */
 
   return (
-    <main
-      className="
-        flex
-        min-h-screen
-        items-center
-        justify-center
-        bg-transparent
-        px-6
-        py-20
-        text-white
-      "
-    >
+    <main className="flex min-h-screen items-center justify-center bg-transparent px-6 py-20 text-white">
+
       <div className="w-full max-w-md">
 
         <div className="mb-10 text-center">
@@ -1143,29 +1085,13 @@ function Login() {
           </h1>
 
           <p className="text-gray-400">
-            {adminLogin
+            {cameFromAdmin
               ? "Login with your administrator account."
               : "Login to continue your AI journey."}
           </p>
 
-          {adminLogin && (
-            <div
-              className="
-                mt-5
-                inline-flex
-                items-center
-                gap-2
-                rounded-full
-                border
-                border-purple-500/30
-                bg-purple-500/10
-                px-4
-                py-2
-                text-sm
-                font-semibold
-                text-purple-300
-              "
-            >
+          {cameFromAdmin && (
+            <div className="mt-5 inline-flex items-center gap-2 rounded-full border border-purple-500/30 bg-purple-500/10 px-4 py-2 text-sm font-semibold text-purple-300">
               👑 Admin Login Required
             </div>
           )}
@@ -1176,43 +1102,17 @@ function Login() {
           onSubmit={
             handleLogin
           }
-          className="
-            rounded-3xl
-            border
-            border-zinc-800
-            bg-zinc-900
-            p-8
-          "
+          className="rounded-3xl border border-zinc-800 bg-zinc-900 p-8"
         >
 
           {error && (
-            <div
-              className="
-                mb-6
-                rounded-xl
-                border
-                border-red-500/40
-                bg-red-500/10
-                p-4
-                text-red-400
-              "
-            >
+            <div className="mb-6 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-red-400">
               {error}
             </div>
           )}
 
           {success && (
-            <div
-              className="
-                mb-6
-                rounded-xl
-                border
-                border-green-500/40
-                bg-green-500/10
-                p-4
-                text-green-400
-              "
-            >
+            <div className="mb-6 rounded-xl border border-green-500/40 bg-green-500/10 p-4 text-green-400">
               {success}
             </div>
           )}
@@ -1310,13 +1210,7 @@ function Login() {
               disabled={
                 resetLoading
               }
-              className="
-                text-sm
-                text-blue-400
-                transition
-                hover:text-blue-300
-                disabled:opacity-50
-              "
+              className="text-sm text-blue-400 transition hover:text-blue-300 disabled:opacity-50"
             >
               {resetLoading
                 ? "Sending..."
@@ -1346,9 +1240,7 @@ function Login() {
             "
           >
             {loading
-              ? "Logging in..."
-              : adminLogin
-              ? "Login to Admin →"
+              ? "Checking account..."
               : "Login"}
           </button>
 
@@ -1373,16 +1265,7 @@ function Login() {
             onClick={
               handleGoogleLogin
             }
-            className="
-              w-full
-              rounded-xl
-              border
-              border-zinc-700
-              py-3
-              font-semibold
-              transition
-              hover:border-white
-            "
+            className="w-full rounded-xl border border-zinc-700 py-3 font-semibold transition hover:border-white"
           >
             Continue with Google
           </button>
@@ -1395,11 +1278,7 @@ function Login() {
 
           <Link
             to="/signup"
-            className="
-              ml-2
-              text-blue-400
-              hover:text-blue-300
-            "
+            className="ml-2 text-blue-400 hover:text-blue-300"
           >
             Create Account
           </Link>
@@ -1407,6 +1286,7 @@ function Login() {
         </p>
 
       </div>
+
     </main>
   );
 }
