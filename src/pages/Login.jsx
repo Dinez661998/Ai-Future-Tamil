@@ -1,16 +1,22 @@
 import {
   useEffect,
+  useMemo,
   useState,
 } from "react";
 
 import {
   Link,
+  useLocation,
   useNavigate,
 } from "react-router-dom";
 
 import {
   supabase,
 } from "../supabase/client";
+
+/* =========================================================
+   ICONS
+========================================================= */
 
 function EyeOpenIcon() {
   return (
@@ -25,6 +31,7 @@ function EyeOpenIcon() {
       aria-hidden="true"
     >
       <path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" />
+
       <circle
         cx="12"
         cy="12"
@@ -47,12 +54,19 @@ function EyeClosedIcon() {
       aria-hidden="true"
     >
       <path d="M3 3l18 18" />
+
       <path d="M10.6 6.2A10.5 10.5 0 0 1 12 6c6 0 9.5 6 9.5 6a16.4 16.4 0 0 1-2.2 3" />
+
       <path d="M6.2 6.2C3.8 8 2.5 12 2.5 12s3.5 6 9.5 6a10.7 10.7 0 0 0 4.2-.8" />
+
       <path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" />
     </svg>
   );
 }
+
+/* =========================================================
+   PASSWORD INPUT
+========================================================= */
 
 function PasswordInput({
   label,
@@ -79,9 +93,7 @@ function PasswordInput({
           value={value}
           onChange={onChange}
           placeholder={placeholder}
-          autoComplete={
-            autoComplete
-          }
+          autoComplete={autoComplete}
           className="
             w-full
             rounded-xl
@@ -93,16 +105,12 @@ function PasswordInput({
             pr-14
             text-white
             outline-none
-
             transition-all
             duration-200
-
             placeholder:text-zinc-600
-
             focus:border-blue-500
             focus:ring-2
             focus:ring-blue-500/10
-
             group-hover:border-zinc-600
           "
         />
@@ -124,24 +132,18 @@ function PasswordInput({
             absolute
             right-2
             top-1/2
-
             flex
             h-10
             w-10
             -translate-y-1/2
             items-center
             justify-center
-
             rounded-lg
-
             text-zinc-500
-
             transition-all
             duration-200
-
             hover:bg-white/[0.06]
             hover:text-blue-400
-
             focus:outline-none
             focus:ring-2
             focus:ring-blue-500/30
@@ -158,9 +160,16 @@ function PasswordInput({
   );
 }
 
+/* =========================================================
+   LOGIN
+========================================================= */
+
 function Login() {
   const navigate =
     useNavigate();
+
+  const location =
+    useLocation();
 
   const [email, setEmail] =
     useState("");
@@ -226,61 +235,136 @@ function Login() {
   ] = useState(false);
 
   /* =========================================================
-     PASSWORD RECOVERY DETECTION
+     SAFE REDIRECT
+  ========================================================= */
+
+  const redirectTo =
+    useMemo(() => {
+      const params =
+        new URLSearchParams(
+          location.search
+        );
+
+      const stateFrom =
+        location.state?.from;
+
+      const queryFrom =
+        params.get("next");
+
+      const destination =
+        stateFrom ||
+        queryFrom ||
+        "/dashboard";
+
+      /*
+        Security:
+        Only internal website paths allowed.
+      */
+
+      if (
+        typeof destination ===
+          "string" &&
+        destination.startsWith("/") &&
+        !destination.startsWith("//")
+      ) {
+        return destination;
+      }
+
+      return "/dashboard";
+    }, [
+      location.state,
+      location.search,
+    ]);
+
+  const adminLogin =
+    redirectTo.startsWith(
+      "/admin"
+    );
+
+  /* =========================================================
+     PASSWORD RECOVERY + EXISTING SESSION
   ========================================================= */
 
   useEffect(() => {
     let mounted = true;
 
-    const checkRecovery =
-      async () => {
-        try {
-          const params =
-            new URLSearchParams(
-              window.location.search
-            );
+    async function checkAuthState() {
+      try {
+        const params =
+          new URLSearchParams(
+            window.location.search
+          );
 
-          const resetParam =
-            params.get("reset");
+        const resetParam =
+          params.get("reset");
 
-          if (
-            resetParam ===
-              "1" &&
-            mounted
-          ) {
-            setRecoveryMode(
-              true
-            );
-          }
+        /* ===============================================
+           PASSWORD RESET MODE
+        =============================================== */
 
-          const {
-            data: {
-              session,
-            },
-          } =
-            await supabase.auth.getSession();
-
-          if (
-            resetParam ===
-              "1" &&
-            session &&
-            mounted
-          ) {
-            setRecoveryMode(
-              true
-            );
-          }
-        } catch (
-          err
+        if (
+          resetParam === "1"
         ) {
-          console.error(
-            "Recovery check error:",
-            err
+          if (mounted) {
+            setRecoveryMode(
+              true
+            );
+          }
+
+          return;
+        }
+
+        /* ===============================================
+           NORMAL LOGIN SESSION CHECK
+        =============================================== */
+
+        const {
+          data: {
+            session,
+          },
+        } =
+          await supabase.auth.getSession();
+
+        if (
+          !mounted
+        ) {
+          return;
+        }
+
+        /*
+          User already logged in:
+
+          /admin -> login -> /admin
+
+          normal /login -> /dashboard
+        */
+
+        if (
+          session?.user
+        ) {
+          navigate(
+            redirectTo,
+            {
+              replace: true,
+            }
           );
         }
-      };
 
-    checkRecovery();
+      } catch (
+        err
+      ) {
+        console.error(
+          "Login session check error:",
+          err
+        );
+      }
+    }
+
+    checkAuthState();
+
+    /* ===============================================
+       AUTH EVENTS
+    =============================================== */
 
     const {
       data: {
@@ -313,10 +397,14 @@ function Login() {
 
       subscription?.unsubscribe();
     };
-  }, []);
+
+  }, [
+    navigate,
+    redirectTo,
+  ]);
 
   /* =========================================================
-     LOGIN
+     LOGIN WITH EMAIL
   ========================================================= */
 
   const handleLogin =
@@ -338,11 +426,14 @@ function Login() {
       }
 
       try {
-        setLoading(true);
+        setLoading(
+          true
+        );
 
         const {
           data,
-          error,
+          error:
+            loginError,
         } =
           await supabase.auth.signInWithPassword(
             {
@@ -353,21 +444,92 @@ function Login() {
             }
           );
 
-        if (error) {
+        if (
+          loginError
+        ) {
           setError(
-            error.message
+            loginError.message
           );
 
           return;
         }
 
         if (
-          data?.user
+          !data?.user
         ) {
-          navigate(
-            "/dashboard"
+          setError(
+            "Login failed. Please try again."
           );
+
+          return;
         }
+
+        /* ===============================================
+           COMPATIBILITY DATA
+        =============================================== */
+
+        localStorage.setItem(
+          "isLoggedIn",
+          "true"
+        );
+
+        localStorage.setItem(
+          "userEmail",
+          data.user.email || ""
+        );
+
+        const userName =
+          data.user
+            .user_metadata
+            ?.full_name ||
+          data.user
+            .user_metadata
+            ?.name ||
+          data.user.email
+            ?.split("@")[0] ||
+          "User";
+
+        localStorage.setItem(
+          "userName",
+          userName
+        );
+
+        window.dispatchEvent(
+          new Event(
+            "dashboard-data-updated"
+          )
+        );
+
+        window.dispatchEvent(
+          new Event(
+            "ai-future-data-change"
+          )
+        );
+
+        /*
+          IMPORTANT:
+
+          If AdminRoute sent user here:
+
+          /admin
+            ↓
+          /login
+            ↓
+          Login success
+            ↓
+          /admin
+
+          Normal login:
+          /dashboard
+        */
+
+        navigate(
+          redirectTo,
+          {
+            replace: true,
+          }
+        );
+
       } catch (
         err
       ) {
@@ -379,8 +541,11 @@ function Login() {
         setError(
           "Something went wrong. Please try again."
         );
+
       } finally {
-        setLoading(false);
+        setLoading(
+          false
+        );
       }
     };
 
@@ -412,7 +577,8 @@ function Login() {
           `${window.location.origin}/login?reset=1`;
 
         const {
-          error,
+          error:
+            resetError,
         } =
           await supabase.auth.resetPasswordForEmail(
             email.trim(),
@@ -422,9 +588,11 @@ function Login() {
             }
           );
 
-        if (error) {
+        if (
+          resetError
+        ) {
           setError(
-            error.message
+            resetError.message
           );
 
           return;
@@ -433,6 +601,7 @@ function Login() {
         setSuccess(
           "Password reset email sent successfully. Check your inbox and spam folder."
         );
+
       } catch (
         err
       ) {
@@ -444,6 +613,7 @@ function Login() {
         setError(
           "Unable to send reset email. Please try again."
         );
+
       } finally {
         setResetLoading(
           false
@@ -507,7 +677,9 @@ function Login() {
         } =
           await supabase.auth.getSession();
 
-        if (!session) {
+        if (
+          !session
+        ) {
           setError(
             "Your reset link has expired or is invalid. Please request a new password reset email."
           );
@@ -516,7 +688,8 @@ function Login() {
         }
 
         const {
-          error,
+          error:
+            updateError,
         } =
           await supabase.auth.updateUser(
             {
@@ -525,9 +698,11 @@ function Login() {
             }
           );
 
-        if (error) {
+        if (
+          updateError
+        ) {
           setError(
-            error.message
+            updateError.message
           );
 
           return;
@@ -538,6 +713,7 @@ function Login() {
         );
 
         setNewPassword("");
+
         setConfirmPassword("");
 
         setShowNewPassword(
@@ -549,6 +725,14 @@ function Login() {
         );
 
         await supabase.auth.signOut();
+
+        localStorage.removeItem(
+          "isLoggedIn"
+        );
+
+        localStorage.removeItem(
+          "userEmail"
+        );
 
         setTimeout(() => {
           setRecoveryMode(
@@ -564,7 +748,9 @@ function Login() {
           setSuccess(
             "Password updated successfully. Login with your new password."
           );
+
         }, 1200);
+
       } catch (
         err
       ) {
@@ -576,6 +762,7 @@ function Login() {
         setError(
           "Unable to update password. Please request a new reset link."
         );
+
       } finally {
         setUpdateLoading(
           false
@@ -593,8 +780,24 @@ function Login() {
       setSuccess("");
 
       try {
+        /*
+          Normal login:
+          Google -> /dashboard
+
+          Admin login:
+          Google -> /admin
+
+          Supabase OAuth completes first,
+          then browser returns directly
+          to intended route.
+        */
+
+        const googleRedirect =
+          `${window.location.origin}${redirectTo}`;
+
         const {
-          error,
+          error:
+            googleError,
         } =
           await supabase.auth.signInWithOAuth(
             {
@@ -603,18 +806,19 @@ function Login() {
 
               options: {
                 redirectTo:
-                  window.location
-                    .origin +
-                  "/dashboard",
+                  googleRedirect,
               },
             }
           );
 
-        if (error) {
+        if (
+          googleError
+        ) {
           setError(
-            error.message
+            googleError.message
           );
         }
+
       } catch (
         err
       ) {
@@ -637,8 +841,18 @@ function Login() {
     recoveryMode
   ) {
     return (
-      <main className="min-h-screen bg-transparent text-white flex items-center justify-center px-6 py-20">
-
+      <main
+        className="
+          flex
+          min-h-screen
+          items-center
+          justify-center
+          bg-transparent
+          px-6
+          py-20
+          text-white
+        "
+      >
         <div className="w-full max-w-md">
 
           <div className="mb-10 text-center">
@@ -650,9 +864,22 @@ function Login() {
               AI Future Tamil
             </Link>
 
-            <div className="mt-8 mb-5 flex items-center justify-center">
+            <div className="mb-5 mt-8 flex items-center justify-center">
 
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl border border-blue-500/30 bg-blue-500/10 text-3xl">
+              <div
+                className="
+                  flex
+                  h-16
+                  w-16
+                  items-center
+                  justify-center
+                  rounded-2xl
+                  border
+                  border-blue-500/30
+                  bg-blue-500/10
+                  text-3xl
+                "
+              >
                 🔐
               </div>
 
@@ -672,22 +899,49 @@ function Login() {
             onSubmit={
               handleUpdatePassword
             }
-            className="rounded-3xl border border-zinc-800 bg-zinc-900 p-8"
+            className="
+              rounded-3xl
+              border
+              border-zinc-800
+              bg-zinc-900
+              p-8
+            "
           >
 
             {error && (
-              <div className="mb-6 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-red-400">
+              <div
+                className="
+                  mb-6
+                  rounded-xl
+                  border
+                  border-red-500/40
+                  bg-red-500/10
+                  p-4
+                  text-red-400
+                "
+              >
                 {error}
               </div>
             )}
 
             {success && (
-              <div className="mb-6 rounded-xl border border-green-500/40 bg-green-500/10 p-4 text-green-400">
+              <div
+                className="
+                  mb-6
+                  rounded-xl
+                  border
+                  border-green-500/40
+                  bg-green-500/10
+                  p-4
+                  text-green-400
+                "
+              >
                 {success}
               </div>
             )}
 
             <div className="mb-5">
+
               <PasswordInput
                 label="New Password"
                 value={
@@ -697,8 +951,7 @@ function Login() {
                   e
                 ) =>
                   setNewPassword(
-                    e.target
-                      .value
+                    e.target.value
                   )
                 }
                 placeholder="Enter new password"
@@ -719,9 +972,11 @@ function Login() {
               <p className="mt-2 text-xs text-gray-500">
                 Minimum 6 characters.
               </p>
+
             </div>
 
             <div className="mb-6">
+
               <PasswordInput
                 label="Confirm New Password"
                 value={
@@ -731,8 +986,7 @@ function Login() {
                   e
                 ) =>
                   setConfirmPassword(
-                    e.target
-                      .value
+                    e.target.value
                   )
                 }
                 placeholder="Enter password again"
@@ -749,6 +1003,7 @@ function Login() {
                 }
                 autoComplete="new-password"
               />
+
             </div>
 
             <button
@@ -756,7 +1011,17 @@ function Login() {
               disabled={
                 updateLoading
               }
-              className="w-full rounded-xl bg-white py-3 font-semibold text-black transition hover:bg-gray-200 disabled:opacity-50"
+              className="
+                w-full
+                rounded-xl
+                bg-white
+                py-3
+                font-semibold
+                text-black
+                transition
+                hover:bg-gray-200
+                disabled:opacity-50
+              "
             >
               {updateLoading
                 ? "Updating Password..."
@@ -771,6 +1036,7 @@ function Login() {
                 );
 
                 setError("");
+
                 setSuccess("");
 
                 setShowNewPassword(
@@ -787,7 +1053,19 @@ function Login() {
                   "/login"
                 );
               }}
-              className="mt-4 w-full rounded-xl border border-zinc-700 py-3 font-semibold text-gray-300 transition hover:border-white hover:text-white"
+              className="
+                mt-4
+                w-full
+                rounded-xl
+                border
+                border-zinc-700
+                py-3
+                font-semibold
+                text-gray-300
+                transition
+                hover:border-white
+                hover:text-white
+              "
             >
               ← Back to Login
             </button>
@@ -795,7 +1073,6 @@ function Login() {
           </form>
 
         </div>
-
       </main>
     );
   }
@@ -805,8 +1082,18 @@ function Login() {
   ========================================================= */
 
   return (
-    <main className="min-h-screen bg-transparent text-white flex items-center justify-center px-6 py-20">
-
+    <main
+      className="
+        flex
+        min-h-screen
+        items-center
+        justify-center
+        bg-transparent
+        px-6
+        py-20
+        text-white
+      "
+    >
       <div className="w-full max-w-md">
 
         <div className="mb-10 text-center">
@@ -818,13 +1105,37 @@ function Login() {
             AI Future Tamil
           </Link>
 
-          <h1 className="mt-8 mb-3 text-4xl font-bold">
+          <h1 className="mb-3 mt-8 text-4xl font-bold">
             Welcome Back
           </h1>
 
           <p className="text-gray-400">
-            Login to continue your AI journey.
+            {adminLogin
+              ? "Login with your administrator account."
+              : "Login to continue your AI journey."}
           </p>
+
+          {adminLogin && (
+            <div
+              className="
+                mt-5
+                inline-flex
+                items-center
+                gap-2
+                rounded-full
+                border
+                border-purple-500/30
+                bg-purple-500/10
+                px-4
+                py-2
+                text-sm
+                font-semibold
+                text-purple-300
+              "
+            >
+              👑 Admin Login Required
+            </div>
+          )}
 
         </div>
 
@@ -832,17 +1143,43 @@ function Login() {
           onSubmit={
             handleLogin
           }
-          className="rounded-3xl border border-zinc-800 bg-zinc-900 p-8"
+          className="
+            rounded-3xl
+            border
+            border-zinc-800
+            bg-zinc-900
+            p-8
+          "
         >
 
           {error && (
-            <div className="mb-6 rounded-xl border border-red-500/40 bg-red-500/10 p-4 text-red-400">
+            <div
+              className="
+                mb-6
+                rounded-xl
+                border
+                border-red-500/40
+                bg-red-500/10
+                p-4
+                text-red-400
+              "
+            >
               {error}
             </div>
           )}
 
           {success && (
-            <div className="mb-6 rounded-xl border border-green-500/40 bg-green-500/10 p-4 text-green-400">
+            <div
+              className="
+                mb-6
+                rounded-xl
+                border
+                border-green-500/40
+                bg-green-500/10
+                p-4
+                text-green-400
+              "
+            >
               {success}
             </div>
           )}
@@ -858,13 +1195,14 @@ function Login() {
             <input
               type="email"
               placeholder="you@example.com"
-              value={email}
+              value={
+                email
+              }
               onChange={(
                 e
               ) =>
                 setEmail(
-                  e.target
-                    .value
+                  e.target.value
                 )
               }
               autoComplete="email"
@@ -878,9 +1216,8 @@ function Login() {
                 py-3
                 text-white
                 outline-none
-
                 transition
-
+                placeholder:text-zinc-600
                 focus:border-blue-500
                 focus:ring-2
                 focus:ring-blue-500/10
@@ -889,7 +1226,7 @@ function Login() {
 
           </div>
 
-          {/* PASSWORD WITH EYE */}
+          {/* PASSWORD */}
 
           <div className="mb-3">
 
@@ -902,8 +1239,7 @@ function Login() {
                 e
               ) =>
                 setPassword(
-                  e.target
-                    .value
+                  e.target.value
                 )
               }
               placeholder="••••••••"
@@ -941,7 +1277,13 @@ function Login() {
               disabled={
                 resetLoading
               }
-              className="text-sm text-blue-400 transition hover:text-blue-300 disabled:opacity-50"
+              className="
+                text-sm
+                text-blue-400
+                transition
+                hover:text-blue-300
+                disabled:opacity-50
+              "
             >
               {resetLoading
                 ? "Sending..."
@@ -957,10 +1299,23 @@ function Login() {
             disabled={
               loading
             }
-            className="w-full rounded-xl bg-white py-3 font-semibold text-black transition hover:bg-gray-200 disabled:cursor-not-allowed disabled:opacity-50"
+            className="
+              w-full
+              rounded-xl
+              bg-white
+              py-3
+              font-semibold
+              text-black
+              transition
+              hover:bg-gray-200
+              disabled:cursor-not-allowed
+              disabled:opacity-50
+            "
           >
             {loading
               ? "Logging in..."
+              : adminLogin
+              ? "Login to Admin →"
               : "Login"}
           </button>
 
@@ -985,7 +1340,16 @@ function Login() {
             onClick={
               handleGoogleLogin
             }
-            className="w-full rounded-xl border border-zinc-700 py-3 font-semibold transition hover:border-white"
+            className="
+              w-full
+              rounded-xl
+              border
+              border-zinc-700
+              py-3
+              font-semibold
+              transition
+              hover:border-white
+            "
           >
             Continue with Google
           </button>
@@ -998,7 +1362,11 @@ function Login() {
 
           <Link
             to="/signup"
-            className="ml-2 text-blue-400 hover:text-blue-300"
+            className="
+              ml-2
+              text-blue-400
+              hover:text-blue-300
+            "
           >
             Create Account
           </Link>
@@ -1006,7 +1374,6 @@ function Login() {
         </p>
 
       </div>
-
     </main>
   );
 }
