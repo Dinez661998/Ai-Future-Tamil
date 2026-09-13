@@ -128,87 +128,6 @@ function Navbar() {
       []
     );
 
-    const loadBrand =
-  useCallback(async () => {
-    try {
-      const {
-        data,
-        error,
-      } =
-        await supabase
-          .from(
-            "site_settings"
-          )
-          .select(
-            "setting_key, setting_value"
-          )
-          .in(
-            "setting_key",
-            [
-              "site_name",
-              "logo_url",
-            ]
-          );
-
-      if (error) {
-        throw error;
-      }
-
-      const settings =
-        Object.fromEntries(
-          (data || []).map(
-            (item) => [
-              item.setting_key,
-              item.setting_value,
-            ]
-          )
-        );
-
-      setSiteName(
-        settings.site_name ||
-          "AI Future Tamil"
-      );
-
-      setLogoUrl(
-        settings.logo_url ||
-          ""
-      );
-
-    } catch (error) {
-      console.error(
-        "Navbar brand error:",
-        error
-      );
-    }
-  }, []);
-
-useEffect(() => {
-  loadBrand();
-
-  const channel =
-    supabase
-      .channel(
-        "navbar-site-settings"
-      )
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table:
-            "site_settings",
-        },
-        loadBrand
-      )
-      .subscribe();
-
-  return () => {
-    supabase.removeChannel(
-      channel
-    );
-  };
-}, [loadBrand]);
-
   /* =========================================================
      INITIAL LOAD + REALTIME
   ========================================================= */
@@ -299,18 +218,6 @@ useEffect(() => {
     };
 
   }, []);
-
-  const [
-  siteName,
-  setSiteName,
-] = useState(
-  "AI Future Tamil"
-);
-
-const [
-  logoUrl,
-  setLogoUrl,
-] = useState("");
 
   /* =========================================================
      CLOSE MENU WHEN PAGE CHANGES
@@ -746,47 +653,24 @@ const [
           {/* LOGO */}
 
           <Link
-  to="/"
-  className="
-    flex
-    shrink-0
-    items-center
-    gap-2.5
-    whitespace-nowrap
-  "
->
-
-  {logoUrl && (
-    <img
-      src={logoUrl}
-      alt={siteName}
-      className="
-        h-9
-        w-9
-        rounded-xl
-        object-contain
-      "
-    />
-  )}
-
-  <span
-    className="
-      bg-gradient-to-r
-      from-cyan-300
-      via-white
-      to-purple-400
-      bg-clip-text
-      text-xl
-      font-black
-      tracking-tight
-      text-transparent
-      sm:text-2xl
-    "
-  >
-    {siteName}
-  </span>
-
-</Link>
+            to="/"
+            className="
+              shrink-0
+              whitespace-nowrap
+              bg-gradient-to-r
+              from-cyan-300
+              via-white
+              to-purple-400
+              bg-clip-text
+              text-xl
+              font-black
+              tracking-tight
+              text-transparent
+              sm:text-2xl
+            "
+          >
+            AI Future Tamil
+          </Link>
 
           {/* DESKTOP NAV */}
 
@@ -879,12 +763,125 @@ const [
                 {mainLinks
                   .filter(
                     (item) =>
-                      item.url !==
-                      "/"
+                      ![
+                        "/",
+                        "/innovation-lab",
+                        "/experience-zone",
+                        "/premium",
+                        "/pricing",
+                      ].includes(
+                        item.url
+                      )
                   )
                   .map(
                     renderMainLink
                   )}
+
+                {/* PRICING + PREMIUM COMBINED */}
+
+                <div className="relative">
+                  <button
+                    type="button"
+                    onClick={() =>
+                      setActiveMegaMenu(
+                        (current) =>
+                          current ===
+                          "__pricing__"
+                            ? null
+                            : "__pricing__"
+                      )
+                    }
+                    className={`
+                      ${navButtonClass}
+                      ${
+                        location.pathname.startsWith(
+                          "/pricing"
+                        ) ||
+                        location.pathname.startsWith(
+                          "/premium"
+                        ) ||
+                        activeMegaMenu ===
+                          "__pricing__"
+                          ? "bg-white/[0.05] text-purple-300"
+                          : ""
+                      }
+                    `}
+                  >
+                    <span className="flex items-center gap-1">
+                      Pricing
+
+                      <span
+                        className={`text-[9px] transition-transform ${
+                          activeMegaMenu ===
+                          "__pricing__"
+                            ? "rotate-180"
+                            : ""
+                        }`}
+                      >
+                        ▼
+                      </span>
+                    </span>
+                  </button>
+
+                  {activeMegaMenu ===
+                    "__pricing__" && (
+                    <div
+                      className="
+                        absolute
+                        right-0
+                        top-[calc(100%+14px)]
+                        z-[9800]
+                        w-[240px]
+                        overflow-hidden
+                        rounded-2xl
+                        border
+                        border-white/10
+                        bg-[#090b16]/98
+                        p-2
+                        shadow-[0_24px_70px_rgba(0,0,0,.55)]
+                        backdrop-blur-2xl
+                      "
+                    >
+                      <Link
+                        to="/pricing"
+                        className="group flex items-center gap-3 rounded-xl px-4 py-3 transition hover:bg-cyan-400/[0.07]"
+                      >
+                        <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-cyan-400/20 bg-cyan-400/[0.06]">
+                          💳
+                        </span>
+
+                        <span>
+                          <span className="block text-sm font-black text-white">
+                            Pricing Plans
+                          </span>
+
+                          <span className="mt-0.5 block text-[11px] text-gray-500">
+                            Free & paid plans
+                          </span>
+                        </span>
+                      </Link>
+
+                      <Link
+                        to="/premium"
+                        className="group mt-1 flex items-center gap-3 rounded-xl px-4 py-3 transition hover:bg-purple-400/[0.08]"
+                      >
+                        <span className="flex h-9 w-9 items-center justify-center rounded-lg border border-purple-400/25 bg-purple-400/[0.08]">
+                          💎
+                        </span>
+
+                        <span>
+                          <span className="block text-sm font-black text-purple-200">
+                            Premium
+                          </span>
+
+                          <span className="mt-0.5 block text-[11px] text-gray-500">
+                            Premium benefits
+                          </span>
+                        </span>
+                      </Link>
+                    </div>
+                  )}
+                </div>
               </>
             )}
 
@@ -1131,28 +1128,103 @@ const [
 
             <div className="mx-auto max-w-3xl space-y-2">
 
-              {mainLinks.map(
-                (
-                  item
-                ) => (
-                  <MobileLink
-                    key={
-                      item.id
-                    }
-                    to={
+              {mainLinks
+                .filter(
+                  (item) =>
+                    ![
+                      "/innovation-lab",
+                      "/experience-zone",
+                      "/premium",
+                      "/pricing",
+                    ].includes(
                       item.url
-                    }
-                    icon={
-                      item.icon ||
-                      "🔗"
-                    }
-                  >
-                    {
-                      item.label
-                    }
-                  </MobileLink>
+                    )
                 )
-              )}
+                .map(
+                  (
+                    item
+                  ) => (
+                    <MobileLink
+                      key={
+                        item.id
+                      }
+                      to={
+                        item.url
+                      }
+                      icon={
+                        item.icon ||
+                        "🔗"
+                      }
+                    >
+                      {
+                        item.label
+                      }
+                    </MobileLink>
+                  )
+                )}
+
+              {/* MOBILE PRICING + PREMIUM */}
+
+              <div>
+                <button
+                  type="button"
+                  onClick={() =>
+                    setMobileSection(
+                      (current) =>
+                        current ===
+                        "__pricing__"
+                          ? null
+                          : "__pricing__"
+                    )
+                  }
+                  className="
+                    flex
+                    w-full
+                    items-center
+                    justify-between
+                    rounded-xl
+                    border
+                    border-purple-400/20
+                    bg-purple-400/[0.04]
+                    px-4
+                    py-3.5
+                    font-semibold
+                    text-purple-100
+                  "
+                >
+                  <span>💳 Pricing</span>
+
+                  <span
+                    className={`transition-transform ${
+                      mobileSection ===
+                      "__pricing__"
+                        ? "rotate-180"
+                        : ""
+                    }`}
+                  >
+                    ▼
+                  </span>
+                </button>
+
+                {mobileSection ===
+                  "__pricing__" && (
+                  <div className="mt-2 grid grid-cols-1 gap-2 sm:grid-cols-2">
+                    <MobileLink
+                      to="/pricing"
+                      icon="💳"
+                    >
+                      Pricing Plans
+                    </MobileLink>
+
+                    <MobileLink
+                      to="/premium"
+                      icon="💎"
+                    >
+                      Premium
+                    </MobileLink>
+                  </div>
+                )}
+              </div>
 
               {visibleMegaMenus.map(
                 (

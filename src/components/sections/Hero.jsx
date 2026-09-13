@@ -424,6 +424,8 @@ function Hero() {
               z-30
               max-w-[780px]
               py-0
+              xl:-translate-y-10
+              2xl:-translate-y-12
             "
           >
             {/* TITLE */}
@@ -491,7 +493,7 @@ function Hero() {
 
             <div
               className="
-                mt-9
+                mt-7
                 flex
                 flex-col
                 gap-3
@@ -603,6 +605,97 @@ function Hero() {
                   "Smart Hub திறக்க"
                 )}
               </Link>
+
+              {/* Force the two former navbar highlights onto a clean second row */}
+              <span className="hidden basis-full sm:block" />
+
+              <Link
+                to="/innovation-lab"
+                className="
+                  group
+                  inline-flex
+                  min-h-[54px]
+                  items-center
+                  justify-center
+                  gap-3
+                  rounded-xl
+                  border
+                  border-fuchsia-400/45
+                  bg-gradient-to-r
+                  from-fuchsia-500/[0.10]
+                  via-purple-500/[0.08]
+                  to-cyan-500/[0.08]
+                  px-7
+                  py-3
+                  text-sm
+                  font-black
+                  text-fuchsia-100
+                  shadow-[0_0_24px_rgba(217,70,239,.08)]
+                  transition-all
+                  duration-300
+                  hover:-translate-y-1
+                  hover:border-fuchsia-300/80
+                  hover:bg-fuchsia-400/[0.13]
+                  hover:shadow-[0_0_34px_rgba(217,70,239,.18)]
+                "
+              >
+                <span className="transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110">
+                  🧪
+                </span>
+
+                {t(
+                  "Innovation Lab",
+                  "Innovation Lab"
+                )}
+
+                <span className="transition-transform duration-300 group-hover:translate-x-1">
+                  →
+                </span>
+              </Link>
+
+              <Link
+                to="/experience-zone"
+                className="
+                  group
+                  inline-flex
+                  min-h-[54px]
+                  items-center
+                  justify-center
+                  gap-3
+                  rounded-xl
+                  border
+                  border-cyan-400/45
+                  bg-gradient-to-r
+                  from-cyan-500/[0.10]
+                  via-blue-500/[0.08]
+                  to-indigo-500/[0.10]
+                  px-7
+                  py-3
+                  text-sm
+                  font-black
+                  text-cyan-100
+                  shadow-[0_0_24px_rgba(34,211,238,.08)]
+                  transition-all
+                  duration-300
+                  hover:-translate-y-1
+                  hover:border-cyan-300/80
+                  hover:bg-cyan-400/[0.13]
+                  hover:shadow-[0_0_34px_rgba(34,211,238,.18)]
+                "
+              >
+                <span className="transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110">
+                  🌌
+                </span>
+
+                {t(
+                  "Experience Zone",
+                  "Experience Zone"
+                )}
+
+                <span className="transition-transform duration-300 group-hover:translate-x-1">
+                  →
+                </span>
+              </Link>
             </div>
 
             {/* =================================================
@@ -611,7 +704,7 @@ function Hero() {
 
             <div
               className="
-                mt-8
+                mt-6
                 flex
                 flex-wrap
                 items-center
@@ -661,7 +754,7 @@ function Hero() {
 
             <div
               className="
-                mt-10
+                mt-8
                 grid
                 max-w-[750px]
                 grid-cols-2
