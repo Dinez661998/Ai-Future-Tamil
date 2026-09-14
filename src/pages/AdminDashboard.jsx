@@ -63,6 +63,24 @@ const MODULES = [
       "AI courses and learning content manage pannalam.",
   },
   {
+    key: "lessons",
+    title: "Course Lessons",
+    icon: "📚",
+    table: "course_lessons",
+    route: null,
+    description:
+      "Course lessons, content, points and order manage pannalam.",
+  },
+  {
+    key: "quizzes",
+    title: "Course Quiz",
+    icon: "🧠",
+    table: "course_quizzes",
+    route: null,
+    description:
+      "Course quiz questions, options and answers manage pannalam.",
+  },
+  {
     key: "sections",
     title: "Page Content",
     icon: "🏠",
@@ -73,12 +91,21 @@ const MODULES = [
   },
   {
     key: "navigation",
-    title: "Navbar / Footer",
+    title: "Navbar",
     icon: "🧭",
     table: "navigation_items",
     route: null,
     description:
-      "Navbar and footer menu links manage.",
+      "Navbar and menu links manage.",
+  },
+  {
+    key: "footer",
+    title: "Footer",
+    icon: "🦶",
+    table: "footer_items",
+    route: null,
+    description:
+      "Footer sections, links and icons manage pannalam.",
   },
   {
     key: "announcements",
@@ -208,12 +235,34 @@ const MODULE_FIELDS = {
     "featured",
     "published",
   ],
+  lessons: [
+    "course_slug",
+    "lesson_slug",
+    "title",
+    "duration",
+    "content",
+    "points",
+    "video_url",
+    "image_url",
+    "active",
+    "sort_order",
+  ],
+  quizzes: [
+    "course_slug",
+    "question",
+    "options",
+    "correct_answer",
+    "explanation",
+    "active",
+    "sort_order",
+  ],
   sections: [
     "page_key",
     "section_key",
     "title",
     "subtitle",
     "description",
+    "content",
     "button_text",
     "button_url",
     "image_url",
@@ -224,14 +273,27 @@ const MODULE_FIELDS = {
     "label",
     "url",
     "location",
+    "icon",
+    "active",
+    "sort_order",
+  ],
+  footer: [
+    "section",
+    "label",
+    "url",
+    "icon",
     "active",
     "sort_order",
   ],
   announcements: [
+    "title",
     "message",
     "button_text",
     "button_url",
+    "type",
     "active",
+    "start_at",
+    "end_at",
   ],
   seo: [
     "page_key",
@@ -239,10 +301,14 @@ const MODULE_FIELDS = {
     "description",
     "keywords",
     "image_url",
+    "canonical_url",
+    "noindex",
   ],
   settings: [
     "setting_key",
     "setting_value",
+    "setting_json",
+    "public",
   ],
 };
 
@@ -365,6 +431,20 @@ const MODULE_ACCENTS = {
       "border-amber-400/20",
     text: "text-amber-300",
   },
+  lessons: {
+    gradient:
+      "from-teal-500/20 via-cyan-500/10 to-transparent",
+    border:
+      "border-teal-400/20",
+    text: "text-teal-300",
+  },
+  quizzes: {
+    gradient:
+      "from-fuchsia-500/20 via-purple-500/10 to-transparent",
+    border:
+      "border-fuchsia-400/20",
+    text: "text-fuchsia-300",
+  },
   sections: {
     gradient:
       "from-pink-500/20 via-purple-500/10 to-transparent",
@@ -378,6 +458,13 @@ const MODULE_ACCENTS = {
     border:
       "border-sky-400/20",
     text: "text-sky-300",
+  },
+  footer: {
+    gradient:
+      "from-indigo-500/20 via-blue-500/10 to-transparent",
+    border:
+      "border-indigo-400/20",
+    text: "text-indigo-300",
   },
   announcements: {
     gradient:
@@ -1947,10 +2034,13 @@ export default function AdminDashboard() {
           );
 
       } else if (
-        module.table ===
-          "navigation_items" ||
-        module.table ===
-          "site_sections"
+        [
+          "navigation_items",
+          "site_sections",
+          "footer_items",
+          "course_lessons",
+          "course_quizzes",
+        ].includes(module.table)
       ) {
         query =
           query.order(
@@ -2144,6 +2234,53 @@ export default function AdminDashboard() {
         );
         break;
 
+      case "lessons":
+        Object.assign(
+          defaults,
+          {
+            course_slug:
+              "",
+            lesson_slug:
+              "",
+            title: "",
+            duration:
+              "",
+            content:
+              "",
+            points: "",
+            video_url:
+              "",
+            image_url:
+              "",
+            active:
+              true,
+            sort_order:
+              0,
+          }
+        );
+        break;
+
+      case "quizzes":
+        Object.assign(
+          defaults,
+          {
+            course_slug:
+              "",
+            question:
+              "",
+            options: "",
+            correct_answer:
+              0,
+            explanation:
+              "",
+            active:
+              true,
+            sort_order:
+              0,
+          }
+        );
+        break;
+
       case "sections":
         Object.assign(
           defaults,
@@ -2155,6 +2292,8 @@ export default function AdminDashboard() {
             title: "",
             subtitle: "",
             description:
+              "",
+            content:
               "",
             button_text:
               "",
@@ -2178,6 +2317,24 @@ export default function AdminDashboard() {
             url: "",
             location:
               "navbar",
+            icon: "",
+            active:
+              true,
+            sort_order:
+              0,
+          }
+        );
+        break;
+
+      case "footer":
+        Object.assign(
+          defaults,
+          {
+            section:
+              "resources",
+            label: "",
+            url: "",
+            icon: "",
             active:
               true,
             sort_order:
@@ -2190,13 +2347,19 @@ export default function AdminDashboard() {
         Object.assign(
           defaults,
           {
+            title: "",
             message: "",
             button_text:
               "",
             button_url:
               "",
+            type: "info",
             active:
               true,
+            start_at:
+              "",
+            end_at:
+              "",
           }
         );
         break;
@@ -2214,6 +2377,10 @@ export default function AdminDashboard() {
               "",
             image_url:
               "",
+            canonical_url:
+              "",
+            noindex:
+              false,
           }
         );
         break;
@@ -2226,6 +2393,10 @@ export default function AdminDashboard() {
               "",
             setting_value:
               "",
+            setting_json:
+              "",
+            public:
+              true,
           }
         );
         break;
@@ -2267,6 +2438,60 @@ export default function AdminDashboard() {
         copy.features.join(
           "\n"
         );
+    }
+
+    if (
+      Array.isArray(
+        copy.points
+      )
+    ) {
+      copy.points =
+        copy.points.join(
+          "\n"
+        );
+    }
+
+    if (
+      Array.isArray(
+        copy.options
+      )
+    ) {
+      copy.options =
+        copy.options.join(
+          "\n"
+        );
+    }
+
+    if (
+      copy.setting_json &&
+      typeof copy.setting_json ===
+        "object"
+    ) {
+      copy.setting_json =
+        JSON.stringify(
+          copy.setting_json,
+          null,
+          2
+        );
+    }
+
+    if (
+      activeModule ===
+        "announcements"
+    ) {
+      if (copy.start_at) {
+        copy.start_at =
+          toDateTimeLocal(
+            copy.start_at
+          );
+      }
+
+      if (copy.end_at) {
+        copy.end_at =
+          toDateTimeLocal(
+            copy.end_at
+          );
+      }
     }
 
     if (
@@ -2333,6 +2558,18 @@ export default function AdminDashboard() {
                 value
               );
           }
+
+          if (
+            field ===
+              "title" &&
+            activeModule ===
+              "lessons"
+          ) {
+            next.lesson_slug =
+              slugify(
+                value
+              );
+          }
         }
 
         return next;
@@ -2388,15 +2625,112 @@ export default function AdminDashboard() {
     }
 
     if (
-      activeModule ===
-        "sections" ||
-      activeModule ===
-        "navigation"
+      [
+        "sections",
+        "navigation",
+        "footer",
+        "lessons",
+        "quizzes",
+      ].includes(
+        activeModule
+      )
     ) {
       payload.sort_order =
         Number(
           form.sort_order
         ) || 0;
+    }
+
+    if (
+      activeModule ===
+        "lessons"
+    ) {
+      payload.points =
+        String(
+          form.points || ""
+        )
+          .split("\n")
+          .map((value) =>
+            value.trim()
+          )
+          .filter(Boolean);
+    }
+
+    if (
+      activeModule ===
+        "quizzes"
+    ) {
+      payload.options =
+        String(
+          form.options || ""
+        )
+          .split("\n")
+          .map((value) =>
+            value.trim()
+          )
+          .filter(Boolean);
+
+      payload.correct_answer =
+        Number(
+          form.correct_answer
+        ) || 0;
+    }
+
+    if (
+      activeModule ===
+        "settings"
+    ) {
+      const rawSettingJson =
+        String(
+          form.setting_json || ""
+        ).trim();
+
+      if (rawSettingJson) {
+        try {
+          payload.setting_json =
+            JSON.parse(
+              rawSettingJson
+            );
+        } catch {
+          throw new Error(
+            "Setting JSON correct JSON format-la kudunga."
+          );
+        }
+      } else {
+        payload.setting_json =
+          null;
+      }
+    }
+
+    if (
+      activeModule ===
+        "announcements"
+    ) {
+      [
+        "start_at",
+        "end_at",
+      ].forEach(
+        (field) => {
+          if (form[field]) {
+            const date =
+              new Date(
+                form[field]
+              );
+
+            if (
+              !Number.isNaN(
+                date.getTime()
+              )
+            ) {
+              payload[field] =
+                date.toISOString();
+            }
+          } else {
+            payload[field] =
+              null;
+          }
+        }
+      );
     }
 
     if (
@@ -3661,6 +3995,161 @@ export default function AdminDashboard() {
           </>
         );
 
+      case "lessons":
+        return (
+          <>
+            {textInput(
+              "Course Slug",
+              "course_slug",
+              {
+                required:
+                  true,
+              }
+            )}
+
+            {textInput(
+              "Lesson Slug",
+              "lesson_slug",
+              {
+                required:
+                  true,
+              }
+            )}
+
+            {textInput(
+              "Lesson Title",
+              "title",
+              {
+                required:
+                  true,
+              }
+            )}
+
+            {textInput(
+              "Duration",
+              "duration"
+            )}
+
+            {textInput(
+              "Lesson Content",
+              "content",
+              {
+                textarea:
+                  true,
+                wide:
+                  true,
+              }
+            )}
+
+            {textInput(
+              "Learning Points - one per line",
+              "points",
+              {
+                textarea:
+                  true,
+                wide:
+                  true,
+              }
+            )}
+
+            {textInput(
+              "Video URL",
+              "video_url"
+            )}
+
+            {textInput(
+              "Image URL",
+              "image_url"
+            )}
+
+            {textInput(
+              "Sort Order",
+              "sort_order",
+              {
+                type:
+                  "number",
+              }
+            )}
+
+            {checkbox(
+              "Active",
+              "active"
+            )}
+          </>
+        );
+
+      case "quizzes":
+        return (
+          <>
+            {textInput(
+              "Course Slug",
+              "course_slug",
+              {
+                required:
+                  true,
+              }
+            )}
+
+            {textInput(
+              "Question",
+              "question",
+              {
+                textarea:
+                  true,
+                wide:
+                  true,
+                required:
+                  true,
+              }
+            )}
+
+            {textInput(
+              "Options - one per line",
+              "options",
+              {
+                textarea:
+                  true,
+                wide:
+                  true,
+              }
+            )}
+
+            {textInput(
+              "Correct Answer Index (0 = first option)",
+              "correct_answer",
+              {
+                type:
+                  "number",
+              }
+            )}
+
+            {textInput(
+              "Explanation",
+              "explanation",
+              {
+                textarea:
+                  true,
+                wide:
+                  true,
+              }
+            )}
+
+            {textInput(
+              "Sort Order",
+              "sort_order",
+              {
+                type:
+                  "number",
+              }
+            )}
+
+            {checkbox(
+              "Active",
+              "active"
+            )}
+          </>
+        );
+
       case "sections":
         return (
           <>
@@ -3689,6 +4178,17 @@ export default function AdminDashboard() {
               "description",
               {
                 textarea:
+                  true,
+              }
+            )}
+
+            {textInput(
+              "Content",
+              "content",
+              {
+                textarea:
+                  true,
+                wide:
                   true,
               }
             )}
@@ -3743,6 +4243,58 @@ export default function AdminDashboard() {
             )}
 
             {textInput(
+              "Icon",
+              "icon"
+            )}
+
+            {textInput(
+              "Sort Order",
+              "sort_order",
+              {
+                type:
+                  "number",
+              }
+            )}
+
+            {checkbox(
+              "Active",
+              "active"
+            )}
+          </>
+        );
+
+      case "footer":
+        return (
+          <>
+            {textInput(
+              "Footer Section",
+              "section",
+              {
+                required:
+                  true,
+              }
+            )}
+
+            {textInput(
+              "Label",
+              "label",
+              {
+                required:
+                  true,
+              }
+            )}
+
+            {textInput(
+              "URL",
+              "url"
+            )}
+
+            {textInput(
+              "Icon",
+              "icon"
+            )}
+
+            {textInput(
               "Sort Order",
               "sort_order",
               {
@@ -3762,11 +4314,29 @@ export default function AdminDashboard() {
         return (
           <>
             {textInput(
+              "Title",
+              "title"
+            )}
+
+            {textInput(
               "Message",
               "message",
               {
                 textarea:
                   true,
+                wide:
+                  true,
+                required:
+                  true,
+              }
+            )}
+
+            {textInput(
+              "Type",
+              "type",
+              {
+                placeholder:
+                  "info / success / warning / error",
               }
             )}
 
@@ -3778,6 +4348,24 @@ export default function AdminDashboard() {
             {textInput(
               "Button URL",
               "button_url"
+            )}
+
+            {textInput(
+              "Start At",
+              "start_at",
+              {
+                type:
+                  "datetime-local",
+              }
+            )}
+
+            {textInput(
+              "End At",
+              "end_at",
+              {
+                type:
+                  "datetime-local",
+              }
             )}
 
             {checkbox(
@@ -3806,6 +4394,8 @@ export default function AdminDashboard() {
               {
                 textarea:
                   true,
+                wide:
+                  true,
               }
             )}
 
@@ -3817,6 +4407,16 @@ export default function AdminDashboard() {
             {textInput(
               "Social Image URL",
               "image_url"
+            )}
+
+            {textInput(
+              "Canonical URL",
+              "canonical_url"
+            )}
+
+            {checkbox(
+              "No Index",
+              "noindex"
             )}
           </>
         );
@@ -3835,7 +4435,27 @@ export default function AdminDashboard() {
               {
                 textarea:
                   true,
+                wide:
+                  true,
               }
+            )}
+
+            {textInput(
+              "Setting JSON",
+              "setting_json",
+              {
+                textarea:
+                  true,
+                wide:
+                  true,
+                placeholder:
+                  '{"example": true}',
+              }
+            )}
+
+            {checkbox(
+              "Public",
+              "public"
             )}
           </>
         );
