@@ -14,7 +14,7 @@ import {
 /* =========================================================
    GLOBAL COMPONENTS
 ========================================================= */
-
+import CmsGlobals from "./components/CmsGlobals";
 import AnimatedBackground from "./components/AnimatedBackground";
 import Navbar from "./components/layout/Navbar";
 import NotificationCenter from "./components/NotificationCenter";
@@ -37,6 +37,10 @@ const Home = lazy(() =>
 
 const AdminNews = lazy(() =>
   import("./pages/AdminNews")
+);
+
+const AIChat = lazy(() =>
+  import("./pages/AIChat")
 );
 
 const AITools = lazy(() =>
@@ -948,6 +952,11 @@ function WebsiteRoutes() {
         element={<SmartHub />}
       />
 
+      <Route
+  path="/ai-chat"
+  element={<AIChat />}
+/>
+
       {/* ================= AI TOOLS ================= */}
 
       <Route
@@ -1079,6 +1088,7 @@ function WebsiteRoutes() {
 
 function WebsiteLayout() {
   const location = useLocation();
+  
 
   /* AUTH PAGES */
 
@@ -1119,6 +1129,11 @@ function WebsiteLayout() {
       {!authPage && (
         <Navbar />
       )}
+
+      {!authPage &&
+  !adminPage && (
+    <CmsGlobals />
+  )}
 
       {/* ================= SIDEBAR ================= */}
 
