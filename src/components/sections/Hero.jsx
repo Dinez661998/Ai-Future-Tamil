@@ -2,1919 +2,2018 @@ import { Link } from "react-router-dom";
 import { useLanguage } from "../../context/LanguageContext.jsx";
 
 function Hero() {
-  const { language } =
-    useLanguage();
+  const { language } = useLanguage();
+  const tamil = language === "ta";
+  const t = (en, ta) => (tamil ? ta : en);
 
-  const tamil =
-    language === "ta";
+  const heroImage = "/dinesh-hero.png";
 
-  const t = (en, ta) =>
-    tamil ? ta : en;
-
-  /*
-    IMPORTANT:
-    Hero main text is intentionally fixed here.
-
-    Admin CMS / Supabase site_sections will NOT override
-    this hero title, subtitle, description or primary CTA.
-
-    This keeps the first-image version:
-    "Learn AI."
-    "Build Your Future."
-  */
-
-  const heroTitle =
-    t(
-      "Learn AI.",
-      "AI கற்றுக்கொள்ளுங்கள்."
-    );
-
-  const heroSubtitle =
-    t(
-      "Build Your Future.",
-      "உங்கள் எதிர்காலத்தை உருவாக்குங்கள்."
-    );
-
-  const heroDescription =
-    t(
-      "Learn AI, YouTube, Instagram, Content Creation, Technology, Android Apps, Digital Products and more — all in one place.",
-      "AI, YouTube, Instagram, Content Creation, Technology, Android Apps, Digital Products மற்றும் பலவற்றை ஒரே இடத்தில் கற்றுக்கொள்ளுங்கள்."
-    );
-
-  const heroButtonText =
-    t(
-      "Start Learning",
-      "கற்க தொடங்கு"
-    );
-
-  const heroButtonUrl =
-    "/courses";
-
-  const heroImage =
-    "/dinesh-hero.png";
+  const stats = [
+    {
+      icon: "👥",
+      value: "10K+",
+      label: t("Active Learners", "Active Learners"),
+    },
+    {
+      icon: "📚",
+      value: "500+",
+      label: t("AI Tools & Resources", "AI Tools & Resources"),
+    },
+    {
+      icon: "🎬",
+      value: "100+",
+      label: t("Learning Guides", "Learning Guides"),
+    },
+    {
+      icon: "⭐",
+      value: "4.8★",
+      label: t("User Rating", "User Rating"),
+    },
+  ];
 
   return (
-    <section
-      className="
-        relative
-        overflow-hidden
-        px-4
-        pb-4
-        pt-0
-        sm:px-6
-        lg:px-8
-        lg:pb-5
-        lg:pt-0
-      "
-    >
+    <section className="aft-hero">
       <style>{`
-        @keyframes heroBackRing {
-          0%,100% {
-            opacity:.82;
-            filter:brightness(1);
+        /* =========================================================
+           AI FUTURE TAMIL — HERO
+        ========================================================= */
+
+        .aft-hero {
+          position: relative;
+          width: 100%;
+          min-height: 780px;
+          overflow: hidden;
+          background:
+            radial-gradient(
+              circle at 73% 45%,
+              rgba(37, 99, 235, 0.13),
+              transparent 28%
+            ),
+            radial-gradient(
+              circle at 87% 47%,
+              rgba(147, 51, 234, 0.13),
+              transparent 30%
+            ),
+            radial-gradient(
+              circle at 52% 92%,
+              rgba(6, 182, 212, 0.08),
+              transparent 28%
+            ),
+            #020811;
+        }
+
+        .aft-hero * {
+          box-sizing: border-box;
+        }
+
+        /* GRID BACKGROUND */
+
+        .aft-grid {
+          position: absolute;
+          inset: 0;
+          pointer-events: none;
+          opacity: 0.12;
+
+          background-image:
+            linear-gradient(
+              rgba(34, 211, 238, 0.035) 1px,
+              transparent 1px
+            ),
+            linear-gradient(
+              90deg,
+              rgba(99, 102, 241, 0.035) 1px,
+              transparent 1px
+            );
+
+          background-size: 42px 42px;
+
+          mask-image:
+            radial-gradient(
+              circle at 72% 50%,
+              black 0%,
+              transparent 70%
+            );
+        }
+
+        /* =========================================================
+           ANIMATIONS
+        ========================================================= */
+
+        @keyframes aftFloat {
+          0%,
+          100% {
+            transform: translateY(0);
           }
+
           50% {
-            opacity:1;
-            filter:brightness(1.3);
+            transform: translateY(-8px);
           }
         }
 
-        @keyframes heroOuterOrbit {
+        @keyframes aftOrbit {
           from {
-            transform:rotate(0deg);
+            transform:
+              translate(-50%, -50%)
+              rotate(0deg);
           }
+
           to {
-            transform:rotate(360deg);
+            transform:
+              translate(-50%, -50%)
+              rotate(360deg);
           }
         }
 
-        @keyframes heroOuterOrbitReverse {
+        @keyframes aftOrbitReverse {
           from {
-            transform:rotate(360deg);
+            transform:
+              translate(-50%, -50%)
+              rotate(360deg);
           }
+
           to {
-            transform:rotate(0deg);
-          }
-        }
-
-        @keyframes heroFloat {
-          0%,100% {
             transform:
-              translateY(0px)
-              rotate(var(--hero-rotate,0deg));
-          }
-
-          50% {
-            transform:
-              translateY(-10px)
-              rotate(var(--hero-rotate,0deg));
+              translate(-50%, -50%)
+              rotate(0deg);
           }
         }
 
-        @keyframes heroChipFloat {
-          0%,100% {
-            transform:translateY(0px);
+        @keyframes aftPulse {
+          0%,
+          100% {
+            opacity: 0.72;
           }
 
           50% {
-            transform:translateY(-9px);
+            opacity: 1;
           }
         }
 
-        @keyframes heroSpark {
-          0%,100% {
-            opacity:.18;
-            transform:scale(.7);
+        @keyframes aftDot {
+          0%,
+          100% {
+            opacity: 0.3;
+            transform: scale(0.75);
           }
 
           50% {
-            opacity:1;
-            transform:scale(1.45);
+            opacity: 1;
+            transform: scale(1.3);
           }
         }
 
-        @keyframes heroTitleGlow {
-          0%,100% {
-            filter:
-              drop-shadow(
-                0 0 8px
-                rgba(236,72,153,.22)
-              )
-              drop-shadow(
-                0 0 12px
-                rgba(34,211,238,.10)
-              );
-          }
-
-          50% {
-            filter:
-              drop-shadow(
-                0 0 13px
-                rgba(236,72,153,.38)
-              )
-              drop-shadow(
-                0 0 23px
-                rgba(34,211,238,.20)
-              );
-          }
-        }
-
-        @keyframes heroPlatformPulse {
-          0%,100% {
-            opacity:.82;
+        @keyframes aftPlatform {
+          0%,
+          100% {
             transform:
               translateX(-50%)
               scaleX(1);
           }
 
           50% {
-            opacity:1;
             transform:
               translateX(-50%)
-              scaleX(1.025);
+              scaleX(1.03);
           }
         }
 
-        @keyframes heroPlatformSpin {
-          from {
-            transform:
-              translateX(-50%)
-              rotate(0deg);
-          }
-
-          to {
-            transform:
-              translateX(-50%)
-              rotate(360deg);
-          }
-        }
-
-        @keyframes heroCircuit {
-          0%,100% {
-            opacity:.20;
-          }
-
-          50% {
-            opacity:.65;
-          }
-        }
-
-        @keyframes heroScan {
-          0% {
-            transform:translateY(120px);
-            opacity:0;
-          }
-
-          15% {
-            opacity:.6;
-          }
-
-          85% {
-            opacity:.6;
-          }
-
-          100% {
-            transform:translateY(-440px);
-            opacity:0;
-          }
-        }
-
-        @keyframes heroButtonShine {
+        @keyframes aftShine {
           0% {
             transform:
               translateX(-180%)
-              rotate(18deg);
+              rotate(20deg);
           }
 
-          70%,
+          65%,
           100% {
             transform:
-              translateX(360%)
-              rotate(18deg);
+              translateX(420%)
+              rotate(20deg);
           }
         }
 
-        @keyframes heroFloorPulse {
-          0%,100% {
-            opacity:.45;
+        @keyframes aftRobot {
+          0%,
+          100% {
+            transform:
+              translateY(0)
+              rotate(-2deg);
           }
 
           50% {
-            opacity:.85;
+            transform:
+              translateY(-9px)
+              rotate(2deg);
           }
         }
 
-        .hero-back-ring {
-          animation:
-            heroBackRing
-            4s ease-in-out infinite;
+        .aft-floating {
+          animation: aftFloat 4s ease-in-out infinite;
         }
 
-        .hero-orbit {
-          animation:
-            heroOuterOrbit
-            24s linear infinite;
+        .aft-dot {
+          animation: aftDot 2.8s ease-in-out infinite;
         }
 
-        .hero-orbit-reverse {
-          animation:
-            heroOuterOrbitReverse
-            34s linear infinite;
+        /* =========================================================
+           MAIN CONTAINER
+        ========================================================= */
+
+        .aft-container {
+          position: relative;
+          z-index: 10;
+
+          width: min(100%, 1640px);
+          min-height: 780px;
+
+          margin: 0 auto;
+
+          padding:
+            34px
+            38px
+            68px;
+
+          display: grid;
+
+          grid-template-columns:
+            minmax(0, 1fr)
+            minmax(620px, 0.95fr);
+
+          align-items: center;
+
+          gap: 12px;
         }
 
-        .hero-float {
-          animation:
-            heroFloat
-            4.5s ease-in-out infinite;
+        /* =========================================================
+           LEFT
+        ========================================================= */
+
+        .aft-left {
+          position: relative;
+          z-index: 30;
+
+          max-width: 800px;
+
+          padding-top: 4px;
         }
 
-        .hero-chip {
-          animation:
-            heroChipFloat
-            4.2s ease-in-out infinite;
+        .aft-title {
+          margin: 0;
+
+          font-size: clamp(
+            66px,
+            5.3vw,
+            96px
+          );
+
+          line-height: 0.96;
+
+          letter-spacing: -0.055em;
+
+          font-weight: 950;
         }
 
-        .hero-spark {
-          animation:
-            heroSpark
-            2.4s ease-in-out infinite;
+        .aft-title-one {
+          display: block;
+
+          background:
+            linear-gradient(
+              90deg,
+              #ff55c8 0%,
+              #dc6cf7 55%,
+              #a855f7 100%
+            );
+
+          -webkit-background-clip: text;
+          background-clip: text;
+
+          color: transparent;
+
+          filter:
+            drop-shadow(
+              0 0 18px
+              rgba(217, 70, 239, 0.16)
+            );
         }
 
-        .hero-title-glow {
-          animation:
-            heroTitleGlow
-            4s ease-in-out infinite;
+        .aft-title-two {
+          display: block;
+
+          margin-top: 8px;
+
+          white-space: nowrap;
+
+          background:
+            linear-gradient(
+              90deg,
+              #19e4ee 0%,
+              #0bb9f2 34%,
+              #4c9bff 63%,
+              #bd65f7 100%
+            );
+
+          -webkit-background-clip: text;
+          background-clip: text;
+
+          color: transparent;
+
+          filter:
+            drop-shadow(
+              0 0 20px
+              rgba(34, 211, 238, 0.12)
+            );
         }
 
-        .hero-platform-pulse {
-          animation:
-            heroPlatformPulse
-            3.4s ease-in-out infinite;
+        .aft-description {
+          max-width: 780px;
+
+          margin:
+            27px
+            0
+            0;
+
+          color: #c9d2df;
+
+          font-size: 18px;
+
+          line-height: 1.75;
+
+          font-weight: 400;
         }
 
-        .hero-platform-spin {
-          animation:
-            heroPlatformSpin
-            18s linear infinite;
+        /* =========================================================
+           BUTTONS
+        ========================================================= */
+
+        .aft-buttons {
+          display: flex;
+          flex-wrap: wrap;
+
+          gap: 12px;
+
+          margin-top: 26px;
+
+          max-width: 700px;
         }
 
-        .hero-circuit {
-          animation:
-            heroCircuit
-            3.2s ease-in-out infinite;
+        .aft-btn {
+          min-height: 58px;
+
+          padding: 0 28px;
+
+          border-radius: 14px;
+
+          display: inline-flex;
+
+          align-items: center;
+          justify-content: center;
+
+          gap: 10px;
+
+          text-decoration: none;
+
+          font-size: 15px;
+
+          font-weight: 900;
+
+          transition:
+            transform 0.25s ease,
+            border-color 0.25s ease,
+            background 0.25s ease,
+            box-shadow 0.25s ease;
+
+          position: relative;
+
+          overflow: hidden;
         }
 
-        .hero-scan {
-          animation:
-            heroScan
-            5s linear infinite;
+        .aft-btn:hover {
+          transform: translateY(-3px);
         }
 
-        .hero-floor {
-          animation:
-            heroFloorPulse
-            3.2s ease-in-out infinite;
+        .aft-btn-primary {
+          min-width: 220px;
+
+          color: #001018;
+
+          border:
+            1px solid
+            rgba(34, 211, 238, 0.7);
+
+          background:
+            linear-gradient(
+              90deg,
+              #18e2df,
+              #08bff2,
+              #1e83ff
+            );
+
+          box-shadow:
+            0 0 28px
+            rgba(34, 211, 238, 0.18);
         }
 
-        .hero-shine {
-          position:relative;
-          overflow:hidden;
-        }
+        .aft-btn-primary::after {
+          content: "";
 
-        .hero-shine::after {
-          content:"";
-          position:absolute;
-          top:-100%;
-          bottom:-100%;
-          left:-30%;
-          width:17%;
+          position: absolute;
+
+          top: -100%;
+          bottom: -100%;
+
+          left: -35%;
+
+          width: 18%;
+
           background:
             linear-gradient(
               90deg,
               transparent,
-              rgba(255,255,255,.38),
+              rgba(255,255,255,0.5),
               transparent
             );
+
           animation:
-            heroButtonShine
-            4.5s ease-in-out infinite;
-          pointer-events:none;
+            aftShine
+            4.5s
+            ease-in-out
+            infinite;
         }
 
-        @media
-        (prefers-reduced-motion: reduce) {
-          .hero-back-ring,
-          .hero-orbit,
-          .hero-orbit-reverse,
-          .hero-float,
-          .hero-chip,
-          .hero-spark,
-          .hero-title-glow,
-          .hero-platform-pulse,
-          .hero-platform-spin,
-          .hero-circuit,
-          .hero-scan,
-          .hero-floor,
-          .hero-shine::after {
-            animation:none !important;
+        .aft-btn-dark {
+          min-width: 185px;
+
+          color: #ffffff;
+
+          border:
+            1px solid
+            rgba(125, 211, 252, 0.32);
+
+          background:
+            linear-gradient(
+              135deg,
+              rgba(8, 25, 44, 0.95),
+              rgba(9, 16, 35, 0.95)
+            );
+
+          box-shadow:
+            inset 0 0 20px
+            rgba(34, 211, 238, 0.025);
+        }
+
+        .aft-btn-purple {
+          min-width: 210px;
+
+          color: #ffffff;
+
+          border:
+            1px solid
+            rgba(217, 70, 239, 0.55);
+
+          background:
+            linear-gradient(
+              135deg,
+              rgba(53, 20, 74, 0.72),
+              rgba(17, 17, 39, 0.92)
+            );
+        }
+
+        .aft-second-row {
+          flex-basis: 100%;
+          height: 0;
+        }
+
+        .aft-small-btn {
+          min-width: 230px;
+          min-height: 55px;
+        }
+
+        /* =========================================================
+           BENEFITS
+        ========================================================= */
+
+        .aft-benefits {
+          display: flex;
+          flex-wrap: wrap;
+
+          align-items: center;
+
+          gap: 16px;
+
+          margin-top: 21px;
+
+          color: #d0d6df;
+
+          font-size: 14px;
+
+          font-weight: 600;
+        }
+
+        .aft-divider {
+          width: 1px;
+          height: 23px;
+
+          background:
+            rgba(255,255,255,0.17);
+        }
+
+        /* =========================================================
+           STATS
+        ========================================================= */
+
+        .aft-stats {
+          display: grid;
+
+          grid-template-columns:
+            repeat(4, 1fr);
+
+          max-width: 760px;
+
+          margin-top: 25px;
+
+          overflow: hidden;
+
+          border:
+            1px solid
+            rgba(103, 184, 255, 0.32);
+
+          border-radius: 21px;
+
+          background:
+            linear-gradient(
+              180deg,
+              rgba(5, 14, 27, 0.92),
+              rgba(2, 9, 18, 0.92)
+            );
+
+          box-shadow:
+            0 20px 60px
+            rgba(0,0,0,0.3);
+        }
+
+        .aft-stat {
+          min-height: 145px;
+
+          padding: 23px 15px 18px;
+
+          display: flex;
+
+          flex-direction: column;
+
+          align-items: center;
+          justify-content: center;
+
+          text-align: center;
+
+          position: relative;
+        }
+
+        .aft-stat:not(:last-child)::after {
+          content: "";
+
+          position: absolute;
+
+          right: 0;
+          top: 19px;
+          bottom: 19px;
+
+          width: 1px;
+
+          background:
+            rgba(255,255,255,0.13);
+        }
+
+        .aft-stat-icon {
+          font-size: 28px;
+
+          margin-bottom: 9px;
+        }
+
+        .aft-stat-value {
+          color: #ffffff;
+
+          font-size: 30px;
+
+          line-height: 1;
+
+          font-weight: 950;
+        }
+
+        .aft-stat-label {
+          margin-top: 9px;
+
+          color: #d1d7e0;
+
+          font-size: 13px;
+
+          line-height: 1.3;
+        }
+
+        /* =========================================================
+           RIGHT VISUAL
+        ========================================================= */
+
+        .aft-right {
+          position: relative;
+
+          width: 100%;
+
+          height: 700px;
+
+          align-self: end;
+
+          z-index: 20;
+        }
+
+        .aft-atmosphere {
+          position: absolute;
+
+          left: 54%;
+          top: 44%;
+
+          width: 620px;
+          height: 620px;
+
+          transform:
+            translate(-50%, -50%);
+
+          border-radius: 50%;
+
+          background:
+            radial-gradient(
+              circle,
+              rgba(37,99,235,0.2),
+              rgba(88,28,135,0.12) 45%,
+              transparent 70%
+            );
+
+          filter: blur(25px);
+        }
+
+        /* ORBITS */
+
+        .aft-orbit-one,
+        .aft-orbit-two,
+        .aft-main-ring,
+        .aft-purple-ring {
+          position: absolute;
+
+          left: 53%;
+          top: 43%;
+
+          border-radius: 50%;
+
+          pointer-events: none;
+        }
+
+        .aft-orbit-one {
+          width: 560px;
+          height: 560px;
+
+          border:
+            1px solid
+            rgba(59,130,246,0.27);
+
+          animation:
+            aftOrbit
+            25s
+            linear
+            infinite;
+        }
+
+        .aft-orbit-two {
+          width: 500px;
+          height: 500px;
+
+          border:
+            1px solid
+            rgba(168,85,247,0.28);
+
+          animation:
+            aftOrbitReverse
+            32s
+            linear
+            infinite;
+        }
+
+        .aft-main-ring {
+          width: 445px;
+          height: 445px;
+
+          transform:
+            translate(-50%, -50%);
+
+          border:
+            6px solid
+            #21e5f3;
+
+          box-shadow:
+            0 0 12px #22d3ee,
+            0 0 35px
+            rgba(34,211,238,0.7),
+            0 0 75px
+            rgba(37,99,235,0.35);
+
+          animation:
+            aftPulse
+            4s
+            ease-in-out
+            infinite;
+        }
+
+        .aft-purple-ring {
+          width: 458px;
+          height: 458px;
+
+          transform:
+            translate(-50%, -50%);
+
+          border:
+            4px solid
+            rgba(192, 76, 255, 0.7);
+
+          box-shadow:
+            0 0 35px
+            rgba(168,85,247,0.34);
+
+          clip-path:
+            polygon(
+              50% 0,
+              100% 0,
+              100% 100%,
+              50% 100%,
+              50% 96%,
+              95% 96%,
+              95% 4%,
+              50% 4%
+            );
+        }
+
+        /* DOTS */
+
+        .aft-dot {
+          position: absolute;
+
+          width: 9px;
+          height: 9px;
+
+          border-radius: 50%;
+
+          z-index: 10;
+        }
+
+        .dot-1 {
+          left: 16%;
+          top: 14%;
+
+          background: #22d3ee;
+
+          box-shadow:
+            0 0 18px #22d3ee;
+        }
+
+        .dot-2 {
+          left: 80%;
+          top: 13%;
+
+          background: #e879f9;
+
+          box-shadow:
+            0 0 18px #e879f9;
+
+          animation-delay: -1s;
+        }
+
+        .dot-3 {
+          right: 3%;
+          top: 38%;
+
+          background: #22d3ee;
+
+          box-shadow:
+            0 0 18px #22d3ee;
+
+          animation-delay: -1.7s;
+        }
+
+        .dot-4 {
+          left: 8%;
+          top: 48%;
+
+          background: #a855f7;
+
+          box-shadow:
+            0 0 18px #a855f7;
+
+          animation-delay: -2.1s;
+        }
+
+        .dot-5 {
+          right: 11%;
+          top: 67%;
+
+          background: #3b82f6;
+
+          box-shadow:
+            0 0 18px #3b82f6;
+
+          animation-delay: -0.6s;
+        }
+
+        /* =========================================================
+           PERSON
+        ========================================================= */
+
+        .aft-person {
+          position: absolute;
+
+          z-index: 22;
+
+          left: 52%;
+          bottom: 5px;
+
+          transform:
+            translateX(-50%);
+
+          width: 500px;
+          height: 650px;
+
+          pointer-events: none;
+        }
+
+        .aft-person img {
+          display: block;
+
+          width: 100%;
+          height: 100%;
+
+          object-fit: contain;
+          object-position: bottom center;
+
+          filter:
+            drop-shadow(
+              0 25px 30px
+              rgba(0,0,0,0.6)
+            );
+        }
+
+        .aft-person-fade {
+          position: absolute;
+
+          left: 50%;
+          bottom: 0;
+
+          transform:
+            translateX(-50%);
+
+          width: 430px;
+          height: 120px;
+
+          background:
+            linear-gradient(
+              to top,
+              rgba(0, 125, 255, 0.24),
+              transparent
+            );
+
+          filter: blur(15px);
+        }
+
+        /* =========================================================
+           FLOATING BADGES
+        ========================================================= */
+
+        .aft-badge {
+          position: absolute;
+
+          z-index: 35;
+
+          min-width: 145px;
+          min-height: 58px;
+
+          padding: 0 20px;
+
+          display: flex;
+
+          align-items: center;
+          justify-content: center;
+
+          gap: 10px;
+
+          border-radius: 16px;
+
+          backdrop-filter: blur(16px);
+
+          font-size: 15px;
+
+          font-weight: 900;
+
+          color: white;
+
+          animation:
+            aftFloat
+            4.2s
+            ease-in-out
+            infinite;
+        }
+
+        .aft-dream {
+          left: -1%;
+          top: 18%;
+
+          border:
+            1px solid
+            rgba(217,70,239,0.7);
+
+          background:
+            rgba(88,28,135,0.36);
+
+          box-shadow:
+            0 0 20px
+            rgba(168,85,247,0.12);
+        }
+
+        .aft-create {
+          left: -4%;
+          top: 36%;
+
+          border:
+            1px solid
+            rgba(245,158,11,0.65);
+
+          background:
+            rgba(120,72,0,0.14);
+
+          animation-delay: -1s;
+        }
+
+        .aft-build {
+          left: -2%;
+          top: 53%;
+
+          border:
+            1px solid
+            rgba(59,130,246,0.7);
+
+          background:
+            rgba(30,64,175,0.22);
+
+          animation-delay: -2s;
+        }
+
+        .aft-grow {
+          left: -5%;
+          top: 70%;
+
+          border:
+            1px solid
+            rgba(16,185,129,0.65);
+
+          background:
+            rgba(6,78,59,0.25);
+
+          animation-delay: -3s;
+        }
+
+        /* =========================================================
+           AI CHIP
+        ========================================================= */
+
+        .aft-ai-chip {
+          position: absolute;
+
+          right: -1%;
+          top: 22%;
+
+          z-index: 40;
+
+          width: 120px;
+          height: 120px;
+
+          display: flex;
+
+          align-items: center;
+          justify-content: center;
+
+          border:
+            2px solid
+            rgba(34,211,238,0.8);
+
+          border-radius: 24px;
+
+          background:
+            rgba(5, 17, 39, 0.95);
+
+          box-shadow:
+            0 0 25px
+            rgba(34,211,238,0.35),
+            0 0 50px
+            rgba(59,130,246,0.15);
+
+          animation:
+            aftFloat
+            4.4s
+            ease-in-out
+            infinite;
+        }
+
+        .aft-ai-chip::before {
+          content: "";
+
+          position: absolute;
+
+          inset: 9px;
+
+          border:
+            1px solid
+            rgba(168,85,247,0.55);
+
+          border-radius: 18px;
+        }
+
+        .aft-ai-text {
+          position: relative;
+
+          z-index: 2;
+
+          font-size: 46px;
+
+          line-height: 1;
+
+          font-weight: 950;
+
+          background:
+            linear-gradient(
+              180deg,
+              #ffffff,
+              #36e4f4 50%,
+              #a855f7
+            );
+
+          -webkit-background-clip: text;
+          background-clip: text;
+
+          color: transparent;
+        }
+
+        /* =========================================================
+           QUOTE
+        ========================================================= */
+
+        .aft-quote {
+          position: absolute;
+
+          z-index: 45;
+
+          right: -3%;
+
+          bottom: 72px;
+
+          width: 250px;
+
+          padding:
+            21px
+            21px
+            18px;
+
+          border:
+            1px solid
+            rgba(34,211,238,0.7);
+
+          border-radius: 23px;
+
+          background:
+            linear-gradient(
+              145deg,
+              rgba(5,17,39,0.96),
+              rgba(5,11,27,0.96)
+            );
+
+          box-shadow:
+            0 0 25px
+            rgba(34,211,238,0.15);
+
+          backdrop-filter:
+            blur(18px);
+
+          animation:
+            aftFloat
+            4.6s
+            ease-in-out
+            infinite;
+        }
+
+        .aft-quote-symbol {
+          color: #39c8f0;
+
+          font-size: 43px;
+
+          line-height: 0.8;
+
+          font-weight: 950;
+        }
+
+        .aft-quote p {
+          margin: 10px 0 0;
+
+          color: white;
+
+          font-size: 17px;
+
+          line-height: 1.6;
+
+          font-weight: 700;
+        }
+
+        .aft-quote-name {
+          display: block;
+
+          margin-top: 11px;
+
+          color: #facc15;
+
+          text-align: right;
+
+          font-size: 12px;
+
+          font-style: italic;
+
+          font-weight: 700;
+        }
+
+        /* =========================================================
+           AI COMMAND
+        ========================================================= */
+
+        .aft-command {
+          position: absolute;
+
+          right: -3%;
+          bottom: 5px;
+
+          z-index: 48;
+
+          width: 255px;
+          min-height: 72px;
+
+          display: flex;
+
+          align-items: center;
+
+          gap: 13px;
+
+          padding:
+            10px
+            72px
+            10px
+            14px;
+
+          border:
+            1px solid
+            rgba(14,165,233,0.58);
+
+          border-radius: 18px;
+
+          background:
+            rgba(3, 15, 34, 0.94);
+
+          box-shadow:
+            0 0 22px
+            rgba(14,165,233,0.13);
+        }
+
+        .aft-command-icon {
+          flex: 0 0 auto;
+
+          width: 42px;
+          height: 42px;
+
+          border-radius: 50%;
+
+          display: flex;
+
+          align-items: center;
+          justify-content: center;
+
+          background:
+            #0a1a36;
+
+          font-size: 21px;
+        }
+
+        .aft-command-title {
+          color: white;
+
+          font-size: 13px;
+
+          font-weight: 900;
+        }
+
+        .aft-command-subtitle {
+          margin-top: 2px;
+
+          color: #8190a8;
+
+          font-size: 10px;
+        }
+
+        .aft-robot {
+          position: absolute;
+
+          right: -18px;
+          bottom: -11px;
+
+          width: 88px;
+          height: 92px;
+
+          display: flex;
+
+          align-items: center;
+          justify-content: center;
+
+          font-size: 64px;
+
+          filter:
+            drop-shadow(
+              0 0 15px
+              rgba(59,130,246,0.45)
+            );
+
+          animation:
+            aftRobot
+            3s
+            ease-in-out
+            infinite;
+        }
+
+        /* =========================================================
+           PLATFORM / FLOOR
+        ========================================================= */
+
+        .aft-platform {
+          position: absolute;
+
+          z-index: 19;
+
+          left: 52%;
+          bottom: -8px;
+
+          transform:
+            translateX(-50%);
+
+          width: 570px;
+          height: 85px;
+
+          border:
+            4px solid
+            #2563eb;
+
+          border-radius: 50%;
+
+          background:
+            rgba(6, 17, 39, 0.88);
+
+          box-shadow:
+            0 0 18px
+            rgba(59,130,246,0.8),
+            0 0 42px
+            rgba(34,211,238,0.4),
+            0 0 65px
+            rgba(168,85,247,0.25);
+
+          animation:
+            aftPlatform
+            3.4s
+            ease-in-out
+            infinite;
+        }
+
+        .aft-platform::before {
+          content: "";
+
+          position: absolute;
+
+          inset:
+            12px
+            15px;
+
+          border:
+            4px solid
+            #e879f9;
+
+          border-radius: 50%;
+
+          box-shadow:
+            0 0 18px
+            rgba(232,121,249,0.6);
+        }
+
+        .aft-platform::after {
+          content: "";
+
+          position: absolute;
+
+          inset:
+            22px
+            30px;
+
+          border:
+            4px solid
+            #22d3ee;
+
+          border-radius: 50%;
+
+          box-shadow:
+            0 0 20px
+            rgba(34,211,238,0.75);
+        }
+
+        /* =========================================================
+           BOTTOM WAVE
+        ========================================================= */
+
+        .aft-wave {
+          position: absolute;
+
+          z-index: 5;
+
+          left: -3%;
+          right: -3%;
+          bottom: -76px;
+
+          height: 120px;
+
+          border-top:
+            2px solid
+            rgba(65, 105, 255, 0.9);
+
+          border-radius: 50% 50% 0 0;
+
+          background:
+            linear-gradient(
+              180deg,
+              rgba(28, 48, 115, 0.75),
+              rgba(20, 31, 80, 0.95)
+            );
+
+          transform:
+            rotate(-0.5deg);
+
+          box-shadow:
+            0 -2px 20px
+            rgba(168,85,247,0.22);
+        }
+
+        /* =========================================================
+           TABLET
+        ========================================================= */
+
+        @media (max-width: 1280px) {
+
+          .aft-container {
+            grid-template-columns:
+              minmax(0, 1fr)
+              570px;
+
+            padding-left: 28px;
+            padding-right: 28px;
+          }
+
+          .aft-title {
+            font-size:
+              clamp(
+                56px,
+                5.3vw,
+                76px
+              );
+          }
+
+          .aft-right {
+            transform:
+              scale(0.9);
+
+            transform-origin:
+              center right;
+          }
+        }
+
+        /* =========================================================
+           MOBILE / TABLET STACK
+        ========================================================= */
+
+        @media (max-width: 1050px) {
+
+          .aft-hero {
+            min-height: auto;
+          }
+
+          .aft-container {
+            min-height: auto;
+
+            grid-template-columns: 1fr;
+
+            padding:
+              45px
+              22px
+              75px;
+          }
+
+          .aft-left {
+            max-width: 850px;
+
+            margin: 0 auto;
+
+            text-align: center;
+          }
+
+          .aft-title {
+            font-size:
+              clamp(
+                50px,
+                9vw,
+                78px
+              );
+          }
+
+          .aft-title-two {
+            white-space: normal;
+          }
+
+          .aft-description {
+            margin-left: auto;
+            margin-right: auto;
+          }
+
+          .aft-buttons {
+            justify-content: center;
+
+            margin-left: auto;
+            margin-right: auto;
+          }
+
+          .aft-benefits {
+            justify-content: center;
+          }
+
+          .aft-stats {
+            margin-left: auto;
+            margin-right: auto;
+          }
+
+          .aft-right {
+            height: 650px;
+
+            max-width: 720px;
+
+            margin: 15px auto 0;
+
+            transform: none;
+          }
+        }
+
+        /* =========================================================
+           PHONE
+        ========================================================= */
+
+        @media (max-width: 650px) {
+
+          .aft-container {
+            padding:
+              36px
+              15px
+              65px;
+          }
+
+          .aft-title {
+            font-size:
+              clamp(
+                44px,
+                13vw,
+                62px
+              );
+
+            line-height: 1;
+          }
+
+          .aft-description {
+            margin-top: 22px;
+
+            font-size: 15px;
+
+            line-height: 1.7;
+          }
+
+          .aft-buttons {
+            display: grid;
+
+            grid-template-columns: 1fr;
+
+            width: 100%;
+          }
+
+          .aft-btn,
+          .aft-small-btn {
+            width: 100%;
+            min-width: 0;
+          }
+
+          .aft-second-row {
+            display: none;
+          }
+
+          .aft-benefits {
+            gap: 11px;
+
+            font-size: 12px;
+          }
+
+          .aft-divider {
+            display: none;
+          }
+
+          .aft-stats {
+            grid-template-columns:
+              repeat(2, 1fr);
+          }
+
+          .aft-stat {
+            min-height: 125px;
+          }
+
+          .aft-stat:nth-child(2)::after {
+            display: none;
+          }
+
+          .aft-stat:nth-child(-n+2) {
+            border-bottom:
+              1px solid
+              rgba(255,255,255,0.1);
+          }
+
+          .aft-stat-value {
+            font-size: 26px;
+          }
+
+          .aft-right {
+            height: 525px;
+
+            margin-top: 25px;
+          }
+
+          .aft-atmosphere {
+            width: 440px;
+            height: 440px;
+          }
+
+          .aft-orbit-one {
+            width: 390px;
+            height: 390px;
+          }
+
+          .aft-orbit-two {
+            width: 350px;
+            height: 350px;
+          }
+
+          .aft-main-ring {
+            width: 320px;
+            height: 320px;
+
+            border-width: 4px;
+          }
+
+          .aft-purple-ring {
+            width: 333px;
+            height: 333px;
+
+            border-width: 3px;
+          }
+
+          .aft-person {
+            width: 350px;
+            height: 475px;
+
+            bottom: 3px;
+          }
+
+          .aft-platform {
+            width: 390px;
+            max-width: 94vw;
+
+            height: 64px;
+          }
+
+          .aft-badge {
+            min-width: 105px;
+            min-height: 45px;
+
+            padding: 0 12px;
+
+            font-size: 11px;
+          }
+
+          .aft-dream {
+            left: 0;
+            top: 17%;
+          }
+
+          .aft-create {
+            left: -1%;
+            top: 33%;
+          }
+
+          .aft-build {
+            left: 1%;
+            top: 50%;
+          }
+
+          .aft-grow {
+            left: 0;
+            top: 66%;
+          }
+
+          .aft-ai-chip {
+            right: 0;
+            top: 19%;
+
+            width: 82px;
+            height: 82px;
+
+            border-radius: 18px;
+          }
+
+          .aft-ai-text {
+            font-size: 32px;
+          }
+
+          .aft-quote {
+            right: 0;
+            bottom: 77px;
+
+            width: 180px;
+
+            padding: 14px;
+          }
+
+          .aft-quote-symbol {
+            font-size: 31px;
+          }
+
+          .aft-quote p {
+            font-size: 12px;
+
+            line-height: 1.55;
+          }
+
+          .aft-quote-name {
+            font-size: 9px;
+          }
+
+          .aft-command {
+            right: 0;
+            bottom: 8px;
+
+            width: 190px;
+
+            min-height: 60px;
+
+            padding:
+              8px
+              53px
+              8px
+              9px;
+          }
+
+          .aft-command-icon {
+            width: 34px;
+            height: 34px;
+
+            font-size: 16px;
+          }
+
+          .aft-command-title {
+            font-size: 10px;
+          }
+
+          .aft-command-subtitle {
+            font-size: 8px;
+          }
+
+          .aft-robot {
+            right: -13px;
+            bottom: -8px;
+
+            width: 66px;
+
+            font-size: 48px;
+          }
+        }
+
+        @media (
+          prefers-reduced-motion:
+          reduce
+        ) {
+
+          .aft-floating,
+          .aft-dot,
+          .aft-orbit-one,
+          .aft-orbit-two,
+          .aft-main-ring,
+          .aft-platform,
+          .aft-btn-primary::after,
+          .aft-robot {
+            animation:
+              none !important;
           }
         }
       `}</style>
 
-      {/* =====================================================
-          BACKGROUND
-      ===================================================== */}
+      {/* BACKGROUND */}
+      <div className="aft-grid" />
 
-      <div
-        className="
-          pointer-events-none
-          absolute
-          inset-0
-          bg-[radial-gradient(circle_at_76%_42%,rgba(37,99,235,0.11),transparent_30%),radial-gradient(circle_at_83%_46%,rgba(168,85,247,0.11),transparent_36%),radial-gradient(circle_at_10%_45%,rgba(6,182,212,0.035),transparent_31%)]
-        "
-      />
+      {/* MAIN */}
+      <div className="aft-container">
 
-      <div
-        className="
-          pointer-events-none
-          absolute
-          inset-0
-          opacity-[0.10]
-        "
-        style={{
-          backgroundImage:
-            "linear-gradient(rgba(34,211,238,.035) 1px, transparent 1px), linear-gradient(90deg, rgba(99,102,241,.035) 1px, transparent 1px)",
-          backgroundSize:
-            "40px 40px",
-          maskImage:
-            "radial-gradient(circle at 75% 55%, black 0%, transparent 70%)",
-          WebkitMaskImage:
-            "radial-gradient(circle at 75% 55%, black 0%, transparent 70%)",
-        }}
-      />
+        {/* =======================================================
+            LEFT SIDE
+        ======================================================= */}
 
-      {/* =====================================================
-          MAIN CONTAINER
-      ===================================================== */}
+        <div className="aft-left">
 
-      <div
-        className="
-          relative
-          mx-auto
-          max-w-[1600px]
-        "
-      >
-        <div
-          className="
-            grid
-            min-h-[730px]
-            items-center
-            gap-5
-            xl:grid-cols-[0.98fr_1.02fr]
-            xl:gap-0
-          "
-        >
-          {/* =================================================
-              LEFT CONTENT
-          ================================================= */}
+          <h1 className="aft-title">
 
-          <div
-            className="
-              relative
-              z-30
-              max-w-[780px]
-              py-0
-              xl:-translate-y-10
-              2xl:-translate-y-12
-            "
-          >
-            {/* TITLE */}
+            <span className="aft-title-one">
+              {t(
+                "Learn AI.",
+                "AI கற்றுக்கொள்ளுங்கள்."
+              )}
+            </span>
 
-            <h1
+            <span className="aft-title-two">
+              {t(
+                "Build Your Future.",
+                "உங்கள் எதிர்காலத்தை உருவாக்குங்கள்."
+              )}
+            </span>
+
+          </h1>
+
+          <p className="aft-description">
+            {t(
+              "Learn AI, YouTube, Instagram, Content Creation, Technology, Android Apps, Digital Products and more — all in one place.",
+              "AI, YouTube, Instagram, Content Creation, Technology, Android Apps, Digital Products மற்றும் பலவற்றை ஒரே இடத்தில் கற்றுக்கொள்ளுங்கள்."
+            )}
+          </p>
+
+          {/* BUTTONS */}
+
+          <div className="aft-buttons">
+
+            <Link
+              to="/courses"
               className="
-                hero-title-glow
-                text-[50px]
-                font-black
-                leading-[1.01]
-                tracking-[-0.045em]
-                sm:text-[62px]
-                lg:text-[76px]
-                2xl:text-[84px]
+                aft-btn
+                aft-btn-primary
               "
             >
-              <span
-                className="
-                  bg-gradient-to-r
-                  from-fuchsia-400
-                  via-pink-300
-                  to-purple-400
-                  bg-clip-text
-                  text-transparent
-                "
-              >
-                {heroTitle}
-              </span>
+              🚀
+              {t(
+                "Start Learning",
+                "கற்க தொடங்கு"
+              )}
+              <span>→</span>
+            </Link>
 
+            <Link
+              to="/utility-hub"
+              className="
+                aft-btn
+                aft-btn-dark
+              "
+            >
+              🧰
+              Utility Hub
+            </Link>
+
+            <Link
+              to="/smart-hub"
+              className="
+                aft-btn
+                aft-btn-purple
+              "
+            >
+              ⚡
+              {t(
+                "Open Smart Hub",
+                "Smart Hub திறக்க"
+              )}
+            </Link>
+
+            <span className="aft-second-row" />
+
+            <Link
+              to="/innovation-lab"
+              className="
+                aft-btn
+                aft-btn-dark
+                aft-small-btn
+              "
+            >
+              🧪
+              Innovation Lab
+              <span>→</span>
+            </Link>
+
+            <Link
+              to="/experience-zone"
+              className="
+                aft-btn
+                aft-btn-dark
+                aft-small-btn
+              "
+            >
+              🌌
+              Experience Zone
+              <span>→</span>
+            </Link>
+
+          </div>
+
+          {/* BENEFITS */}
+
+          <div className="aft-benefits">
+
+            <span>
+              ✨ Beginner Friendly
+            </span>
+
+            <span className="aft-divider" />
+
+            <span>
+              ⚡ Learn Faster
+            </span>
+
+            <span className="aft-divider" />
+
+            <span>
+              🎯 Practical Content
+            </span>
+
+          </div>
+
+          {/* STATS */}
+
+          <div className="aft-stats">
+
+            {stats.map((item) => (
+              <div
+                className="aft-stat"
+                key={item.label}
+              >
+
+                <div className="aft-stat-icon">
+                  {item.icon}
+                </div>
+
+                <div className="aft-stat-value">
+                  {item.value}
+                </div>
+
+                <div className="aft-stat-label">
+                  {item.label}
+                </div>
+
+              </div>
+            ))}
+
+          </div>
+
+        </div>
+
+        {/* =======================================================
+            RIGHT SIDE
+        ======================================================= */}
+
+        <div className="aft-right">
+
+          <div className="aft-atmosphere" />
+
+          {/* ORBITS */}
+
+          <div className="aft-orbit-one" />
+          <div className="aft-orbit-two" />
+
+          <div className="aft-main-ring" />
+          <div className="aft-purple-ring" />
+
+          {/* LIGHT DOTS */}
+
+          <span className="aft-dot dot-1" />
+          <span className="aft-dot dot-2" />
+          <span className="aft-dot dot-3" />
+          <span className="aft-dot dot-4" />
+          <span className="aft-dot dot-5" />
+
+          {/* FLOATING LABELS */}
+
+          <div className="aft-badge aft-dream">
+            🚀 Dream
+          </div>
+
+          <div className="aft-badge aft-create">
+            💡 Create
+          </div>
+
+          <div className="aft-badge aft-build">
+            ⚡ Build
+          </div>
+
+          <div className="aft-badge aft-grow">
+            🌎 Grow
+          </div>
+
+          {/* AI CHIP */}
+
+          <div className="aft-ai-chip">
+
+            <span className="aft-ai-text">
+              AI
+            </span>
+
+          </div>
+
+          {/* PLATFORM BEHIND PERSON */}
+
+          <div className="aft-platform" />
+
+          {/* PERSON */}
+
+          <div className="aft-person">
+
+            <img
+              src={heroImage}
+              alt="AI Future Tamil Founder"
+            />
+
+            <div className="aft-person-fade" />
+
+          </div>
+
+          {/* QUOTE */}
+
+          <div className="aft-quote">
+
+            <div className="aft-quote-symbol">
+              “
+            </div>
+
+            <p>
+              Stay Curious,
               <br />
-
-              <span
-                className="
-                  bg-gradient-to-r
-                  from-cyan-300
-                  via-sky-400
-                  via-55%
-                  to-purple-400
-                  bg-clip-text
-                  text-transparent
-                "
-              >
-                {heroSubtitle}
-              </span>
-            </h1>
-
-            {/* DESCRIPTION */}
-
-            <p
-              className="
-                mt-8
-                max-w-[720px]
-                text-base
-                leading-8
-                text-gray-300
-                sm:text-[18px]
-              "
-            >
-              {heroDescription}
+              Keep Learning,
+              <br />
+              Build the Future!
             </p>
 
-            {/* =================================================
-                BUTTONS
-            ================================================= */}
+            <span className="aft-quote-name">
+              – Dinesh Kumar.N
+            </span>
 
-            <div
-              className="
-                mt-7
-                flex
-                flex-col
-                gap-3
-                sm:flex-row
-                sm:flex-wrap
-              "
-            >
-              <Link
-                to={heroButtonUrl}
-                className="
-                  hero-shine
-                  inline-flex
-                  min-h-[58px]
-                  items-center
-                  justify-center
-                  gap-3
-                  rounded-xl
-                  bg-gradient-to-r
-                  from-cyan-400
-                  via-sky-400
-                  to-blue-500
-                  px-7
-                  py-3
-                  text-sm
-                  font-black
-                  text-black
-                  shadow-[0_0_30px_rgba(34,211,238,.18)]
-                  transition-all
-                  duration-300
-                  hover:-translate-y-1
-                  hover:shadow-[0_0_45px_rgba(34,211,238,.30)]
-                "
-              >
-                🚀
-
-                {heroButtonText}
-
-                <span>
-                  →
-                </span>
-              </Link>
-
-              <Link
-  to="/utility-hub"
-  className="
-    inline-flex
-    min-h-[58px]
-    items-center
-    justify-center
-    gap-3
-    rounded-xl
-    border
-    border-cyan-400/45
-    bg-gradient-to-r
-    from-cyan-500/[0.10]
-    via-blue-500/[0.08]
-    to-purple-500/[0.10]
-    px-7
-    py-3
-    text-sm
-    font-black
-    text-white
-    backdrop-blur-xl
-    transition-all
-    duration-300
-    hover:-translate-y-1
-    hover:border-cyan-300/80
-    hover:bg-cyan-400/[0.12]
-    hover:shadow-[0_0_30px_rgba(34,211,238,.18)]
-  "
->
-  🧰
-
-  {t(
-    "Utility Hub",
-    "Utility Hub"
-  )}
-</Link>
-
-              <Link
-                to="/smart-hub"
-                className="
-                  inline-flex
-                  min-h-[58px]
-                  items-center
-                  justify-center
-                  gap-3
-                  rounded-xl
-                  border
-                  border-purple-400/55
-                  bg-purple-500/[0.08]
-                  px-7
-                  py-3
-                  text-sm
-                  font-black
-                  text-purple-100
-                  transition-all
-                  duration-300
-                  hover:-translate-y-1
-                  hover:border-purple-300
-                  hover:bg-purple-500/[0.14]
-                  hover:shadow-[0_0_30px_rgba(168,85,247,.16)]
-                "
-              >
-                ⚡
-
-                {t(
-                  "Open Smart Hub",
-                  "Smart Hub திறக்க"
-                )}
-              </Link>
-
-              {/* Force the two former navbar highlights onto a clean second row */}
-              <span className="hidden basis-full sm:block" />
-
-              <Link
-                to="/innovation-lab"
-                className="
-                  group
-                  inline-flex
-                  min-h-[54px]
-                  items-center
-                  justify-center
-                  gap-3
-                  rounded-xl
-                  border
-                  border-fuchsia-400/45
-                  bg-gradient-to-r
-                  from-fuchsia-500/[0.10]
-                  via-purple-500/[0.08]
-                  to-cyan-500/[0.08]
-                  px-7
-                  py-3
-                  text-sm
-                  font-black
-                  text-fuchsia-100
-                  shadow-[0_0_24px_rgba(217,70,239,.08)]
-                  transition-all
-                  duration-300
-                  hover:-translate-y-1
-                  hover:border-fuchsia-300/80
-                  hover:bg-fuchsia-400/[0.13]
-                  hover:shadow-[0_0_34px_rgba(217,70,239,.18)]
-                "
-              >
-                <span className="transition-transform duration-300 group-hover:rotate-12 group-hover:scale-110">
-                  🧪
-                </span>
-
-                {t(
-                  "Innovation Lab",
-                  "Innovation Lab"
-                )}
-
-                <span className="transition-transform duration-300 group-hover:translate-x-1">
-                  →
-                </span>
-              </Link>
-
-              <Link
-                to="/experience-zone"
-                className="
-                  group
-                  inline-flex
-                  min-h-[54px]
-                  items-center
-                  justify-center
-                  gap-3
-                  rounded-xl
-                  border
-                  border-cyan-400/45
-                  bg-gradient-to-r
-                  from-cyan-500/[0.10]
-                  via-blue-500/[0.08]
-                  to-indigo-500/[0.10]
-                  px-7
-                  py-3
-                  text-sm
-                  font-black
-                  text-cyan-100
-                  shadow-[0_0_24px_rgba(34,211,238,.08)]
-                  transition-all
-                  duration-300
-                  hover:-translate-y-1
-                  hover:border-cyan-300/80
-                  hover:bg-cyan-400/[0.13]
-                  hover:shadow-[0_0_34px_rgba(34,211,238,.18)]
-                "
-              >
-                <span className="transition-transform duration-300 group-hover:-rotate-12 group-hover:scale-110">
-                  🌌
-                </span>
-
-                {t(
-                  "Experience Zone",
-                  "Experience Zone"
-                )}
-
-                <span className="transition-transform duration-300 group-hover:translate-x-1">
-                  →
-                </span>
-              </Link>
-            </div>
-
-            {/* =================================================
-                BENEFITS
-            ================================================= */}
-
-            <div
-              className="
-                mt-6
-                flex
-                flex-wrap
-                items-center
-                gap-x-7
-                gap-y-3
-                text-sm
-                font-medium
-                text-gray-400
-              "
-            >
-              <span>
-                ✨ Beginner Friendly
-              </span>
-
-              <span
-                className="
-                  hidden
-                  h-5
-                  w-px
-                  bg-white/15
-                  sm:block
-                "
-              />
-
-              <span>
-                ⚡ Learn Faster
-              </span>
-
-              <span
-                className="
-                  hidden
-                  h-5
-                  w-px
-                  bg-white/15
-                  sm:block
-                "
-              />
-
-              <span>
-                🎯 Practical Content
-              </span>
-            </div>
-
-            {/* =================================================
-                STATS
-            ================================================= */}
-
-            <div
-              className="
-                mt-8
-                grid
-                max-w-[750px]
-                grid-cols-2
-                overflow-hidden
-                rounded-[22px]
-                border
-                border-cyan-400/35
-                bg-[#050a15]/82
-                shadow-[0_20px_70px_rgba(0,0,0,.36),0_0_25px_rgba(59,130,246,.05)]
-                backdrop-blur-xl
-                sm:grid-cols-4
-              "
-            >
-              <HeroStat
-                icon="👥"
-                value="10K+"
-                label="Learners"
-              />
-
-              <HeroStat
-                icon="📚"
-                value="500+"
-                label="AI Resources"
-              />
-
-              <HeroStat
-                icon="🎬"
-                value="100+"
-                label="Lessons"
-              />
-
-              <HeroStat
-                icon="⭐"
-                value="4.8★"
-                label="Community"
-              />
-            </div>
           </div>
 
-          {/* =================================================
-              RIGHT VISUAL
-          ================================================= */}
+          {/* AI COMMAND */}
 
-          <div
-            className="
-              relative
-              z-20
-              mx-auto
-              hidden
-              min-h-[730px]
-              w-full
-              max-w-[780px]
-              items-end
-              justify-center
-              xl:flex
-            "
-          >
-            {/* =================================================
-                REAR BLUE / PURPLE ATMOSPHERE
-            ================================================= */}
+          <div className="aft-command">
 
-            <div
-              className="
-                pointer-events-none
-                absolute
-                left-1/2
-                top-[42%]
-                h-[590px]
-                w-[590px]
-                -translate-x-1/2
-                -translate-y-1/2
-                rounded-full
-                bg-blue-600/[0.11]
-                blur-[75px]
-              "
-            />
-
-            <div
-              className="
-                pointer-events-none
-                absolute
-                left-[56%]
-                top-[43%]
-                h-[490px]
-                w-[490px]
-                -translate-x-1/2
-                -translate-y-1/2
-                rounded-full
-                bg-purple-600/[0.12]
-                blur-[85px]
-              "
-            />
-
-            {/* =================================================
-                REAR CIRCUIT SYSTEM
-            ================================================= */}
-
-            <div
-              className="
-                hero-circuit
-                pointer-events-none
-                absolute
-                right-[-1%]
-                top-[10%]
-                h-[420px]
-                w-[380px]
-              "
-            >
-              <CircuitLine
-                top="48px"
-                width="215px"
-              />
-
-              <CircuitLine
-                top="82px"
-                width="190px"
-                right="20px"
-              />
-
-              <CircuitLine
-                top="116px"
-                width="160px"
-                right="42px"
-              />
-
-              <CircuitLine
-                top="150px"
-                width="135px"
-                right="65px"
-              />
-
-              <CircuitLine
-                top="184px"
-                width="110px"
-                right="90px"
-              />
-
-              <span
-                className="
-                  absolute
-                  right-[74px]
-                  top-[48px]
-                  h-[240px]
-                  w-px
-                  bg-gradient-to-b
-                  from-cyan-400/55
-                  to-transparent
-                "
-              />
-
-              <span
-                className="
-                  absolute
-                  right-[130px]
-                  top-[82px]
-                  h-[200px]
-                  w-px
-                  bg-gradient-to-b
-                  from-blue-500/45
-                  to-transparent
-                "
-              />
-
-              <span
-                className="
-                  absolute
-                  right-[185px]
-                  top-[116px]
-                  h-[160px]
-                  w-px
-                  bg-gradient-to-b
-                  from-purple-400/45
-                  to-transparent
-                "
-              />
+            <div className="aft-command-icon">
+              ⚡
             </div>
 
-            {/* =================================================
-                OUTER ORBITS BEHIND MAN
-            ================================================= */}
-
-            <div
-              className="
-                hero-orbit
-                pointer-events-none
-                absolute
-                left-1/2
-                top-[42%]
-                h-[590px]
-                w-[590px]
-                -translate-x-1/2
-                -translate-y-1/2
-                rounded-full
-                border
-                border-blue-400/20
-              "
-            >
-              <span
-                className="
-                  absolute
-                  left-1/2
-                  top-[-6px]
-                  h-3
-                  w-3
-                  rounded-full
-                  bg-cyan-300
-                  shadow-[0_0_22px_#22d3ee]
-                "
-              />
-
-              <span
-                className="
-                  absolute
-                  bottom-[8%]
-                  left-[11%]
-                  h-2.5
-                  w-2.5
-                  rounded-full
-                  bg-fuchsia-400
-                  shadow-[0_0_22px_#e879f9]
-                "
-              />
-
-              <span
-                className="
-                  absolute
-                  right-[5%]
-                  top-[30%]
-                  h-2
-                  w-2
-                  rounded-full
-                  bg-blue-400
-                  shadow-[0_0_18px_#60a5fa]
-                "
-              />
-            </div>
-
-            <div
-              className="
-                hero-orbit-reverse
-                pointer-events-none
-                absolute
-                left-1/2
-                top-[42%]
-                h-[515px]
-                w-[515px]
-                -translate-x-1/2
-                -translate-y-1/2
-                rounded-full
-                border
-                border-purple-400/25
-              "
-            />
-
-            {/* =================================================
-                BRIGHT MAIN NEON PORTAL
-            ================================================= */}
-
-            <div
-              className="
-                hero-back-ring
-                pointer-events-none
-                absolute
-                left-1/2
-                top-[42%]
-                h-[455px]
-                w-[455px]
-                -translate-x-1/2
-                -translate-y-1/2
-                rounded-full
-                border-[5px]
-                border-cyan-300
-                shadow-[0_0_10px_#22d3ee,0_0_30px_rgba(34,211,238,.85),0_0_60px_rgba(37,99,235,.45)]
-              "
-            />
-
-            <div
-              className="
-                hero-back-ring
-                pointer-events-none
-                absolute
-                left-1/2
-                top-[42%]
-                h-[470px]
-                w-[470px]
-                -translate-x-1/2
-                -translate-y-1/2
-                rounded-full
-                border-[4px]
-                border-fuchsia-400
-                shadow-[0_0_14px_rgba(232,121,249,.9),0_0_42px_rgba(168,85,247,.5)]
-              "
-              style={{
-                clipPath:
-                  "polygon(50% 0%,100% 0%,100% 100%,50% 100%,50% 95%,95% 95%,95% 5%,50% 5%)",
-              }}
-            />
-
-            {/* =================================================
-                DIGITAL DOTS
-            ================================================= */}
-
-            {[
-              ["15%", "9%", "#22d3ee"],
-              ["78%", "8%", "#e879f9"],
-              ["92%", "24%", "#22d3ee"],
-              ["7%", "34%", "#8b5cf6"],
-              ["94%", "51%", "#3b82f6"],
-              ["12%", "65%", "#ec4899"],
-              ["71%", "4%", "#22d3ee"],
-              ["30%", "5%", "#a855f7"],
-              ["87%", "69%", "#22d3ee"],
-              ["20%", "72%", "#8b5cf6"],
-            ].map(
-              (
-                [
-                  left,
-                  top,
-                  color,
-                ],
-                index
-              ) => (
-                <span
-                  key={index}
-                  className="
-                    hero-spark
-                    pointer-events-none
-                    absolute
-                    z-[5]
-                    h-2
-                    w-2
-                    rounded-full
-                  "
-                  style={{
-                    left,
-                    top,
-                    backgroundColor:
-                      color,
-                    boxShadow:
-                      `0 0 16px ${color}`,
-                    animationDelay:
-                      `${index * 0.28}s`,
-                  }}
-                />
-              )
-            )}
-
-            {/* =================================================
-                DREAM / CREATE / BUILD / GROW
-            ================================================= */}
-
-            <FloatingBadge
-              icon="🚀"
-              text="Dream"
-              delay="0s"
-              rotate="-2deg"
-              className="
-                left-[1%]
-                top-[16%]
-                border-fuchsia-400/70
-                bg-purple-500/[0.16]
-                text-white
-              "
-            />
-
-            <FloatingBadge
-              icon="💡"
-              text="Create"
-              delay="-1s"
-              rotate="1deg"
-              className="
-                left-[-1%]
-                top-[31%]
-                border-yellow-400/65
-                bg-yellow-400/[0.08]
-                text-white
-              "
-            />
-
-            <FloatingBadge
-              icon="⚡"
-              text="Build"
-              delay="-2s"
-              rotate="-3deg"
-              className="
-                left-[0%]
-                top-[46%]
-                border-blue-400/70
-                bg-blue-500/[0.13]
-                text-white
-              "
-            />
-
-            <FloatingBadge
-              icon="🌎"
-              text="Grow"
-              delay="-3s"
-              rotate="-2deg"
-              className="
-                left-[-1%]
-                top-[61%]
-                border-emerald-400/70
-                bg-emerald-500/[0.11]
-                text-white
-              "
-            />
-
-            {/* =================================================
-                AI CHIP
-            ================================================= */}
-
-            <div
-              className="
-                hero-chip
-                absolute
-                right-[0%]
-                top-[19%]
-                z-40
-                flex
-                h-[118px]
-                w-[118px]
-                items-center
-                justify-center
-                rounded-[27px]
-                border-2
-                border-cyan-400/75
-                bg-[#061127]/95
-                shadow-[0_0_25px_rgba(34,211,238,.38),0_0_55px_rgba(59,130,246,.20)]
-                backdrop-blur-xl
-              "
-            >
-              <div
-                className="
-                  absolute
-                  inset-[9px]
-                  rounded-[20px]
-                  border
-                  border-purple-400/50
-                  shadow-[inset_0_0_22px_rgba(168,85,247,.14)]
-                "
-              />
-
-              <span
-                className="
-                  relative
-                  z-10
-                  bg-gradient-to-b
-                  from-white
-                  via-cyan-300
-                  to-purple-400
-                  bg-clip-text
-                  text-[46px]
-                  font-black
-                  text-transparent
-                "
-              >
-                AI
-              </span>
-
-              <span
-                className="
-                  absolute
-                  -left-9
-                  top-8
-                  h-px
-                  w-9
-                  bg-cyan-400/70
-                "
-              />
-
-              <span
-                className="
-                  absolute
-                  -right-9
-                  bottom-8
-                  h-px
-                  w-9
-                  bg-purple-400/70
-                "
-              />
-            </div>
-
-            {/* =================================================
-                LIGHT COLUMN BEHIND MAN
-            ================================================= */}
-
-            <div
-              className="
-                pointer-events-none
-                absolute
-                bottom-[78px]
-                left-1/2
-                z-[8]
-                h-[535px]
-                w-[400px]
-                -translate-x-1/2
-                bg-gradient-to-t
-                from-blue-500/[0.18]
-                via-blue-500/[0.03]
-                to-transparent
-                blur-2xl
-              "
-            />
-
-            {/* SCAN LINE */}
-
-            <div
-              className="
-                hero-scan
-                pointer-events-none
-                absolute
-                bottom-[100px]
-                left-1/2
-                z-[24]
-                h-px
-                w-[360px]
-                -translate-x-1/2
-                bg-gradient-to-r
-                from-transparent
-                via-cyan-300/75
-                to-transparent
-                shadow-[0_0_16px_rgba(34,211,238,.70)]
-              "
-            />
-
-            {/* =================================================
-                PERSON
-            ================================================= */}
-
-            <div
-              className="
-                pointer-events-none
-                absolute
-                bottom-[70px]
-                left-1/2
-                z-20
-                h-[650px]
-                w-[490px]
-                -translate-x-1/2
-              "
-            >
-              <img
-                src={heroImage}
-                alt="AI Future Tamil Founder"
-                className="
-                  h-full
-                  w-full
-                  object-contain
-                  object-bottom
-                  drop-shadow-[0_25px_35px_rgba(0,0,0,.58)]
-                "
-              />
-
-              {/* BLUE BODY FADE */}
-
-              <div
-                className="
-                  absolute
-                  bottom-0
-                  left-1/2
-                  h-[125px]
-                  w-[410px]
-                  -translate-x-1/2
-                  bg-gradient-to-t
-                  from-blue-600/[0.30]
-                  via-cyan-500/[0.08]
-                  to-transparent
-                  blur-md
-                "
-              />
-            </div>
-
-            {/* =================================================
-                FRONT HOLOGRAPHIC PLATFORM
-            ================================================= */}
-
-            <div
-              className="
-                pointer-events-none
-                absolute
-                bottom-[5px]
-                left-1/2
-                z-30
-                h-[150px]
-                w-[600px]
-                -translate-x-1/2
-              "
-            >
-              {/* FLOOR AURA */}
-
-              <div
-                className="
-                  hero-floor
-                  absolute
-                  bottom-[-18px]
-                  left-1/2
-                  h-[95px]
-                  w-[590px]
-                  -translate-x-1/2
-                  rounded-[50%]
-                  bg-gradient-to-r
-                  from-blue-600/[0.16]
-                  via-purple-500/[0.26]
-                  to-cyan-400/[0.17]
-                  blur-[30px]
-                "
-              />
-
-              {/* PLATFORM OUTER BODY */}
-
-              <div
-                className="
-                  absolute
-                  bottom-[3px]
-                  left-1/2
-                  h-[78px]
-                  w-[550px]
-                  -translate-x-1/2
-                  rounded-[50%]
-                  border-[5px]
-                  border-blue-500
-                  bg-[#061127]/95
-                  shadow-[0_0_15px_rgba(59,130,246,.95),0_0_35px_rgba(34,211,238,.55),0_0_65px_rgba(168,85,247,.30)]
-                "
-              />
-
-              {/* PURPLE OUTER RING */}
-
-              <div
-                className="
-                  absolute
-                  bottom-[19px]
-                  left-1/2
-                  h-[66px]
-                  w-[530px]
-                  -translate-x-1/2
-                  rounded-[50%]
-                  border-[5px]
-                  border-fuchsia-400
-                  shadow-[0_0_15px_rgba(232,121,249,.9),0_0_35px_rgba(168,85,247,.45)]
-                "
-              />
-
-              {/* CYAN INNER RING */}
-
-              <div
-                className="
-                  hero-platform-pulse
-                  absolute
-                  bottom-[28px]
-                  left-1/2
-                  h-[57px]
-                  w-[500px]
-                  -translate-x-1/2
-                  rounded-[50%]
-                  border-[5px]
-                  border-cyan-300
-                  shadow-[0_0_12px_#22d3ee,0_0_30px_rgba(34,211,238,.90),0_0_55px_rgba(59,130,246,.40)]
-                "
-              />
-
-              {/* INNER SURFACE */}
-
-              <div
-                className="
-                  absolute
-                  bottom-[38px]
-                  left-1/2
-                  h-[38px]
-                  w-[455px]
-                  -translate-x-1/2
-                  rounded-[50%]
-                  bg-[#08142b]/75
-                  shadow-[inset_0_0_35px_rgba(37,99,235,.28)]
-                "
-              />
-
-              {/* WHITE / BLUE LIGHT */}
-
-              <div
-                className="
-                  absolute
-                  bottom-[49px]
-                  left-1/2
-                  h-[14px]
-                  w-[400px]
-                  -translate-x-1/2
-                  rounded-[50%]
-                  bg-gradient-to-r
-                  from-cyan-300/[0.28]
-                  via-white/[0.72]
-                  to-fuchsia-400/[0.28]
-                  blur-[6px]
-                "
-              />
-
-              {/* ROTATING HUD */}
-
-              <div
-                className="
-                  hero-platform-spin
-                  absolute
-                  bottom-[14px]
-                  left-1/2
-                  h-[82px]
-                  w-[560px]
-                  -translate-x-1/2
-                  rounded-[50%]
-                  border
-                  border-dashed
-                  border-cyan-300/28
-                "
-              />
-
-              {/* FRONT BASE */}
-
-              <div
-                className="
-                  absolute
-                  bottom-[-3px]
-                  left-1/2
-                  h-[35px]
-                  w-[500px]
-                  -translate-x-1/2
-                  rounded-b-[48%]
-                  border-b-2
-                  border-cyan-400/50
-                  bg-gradient-to-b
-                  from-[#102253]
-                  via-[#081536]
-                  to-[#02040b]
-                  shadow-[0_15px_25px_rgba(0,0,0,.55),0_0_20px_rgba(34,211,238,.20)]
-                "
-              />
-
-              {/* FRONT BLUE LIGHT BARS */}
-
-              <span
-                className="
-                  absolute
-                  bottom-[8px]
-                  left-[19%]
-                  h-[3px]
-                  w-[80px]
-                  bg-cyan-300
-                  shadow-[0_0_12px_#22d3ee]
-                "
-              />
-
-              <span
-                className="
-                  absolute
-                  bottom-[8px]
-                  right-[19%]
-                  h-[3px]
-                  w-[80px]
-                  bg-purple-400
-                  shadow-[0_0_12px_#a855f7]
-                "
-              />
-            </div>
-
-            {/* =================================================
-                QUOTE CARD
-            ================================================= */}
-
-            <div
-              className="
-                hero-float
-                absolute
-                bottom-[128px]
-                right-[-1%]
-                z-40
-                w-[225px]
-                rounded-[26px]
-                border-2
-                border-cyan-400/70
-                bg-[#061127]/95
-                p-5
-                shadow-[0_0_24px_rgba(34,211,238,.25),0_0_45px_rgba(168,85,247,.16)]
-                backdrop-blur-2xl
-              "
-              style={{
-                "--hero-rotate":
-                  "0deg",
-              }}
-            >
-              <span
-                className="
-                  text-[44px]
-                  font-black
-                  leading-none
-                  text-cyan-300
-                "
-              >
-                “
-              </span>
-
-              <p
-                className="
-                  mt-1
-                  text-[17px]
-                  font-black
-                  leading-7
-                  text-white
-                "
-              >
-                Stay Curious,
-                <br />
-
-                Keep Learning,
-                <br />
-
-                Build the Future!
-              </p>
-
-              <span
-                className="
-                  mt-4
-                  block
-                  h-px
-                  bg-gradient-to-r
-                  from-yellow-400/80
-                  to-transparent
-                "
-              />
-
-              <p
-                className="
-                  mt-3
-                  text-right
-                  text-sm
-                  font-bold
-                  italic
-                  text-yellow-300
-                "
-              >
-                – Dinesh Kumar.N
-              </p>
-            </div>
-          </div>
-
-          {/* =================================================
-              MOBILE / TABLET PORTRAIT
-          ================================================= */}
-
-          <div
-            className="
-              relative
-              mx-auto
-              flex
-              w-full
-              max-w-[520px]
-              justify-center
-              xl:hidden
-            "
-          >
-            <div
-              className="
-                relative
-                h-[560px]
-                w-full
-              "
-            >
-              <div
-                className="
-                  hero-back-ring
-                  absolute
-                  left-1/2
-                  top-[41%]
-                  h-[355px]
-                  w-[355px]
-                  -translate-x-1/2
-                  -translate-y-1/2
-                  rounded-full
-                  border-[4px]
-                  border-cyan-300
-                  shadow-[0_0_25px_rgba(34,211,238,.55)]
-                "
-              />
-
-              <div
-                className="
-                  absolute
-                  left-1/2
-                  top-[41%]
-                  h-[370px]
-                  w-[370px]
-                  -translate-x-1/2
-                  -translate-y-1/2
-                  rounded-full
-                  border-[3px]
-                  border-purple-400/70
-                "
-              />
-
-              <div
-                className="
-                  absolute
-                  bottom-[72px]
-                  left-1/2
-                  z-20
-                  h-[465px]
-                  w-[355px]
-                  -translate-x-1/2
-                "
-              >
-                <img
-                  src={heroImage}
-                  alt="AI Future Tamil Founder"
-                  className="
-                    h-full
-                    w-full
-                    object-contain
-                    object-bottom
-                    drop-shadow-[0_20px_30px_rgba(0,0,0,.55)]
-                  "
-                />
-
-                <div
-                  className="
-                    absolute
-                    bottom-0
-                    left-1/2
-                    h-[100px]
-                    w-[300px]
-                    -translate-x-1/2
-                    bg-gradient-to-t
-                    from-blue-600/[0.30]
-                    to-transparent
-                    blur-md
-                  "
-                />
+            <div>
+              <div className="aft-command-title">
+                AI Command
               </div>
 
-              <div
-                className="
-                  absolute
-                  bottom-[15px]
-                  left-1/2
-                  z-30
-                  h-[100px]
-                  w-[410px]
-                  max-w-[96vw]
-                  -translate-x-1/2
-                "
-              >
-                <div
-                  className="
-                    absolute
-                    bottom-0
-                    left-1/2
-                    h-[62px]
-                    w-full
-                    -translate-x-1/2
-                    rounded-[50%]
-                    border-[4px]
-                    border-blue-500
-                    bg-[#061127]/90
-                    shadow-[0_0_25px_rgba(59,130,246,.75)]
-                  "
-                />
-
-                <div
-                  className="
-                    absolute
-                    bottom-[13px]
-                    left-1/2
-                    h-[53px]
-                    w-[95%]
-                    -translate-x-1/2
-                    rounded-[50%]
-                    border-[4px]
-                    border-fuchsia-400
-                    shadow-[0_0_20px_rgba(232,121,249,.60)]
-                  "
-                />
-
-                <div
-                  className="
-                    absolute
-                    bottom-[23px]
-                    left-1/2
-                    h-[42px]
-                    w-[88%]
-                    -translate-x-1/2
-                    rounded-[50%]
-                    border-[4px]
-                    border-cyan-300
-                    shadow-[0_0_20px_rgba(34,211,238,.85)]
-                  "
-                />
-
-                <div
-                  className="
-                    absolute
-                    bottom-[36px]
-                    left-1/2
-                    h-[15px]
-                    w-[72%]
-                    -translate-x-1/2
-                    rounded-[50%]
-                    bg-white/40
-                    blur-[7px]
-                  "
-                />
+              <div className="aft-command-subtitle">
+                Global Search 2.0
               </div>
             </div>
+
+            <div className="aft-robot">
+              🤖
+            </div>
+
           </div>
+
         </div>
+
       </div>
+
+      {/* BOTTOM WAVE */}
+
+      <div className="aft-wave" />
+
     </section>
-  );
-}
-
-/* =========================================================
-   FLOATING BADGE
-========================================================= */
-
-function FloatingBadge({
-  icon,
-  text,
-  className = "",
-  delay = "0s",
-  rotate = "0deg",
-}) {
-  return (
-    <div
-      className={`
-        hero-float
-        absolute
-        z-40
-        flex
-        min-w-[130px]
-        items-center
-        justify-center
-        gap-2.5
-        rounded-2xl
-        border
-        px-5
-        py-3
-        text-sm
-        font-black
-        shadow-[0_15px_30px_rgba(0,0,0,.32)]
-        backdrop-blur-xl
-        ${className}
-      `}
-      style={{
-        animationDelay:
-          delay,
-        "--hero-rotate":
-          rotate,
-      }}
-    >
-      <span
-        className="
-          text-lg
-        "
-      >
-        {icon}
-      </span>
-
-      <span>
-        {text}
-      </span>
-    </div>
-  );
-}
-
-/* =========================================================
-   STAT
-========================================================= */
-
-function HeroStat({
-  icon,
-  value,
-  label,
-}) {
-  return (
-    <div
-      className="
-        group
-        flex
-        min-h-[140px]
-        flex-col
-        items-center
-        justify-center
-        border-r
-        border-white/[0.10]
-        p-4
-        text-center
-        last:border-r-0
-      "
-    >
-      <span
-        className="
-          text-[28px]
-          transition-all
-          duration-300
-          group-hover:-translate-y-1
-          group-hover:scale-110
-        "
-      >
-        {icon}
-      </span>
-
-      <p
-        className="
-          mt-2
-          bg-gradient-to-b
-          from-white
-          via-cyan-200
-          to-purple-400
-          bg-clip-text
-          text-[29px]
-          font-black
-          text-transparent
-        "
-      >
-        {value}
-      </p>
-
-      <p
-        className="
-          mt-1
-          text-xs
-          text-gray-400
-        "
-      >
-        {label}
-      </p>
-    </div>
-  );
-}
-
-/* =========================================================
-   CIRCUIT LINE
-========================================================= */
-
-function CircuitLine({
-  top,
-  width,
-  right = "0px",
-}) {
-  return (
-    <span
-      className="
-        absolute
-        h-px
-        bg-gradient-to-l
-        from-cyan-400/70
-        via-blue-500/40
-        to-transparent
-      "
-      style={{
-        top,
-        right,
-        width,
-      }}
-    />
   );
 }
 
