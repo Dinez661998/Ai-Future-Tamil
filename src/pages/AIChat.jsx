@@ -5,73 +5,111 @@ import {
   useState,
 } from "react";
 
-import { Link } from "react-router-dom";
+/* =========================================================
+   AI FUTURE TAMIL
+   FINAL AI CHAT
+   Chat + Image + Video-ready UI
+========================================================= */
 
-const STORAGE_KEY = "ai-future-tamil-chat-v2";
+const STORAGE_KEY =
+  "ai-future-tamil-chat-v3";
 
 const MODELS = [
   {
     id: "gemini-3.6-flash",
     name: "Gemini 3.6 Flash",
-    short: "Gemini Flash",
+    short: "3.6 Flash",
     icon: "✦",
-    description: "Best overall",
   },
   {
-    id: "gemini-3.6-flash-lite",
-    name: "Gemini 3.6 Flash-Lite",
-    short: "Gemini Lite",
+    id: "gemini-3.5-flash-lite",
+    name: "Gemini 3.5 Flash Lite",
+    short: "Flash Lite",
     icon: "⚡",
-    description: "Fast & lightweight",
   },
 ];
 
 const LANGUAGES = [
-  { id: "auto", label: "Auto" },
-  { id: "tanglish", label: "Tanglish" },
-  { id: "tamil", label: "Tamil" },
-  { id: "english", label: "English" },
+  {
+    id: "auto",
+    name: "Auto",
+    icon: "🌐",
+  },
+  {
+    id: "tanglish",
+    name: "Tanglish",
+    icon: "🗣️",
+  },
+  {
+    id: "tamil",
+    name: "Tamil",
+    icon: "🇮🇳",
+  },
+  {
+    id: "english",
+    name: "English",
+    icon: "🇬🇧",
+  },
+];
+
+const MODES = [
+  {
+    id: "chat",
+    name: "Chat",
+    icon: "💬",
+  },
+  {
+    id: "image",
+    name: "Image",
+    icon: "🎨",
+  },
+  {
+    id: "video",
+    name: "Video",
+    icon: "🎬",
+  },
 ];
 
 const STARTERS = [
   {
-    icon: "💻",
-    title: "Help me code",
-    subtitle: "Build and debug code",
-    prompt:
-      "Create a simple React component and explain it step by step.",
-  },
-  {
-    icon: "🇮🇳",
-    title: "Explain in Tanglish",
-    subtitle: "Simple Tamil + English",
+    icon: "🤖",
+    title: "Explain AI",
+    subtitle:
+      "AI basics simple-aa explain pannu",
     prompt:
       "Artificial Intelligence na enna? Simple Tanglish-la explain pannu.",
   },
   {
-    icon: "✨",
-    title: "Create a prompt",
-    subtitle: "Professional AI prompts",
+    icon: "💻",
+    title: "Build Website",
+    subtitle:
+      "React coding help",
     prompt:
-      "Create a professional AI image prompt for a futuristic Chennai city.",
+      "React website build panna beginner roadmap kudu.",
   },
   {
-    icon: "📺",
-    title: "YouTube ideas",
-    subtitle: "Content inspiration",
+    icon: "✨",
+    title: "Create Prompt",
+    subtitle:
+      "Better AI prompts",
     prompt:
-      "Give me 10 trending Tamil YouTube video ideas about AI.",
+      "Professional AI image prompt create panna help pannu.",
+  },
+  {
+    icon: "📚",
+    title: "Learn",
+    subtitle:
+      "Simple step-by-step learning",
+    prompt:
+      "AI basics step by step teach pannu.",
   },
 ];
 
-function createId() {
-  if (
-    typeof crypto !== "undefined" &&
-    crypto.randomUUID
-  ) {
-    return crypto.randomUUID();
-  }
+/* =========================================================
+   HELPERS
+========================================================= */
 
+function createId() {
   return `${Date.now()}-${Math.random()
     .toString(36)
     .slice(2)}`;
@@ -81,448 +119,112 @@ function createConversation() {
   return {
     id: createId(),
     title: "New Chat",
+    messages: [],
     createdAt: Date.now(),
     updatedAt: Date.now(),
-    messages: [],
   };
+}
+
+function makeTitle(text) {
+  const clean = String(text || "")
+    .replace(/\s+/g, " ")
+    .trim();
+
+  if (!clean) {
+    return "New Chat";
+  }
+
+  return clean.length > 35
+    ? `${clean.slice(0, 35)}...`
+    : clean;
 }
 
 function loadSavedState() {
   try {
-    const v2 = localStorage.getItem(STORAGE_KEY);
-
-    const old =
+    const raw =
       localStorage.getItem(
-        "ai-future-tamil-chat-v1"
+        STORAGE_KEY
       );
-
-    const raw = v2 || old;
 
     if (!raw) {
       const conversation =
         createConversation();
 
       return {
-        conversations: [conversation],
-        activeId: conversation.id,
+        conversations: [
+          conversation,
+        ],
+        activeId:
+          conversation.id,
       };
     }
 
-    const parsed = JSON.parse(raw);
+    const parsed =
+      JSON.parse(raw);
 
     if (
-      !Array.isArray(parsed?.conversations) ||
-      parsed.conversations.length === 0
+      !Array.isArray(
+        parsed?.conversations
+      ) ||
+      parsed.conversations
+        .length === 0
     ) {
-      throw new Error("Invalid storage");
+      throw new Error(
+        "Invalid saved chat"
+      );
     }
 
-    return parsed;
+    return {
+      conversations:
+        parsed.conversations,
+
+      activeId:
+        parsed.activeId ||
+        parsed.conversations[0]
+          .id,
+    };
   } catch {
     const conversation =
       createConversation();
 
     return {
-      conversations: [conversation],
-      activeId: conversation.id,
+      conversations: [
+        conversation,
+      ],
+      activeId:
+        conversation.id,
     };
   }
 }
 
-function makeTitle(text) {
-  const clean = text
-    .replace(/\s+/g, " ")
-    .trim();
-
-  if (clean.length <= 38) {
-    return clean;
-  }
-
-  return `${clean.slice(0, 38)}...`;
-}
-
-function escapeHtml(value = "") {
-  return value
-    .replace(/&/g, "&amp;")
-    .replace(/</g, "&lt;")
-    .replace(/>/g, "&gt;");
-}
-
 /* =========================================================
-   LIGHTWEIGHT MARKDOWN
-   No external npm package required
+   SIMPLE TEXT RENDERER
 ========================================================= */
-
-function InlineMarkdown({ text }) {
-  const parts = String(text).split(
-    /(`[^`\n]+`|\*\*[^*\n]+\*\*)/g
-  );
-
-  return (
-    <>
-      {parts.map((part, index) => {
-        if (
-          part.startsWith("`") &&
-          part.endsWith("`")
-        ) {
-          return (
-            <code
-              key={index}
-              className="
-                rounded-md
-                border
-                border-white/[0.08]
-                bg-white/[0.07]
-                px-1.5
-                py-0.5
-                font-mono
-                text-[0.9em]
-                text-cyan-200
-              "
-            >
-              {part.slice(1, -1)}
-            </code>
-          );
-        }
-
-        if (
-          part.startsWith("**") &&
-          part.endsWith("**")
-        ) {
-          return (
-            <strong
-              key={index}
-              className="font-bold text-white"
-            >
-              {part.slice(2, -2)}
-            </strong>
-          );
-        }
-
-        return (
-          <span key={index}>
-            {part}
-          </span>
-        );
-      })}
-    </>
-  );
-}
-
-function CodeBlock({
-  language,
-  code,
-  onCopy,
-}) {
-  const [copied, setCopied] =
-    useState(false);
-
-  async function handleCopy() {
-    await onCopy(code);
-
-    setCopied(true);
-
-    setTimeout(() => {
-      setCopied(false);
-    }, 1500);
-  }
-
-  return (
-    <div
-      className="
-        my-5
-        overflow-hidden
-        rounded-2xl
-        border
-        border-white/[0.09]
-        bg-[#0d0e12]
-        shadow-xl
-        shadow-black/20
-      "
-    >
-      <div
-        className="
-          flex
-          items-center
-          justify-between
-          border-b
-          border-white/[0.07]
-          bg-[#15161b]
-          px-4
-          py-2.5
-        "
-      >
-        <div className="flex items-center gap-2">
-          <span className="h-2.5 w-2.5 rounded-full bg-red-400/70" />
-          <span className="h-2.5 w-2.5 rounded-full bg-yellow-400/70" />
-          <span className="h-2.5 w-2.5 rounded-full bg-green-400/70" />
-
-          <span className="ml-2 text-[11px] font-semibold uppercase tracking-wider text-gray-500">
-            {language || "code"}
-          </span>
-        </div>
-
-        <button
-          type="button"
-          onClick={handleCopy}
-          className="
-            rounded-lg
-            px-2.5
-            py-1.5
-            text-xs
-            text-gray-400
-            transition
-            hover:bg-white/[0.06]
-            hover:text-white
-          "
-        >
-          {copied
-            ? "✓ Copied"
-            : "📋 Copy code"}
-        </button>
-      </div>
-
-      <div className="overflow-x-auto">
-        <pre
-          className="
-            min-w-max
-            p-5
-            text-[13px]
-            leading-6
-            text-gray-200
-          "
-        >
-          <code>{code}</code>
-        </pre>
-      </div>
-    </div>
-  );
-}
-
-function MarkdownSection({
-  text,
-  onCopy,
-}) {
-  const lines = text.split("\n");
-
-  const elements = [];
-
-  let listItems = [];
-
-  function flushList() {
-    if (!listItems.length) return;
-
-    elements.push(
-      <ul
-        key={`list-${elements.length}`}
-        className="
-          my-3
-          list-disc
-          space-y-1.5
-          pl-6
-          text-gray-200
-        "
-      >
-        {listItems.map((item, index) => (
-          <li key={index}>
-            <InlineMarkdown text={item} />
-          </li>
-        ))}
-      </ul>
-    );
-
-    listItems = [];
-  }
-
-  lines.forEach((line, index) => {
-    const trimmed = line.trim();
-
-    const bullet =
-      trimmed.match(/^[-*]\s+(.+)/);
-
-    if (bullet) {
-      listItems.push(bullet[1]);
-      return;
-    }
-
-    flushList();
-
-    if (!trimmed) {
-      elements.push(
-        <div
-          key={`space-${index}`}
-          className="h-3"
-        />
-      );
-      return;
-    }
-
-    if (trimmed.startsWith("### ")) {
-      elements.push(
-        <h3
-          key={index}
-          className="mb-2 mt-5 text-lg font-bold text-white"
-        >
-          <InlineMarkdown
-            text={trimmed.slice(4)}
-          />
-        </h3>
-      );
-
-      return;
-    }
-
-    if (trimmed.startsWith("## ")) {
-      elements.push(
-        <h2
-          key={index}
-          className="mb-2 mt-6 text-xl font-black text-white"
-        >
-          <InlineMarkdown
-            text={trimmed.slice(3)}
-          />
-        </h2>
-      );
-
-      return;
-    }
-
-    if (trimmed.startsWith("# ")) {
-      elements.push(
-        <h1
-          key={index}
-          className="mb-3 mt-6 text-2xl font-black text-white"
-        >
-          <InlineMarkdown
-            text={trimmed.slice(2)}
-          />
-        </h1>
-      );
-
-      return;
-    }
-
-    const numbered =
-      trimmed.match(/^(\d+)\.\s+(.+)/);
-
-    if (numbered) {
-      elements.push(
-        <div
-          key={index}
-          className="my-2 flex gap-3"
-        >
-          <span
-            className="
-              flex
-              h-6
-              min-w-6
-              items-center
-              justify-center
-              rounded-full
-              bg-white/[0.07]
-              px-1
-              text-xs
-              font-bold
-              text-gray-300
-            "
-          >
-            {numbered[1]}
-          </span>
-
-          <p className="min-w-0 flex-1">
-            <InlineMarkdown
-              text={numbered[2]}
-            />
-          </p>
-        </div>
-      );
-
-      return;
-    }
-
-    elements.push(
-      <p
-        key={index}
-        className="my-1 leading-7 text-gray-200"
-      >
-        <InlineMarkdown text={line} />
-      </p>
-    );
-  });
-
-  flushList();
-
-  return (
-    <div className="break-words">
-      {elements}
-    </div>
-  );
-}
 
 function MessageContent({
   text,
-  onCopy,
 }) {
-  const content = String(text || "");
-
-  const parts = content.split(
-    /```([\w#+.-]*)\n?([\s\S]*?)```/g
-  );
-
-  const elements = [];
-
-  for (
-    let index = 0;
-    index < parts.length;
-    index += 3
-  ) {
-    const normalText =
-      parts[index];
-
-    if (normalText) {
-      elements.push(
-        <MarkdownSection
-          key={`text-${index}`}
-          text={normalText}
-          onCopy={onCopy}
-        />
-      );
-    }
-
-    if (
-      index + 2 <
-      parts.length
-    ) {
-      elements.push(
-        <CodeBlock
-          key={`code-${index}`}
-          language={
-            parts[index + 1]
-          }
-          code={
-            parts[index + 2].replace(
-              /\n$/,
-              ""
-            )
-          }
-          onCopy={onCopy}
-        />
-      );
-    }
+  if (!text) {
+    return null;
   }
 
-  return <>{elements}</>;
+  return (
+    <div className="whitespace-pre-wrap break-words">
+      {text}
+    </div>
+  );
 }
 
 /* =========================================================
-   MAIN COMPONENT
+   MAIN
 ========================================================= */
 
 export default function AIChat() {
-  const initialState = useMemo(
-    () => loadSavedState(),
-    []
-  );
+  const initialState =
+    useMemo(
+      () => loadSavedState(),
+      []
+    );
 
   const [
     conversations,
@@ -541,6 +243,11 @@ export default function AIChat() {
   const [input, setInput] =
     useState("");
 
+  const [
+    generationMode,
+    setGenerationMode,
+  ] = useState("chat");
+
   const [model, setModel] =
     useState(
       "gemini-3.6-flash"
@@ -557,12 +264,14 @@ export default function AIChat() {
   ] = useState(false);
 
   const [
+    error,
+    setError,
+  ] = useState("");
+
+  const [
     sidebarOpen,
     setSidebarOpen,
   ] = useState(false);
-
-  const [error, setError] =
-    useState("");
 
   const [
     copiedMessageId,
@@ -586,8 +295,8 @@ export default function AIChat() {
     ) || conversations[0];
 
   const messages =
-    activeConversation?.messages ||
-    [];
+    activeConversation
+      ?.messages || [];
 
   const selectedModel =
     MODELS.find(
@@ -601,10 +310,19 @@ export default function AIChat() {
         item.id === language
     ) || LANGUAGES[0];
 
-  /* ================= SAVE ================= */
+  /* =======================================================
+     SAVE
+  ======================================================= */
 
   useEffect(() => {
     try {
+      /*
+        Generated base64 images can make
+        localStorage large.
+
+        For now this is fine for testing.
+      */
+
       localStorage.setItem(
         STORAGE_KEY,
         JSON.stringify({
@@ -612,33 +330,47 @@ export default function AIChat() {
           activeId,
         })
       );
-    } catch {
-      // Storage unavailable.
+    } catch (storageError) {
+      console.warn(
+        "Chat history storage full:",
+        storageError
+      );
     }
   }, [
     conversations,
     activeId,
   ]);
 
-  /* ================= AUTO SCROLL ================= */
+  /* =======================================================
+     AUTO SCROLL
+  ======================================================= */
 
   useEffect(() => {
-    bottomRef.current?.scrollIntoView({
-      behavior: "smooth",
-      block: "end",
-    });
+    bottomRef.current
+      ?.scrollIntoView({
+        behavior: "smooth",
+        block: "end",
+      });
   }, [
     messages,
     loading,
   ]);
 
-  /* ================= CLEANUP ================= */
+  /* =======================================================
+     CLEANUP
+  ======================================================= */
 
   useEffect(() => {
     return () => {
-      abortControllerRef.current?.abort();
+      abortControllerRef
+        .current
+        ?.abort();
     };
   }, []);
+
+  /* =======================================================
+     UPDATE CONVERSATION
+  ======================================================= */
 
   function updateConversation(
     conversationId,
@@ -658,12 +390,12 @@ export default function AIChat() {
     );
   }
 
-  /* ================= NEW CHAT ================= */
+  /* =======================================================
+     NEW CHAT
+  ======================================================= */
 
   function newChat() {
-    if (loading) {
-      stopGenerating();
-    }
+    stopGenerating();
 
     const conversation =
       createConversation();
@@ -684,18 +416,22 @@ export default function AIChat() {
     setSidebarOpen(false);
 
     setTimeout(() => {
-      textareaRef.current?.focus();
+      textareaRef.current
+        ?.focus();
     }, 50);
   }
 
-  /* ================= DELETE ================= */
+  /* =======================================================
+     DELETE CHAT
+  ======================================================= */
 
   function deleteChat(
     conversationId
   ) {
     if (
       loading &&
-      conversationId === activeId
+      conversationId ===
+        activeId
     ) {
       stopGenerating();
     }
@@ -707,7 +443,9 @@ export default function AIChat() {
           conversationId
       );
 
-    if (!remaining.length) {
+    if (
+      remaining.length === 0
+    ) {
       const conversation =
         createConversation();
 
@@ -727,8 +465,8 @@ export default function AIChat() {
     );
 
     if (
-      conversationId ===
-      activeId
+      activeId ===
+      conversationId
     ) {
       setActiveId(
         remaining[0].id
@@ -736,42 +474,38 @@ export default function AIChat() {
     }
   }
 
-  /* ================= COPY ================= */
-
-  async function copyText(text) {
-    try {
-      await navigator.clipboard.writeText(
-        text
-      );
-
-      return true;
-    } catch {
-      return false;
-    }
-  }
+  /* =======================================================
+     COPY
+  ======================================================= */
 
   async function copyMessage(
     message
   ) {
-    const success =
-      await copyText(
-        message.text
-      );
+    try {
+      await navigator.clipboard
+        .writeText(
+          message.text || ""
+        );
 
-    if (!success) return;
-
-    setCopiedMessageId(
-      message.id
-    );
-
-    setTimeout(() => {
       setCopiedMessageId(
-        null
+        message.id
       );
-    }, 1500);
+
+      setTimeout(() => {
+        setCopiedMessageId(
+          null
+        );
+      }, 1500);
+    } catch {
+      setError(
+        "Copy failed."
+      );
+    }
   }
 
-  /* ================= REQUEST ================= */
+  /* =======================================================
+     GEMINI TEXT REQUEST
+  ======================================================= */
 
   async function requestAI({
     conversationId,
@@ -811,9 +545,16 @@ export default function AIChat() {
 
                 history:
                   requestHistory
+                    .filter(
+                      (message) =>
+                        message.type !==
+                        "image"
+                    )
                     .slice(-12)
                     .map(
-                      (message) => ({
+                      (
+                        message
+                      ) => ({
                         role:
                           message.role,
                         text:
@@ -857,18 +598,30 @@ export default function AIChat() {
         );
       }
 
-      const assistantMessage = {
-        id: createId(),
-        role: "assistant",
-        text: String(
-          data.reply
-        ).trim(),
-        model:
-          data.model ||
-          model,
-        createdAt:
-          Date.now(),
-      };
+      const assistantMessage =
+        {
+          id: createId(),
+
+          role:
+            "assistant",
+
+          type: "text",
+
+          text: String(
+            data.reply
+          ).trim(),
+
+          model:
+            data.model ||
+            model,
+
+          provider:
+            data.provider ||
+            "Google Gemini",
+
+          createdAt:
+            Date.now(),
+        };
 
       updateConversation(
         conversationId,
@@ -885,12 +638,15 @@ export default function AIChat() {
                   assistantMessage,
                 ]
               : [
-                  ...conversation.messages,
+                  ...conversation
+                    .messages,
                   assistantMessage,
                 ],
         })
       );
-    } catch (requestError) {
+    } catch (
+      requestError
+    ) {
       if (
         requestError?.name ===
         "AbortError"
@@ -904,7 +660,8 @@ export default function AIChat() {
       );
     } finally {
       if (
-        abortControllerRef.current ===
+        abortControllerRef
+          .current ===
         controller
       ) {
         abortControllerRef.current =
@@ -915,31 +672,236 @@ export default function AIChat() {
     }
   }
 
-  /* ================= SEND ================= */
+  /* =======================================================
+     IMAGE REQUEST
+  ======================================================= */
+
+  async function requestImage({
+    conversationId,
+    text,
+    replaceMessages = null,
+  }) {
+    const controller =
+      new AbortController();
+
+    abortControllerRef.current =
+      controller;
+
+    setLoading(true);
+    setError("");
+
+    try {
+      const response =
+        await fetch(
+          "/api/image",
+          {
+            method: "POST",
+
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
+
+            signal:
+              controller.signal,
+
+            body:
+              JSON.stringify({
+                prompt: text,
+              }),
+          }
+        );
+
+      if (!response.ok) {
+        let errorMessage =
+          `Image generation failed (${response.status}).`;
+
+        try {
+          const data =
+            await response.json();
+
+          if (data?.error) {
+            errorMessage =
+              data.error;
+          }
+        } catch {
+          // Ignore.
+        }
+
+        throw new Error(
+          errorMessage
+        );
+      }
+
+      const imageBlob =
+        await response.blob();
+
+      if (
+        !imageBlob ||
+        imageBlob.size === 0
+      ) {
+        throw new Error(
+          "Image generator returned an empty image."
+        );
+      }
+
+      const imageDataUrl =
+        await new Promise(
+          (
+            resolve,
+            reject
+          ) => {
+            const reader =
+              new FileReader();
+
+            reader.onloadend =
+              () =>
+                resolve(
+                  reader.result
+                );
+
+            reader.onerror =
+              () =>
+                reject(
+                  new Error(
+                    "Generated image could not be loaded."
+                  )
+                );
+
+            reader.readAsDataURL(
+              imageBlob
+            );
+          }
+        );
+
+      const imageMessage = {
+        id: createId(),
+
+        role: "assistant",
+
+        type: "image",
+
+        text,
+
+        imageUrl:
+          imageDataUrl,
+
+        model:
+          "FLUX.1-schnell",
+
+        provider:
+          "Hugging Face",
+
+        createdAt:
+          Date.now(),
+      };
+
+      updateConversation(
+        conversationId,
+        (conversation) => ({
+          ...conversation,
+
+          updatedAt:
+            Date.now(),
+
+          messages:
+            replaceMessages
+              ? [
+                  ...replaceMessages,
+                  imageMessage,
+                ]
+              : [
+                  ...conversation
+                    .messages,
+                  imageMessage,
+                ],
+        })
+      );
+    } catch (
+      requestError
+    ) {
+      if (
+        requestError?.name ===
+        "AbortError"
+      ) {
+        return;
+      }
+
+      console.error(
+        requestError
+      );
+
+      setError(
+        requestError?.message ||
+          "Image generation failed."
+      );
+    } finally {
+      if (
+        abortControllerRef
+          .current ===
+        controller
+      ) {
+        abortControllerRef.current =
+          null;
+      }
+
+      setLoading(false);
+    }
+  }
+
+  /* =======================================================
+     SEND
+  ======================================================= */
 
   async function sendMessage(
     customText = null
   ) {
-    if (loading) return;
+    if (loading) {
+      return;
+    }
 
     const text = String(
       customText ?? input
     ).trim();
 
-    if (!text) return;
+    if (!text) {
+      return;
+    }
+
+    if (
+      generationMode ===
+      "video"
+    ) {
+      setError(
+        "🎬 Video generation backend இன்னும் connect பண்ணவில்லை. Chat அல்லது Image mode use பண்ணுங்க."
+      );
+
+      return;
+    }
 
     const conversationId =
       activeConversation.id;
 
     const userMessage = {
       id: createId(),
+
       role: "user",
+
+      type:
+        generationMode ===
+        "image"
+          ? "image-prompt"
+          : "text",
+
       text,
-      createdAt: Date.now(),
+
+      createdAt:
+        Date.now(),
     };
 
     const previousMessages =
-      activeConversation.messages;
+      activeConversation
+        .messages;
 
     const nextMessages = [
       ...previousMessages,
@@ -954,7 +916,9 @@ export default function AIChat() {
         title:
           conversation.messages
             .length === 0
-            ? makeTitle(text)
+            ? makeTitle(
+                text
+              )
             : conversation.title,
 
         updatedAt:
@@ -968,23 +932,42 @@ export default function AIChat() {
     setInput("");
     setError("");
 
-    if (textareaRef.current) {
+    if (
+      textareaRef.current
+    ) {
       textareaRef.current.style.height =
         "auto";
     }
 
+    if (
+      generationMode ===
+      "image"
+    ) {
+      await requestImage({
+        conversationId,
+        text,
+      });
+
+      return;
+    }
+
     await requestAI({
       conversationId,
+
       text,
+
       requestHistory:
         nextMessages,
     });
   }
 
-  /* ================= STOP ================= */
+  /* =======================================================
+     STOP
+  ======================================================= */
 
   function stopGenerating() {
-    abortControllerRef.current?.abort();
+    abortControllerRef.current
+      ?.abort();
 
     abortControllerRef.current =
       null;
@@ -992,85 +975,170 @@ export default function AIChat() {
     setLoading(false);
   }
 
-  /* ================= REGENERATE ================= */
+  /* =======================================================
+     REGENERATE TEXT
+  ======================================================= */
 
-  async function regenerate() {
-    if (
-      loading ||
-      messages.length === 0
-    ) {
+  async function regenerateText(
+    message
+  ) {
+    if (loading) {
       return;
     }
 
-    const lastUserIndex = [
-      ...messages,
-    ]
-      .map(
-        (message) =>
-          message.role
-      )
-      .lastIndexOf("user");
-
-    if (
-      lastUserIndex === -1
-    ) {
-      return;
-    }
-
-    const lastUser =
-      messages[lastUserIndex];
-
-    const historyBefore =
-      messages.slice(
-        0,
-        lastUserIndex
+    const index =
+      messages.findIndex(
+        (item) =>
+          item.id ===
+          message.id
       );
 
-    const requestHistory = [
-      ...historyBefore,
-      lastUser,
-    ];
+    if (index < 0) {
+      return;
+    }
 
-    const conversationId =
-      activeConversation.id;
+    let userIndex =
+      index - 1;
+
+    while (
+      userIndex >= 0 &&
+      messages[userIndex]
+        .role !== "user"
+    ) {
+      userIndex -= 1;
+    }
+
+    if (userIndex < 0) {
+      return;
+    }
+
+    const userMessage =
+      messages[userIndex];
+
+    const baseMessages =
+      messages.slice(
+        0,
+        index
+      );
 
     updateConversation(
-      conversationId,
+      activeConversation.id,
       (conversation) => ({
         ...conversation,
         messages:
-          requestHistory,
+          baseMessages,
+        updatedAt:
+          Date.now(),
       })
     );
 
     await requestAI({
-      conversationId,
+      conversationId:
+        activeConversation.id,
+
       text:
-        lastUser.text,
-      requestHistory,
+        userMessage.text,
+
+      requestHistory:
+        baseMessages,
+
       replaceMessages:
-        requestHistory,
+        baseMessages,
     });
   }
 
-  /* ================= KEYBOARD ================= */
+  /* =======================================================
+     REGENERATE IMAGE
+  ======================================================= */
 
-  function handleKeyDown(
-    event
+  async function regenerateImage(
+    message
   ) {
     if (
-      event.key === "Enter" &&
-      !event.shiftKey
+      loading ||
+      !message?.text
     ) {
-      event.preventDefault();
-
-      if (!loading) {
-        sendMessage();
-      }
+      return;
     }
+
+    const index =
+      messages.findIndex(
+        (item) =>
+          item.id ===
+          message.id
+      );
+
+    if (index < 0) {
+      return;
+    }
+
+    const baseMessages =
+      messages.slice(
+        0,
+        index
+      );
+
+    updateConversation(
+      activeConversation.id,
+      (conversation) => ({
+        ...conversation,
+        messages:
+          baseMessages,
+        updatedAt:
+          Date.now(),
+      })
+    );
+
+    await requestImage({
+      conversationId:
+        activeConversation.id,
+
+      text:
+        message.text,
+
+      replaceMessages:
+        baseMessages,
+    });
   }
 
-  /* ================= INPUT SIZE ================= */
+  /* =======================================================
+     DOWNLOAD IMAGE
+  ======================================================= */
+
+  function downloadImage(
+    message
+  ) {
+    if (
+      !message?.imageUrl
+    ) {
+      return;
+    }
+
+    const link =
+      document.createElement(
+        "a"
+      );
+
+    link.href =
+      message.imageUrl;
+
+    link.download =
+      `ai-future-tamil-${Date.now()}.png`;
+
+    document.body.appendChild(
+      link
+    );
+
+    link.click();
+
+    document.body.removeChild(
+      link
+    );
+  }
+
+  /* =======================================================
+     INPUT
+  ======================================================= */
 
   function handleInputChange(
     event
@@ -1079,32 +1147,40 @@ export default function AIChat() {
       event.target.value
     );
 
-    event.target.style.height =
+    const textarea =
+      event.target;
+
+    textarea.style.height =
       "auto";
 
-    event.target.style.height =
+    textarea.style.height =
       `${Math.min(
-        event.target.scrollHeight,
+        textarea.scrollHeight,
         200
       )}px`;
   }
 
-  /* =========================================================
+  function handleKeyDown(
+    event
+  ) {
+    if (
+      event.key ===
+        "Enter" &&
+      !event.shiftKey
+    ) {
+      event.preventDefault();
+
+      sendMessage();
+    }
+  }
+
+  /* =======================================================
      UI
-  ========================================================= */
+  ======================================================= */
 
   return (
-    <div
-      className="
-        relative
-        flex
-        h-[calc(100vh-76px)]
-        min-h-[580px]
-        overflow-hidden
-        bg-[#090a0d]
-        text-white
-      "
-    >
+    <div className="flex h-[calc(100vh-72px)] min-h-[600px] overflow-hidden bg-[#090a0d] text-white">
+
       {/* MOBILE OVERLAY */}
 
       {sidebarOpen && (
@@ -1112,42 +1188,34 @@ export default function AIChat() {
           type="button"
           aria-label="Close sidebar"
           onClick={() =>
-            setSidebarOpen(false)
+            setSidebarOpen(
+              false
+            )
           }
-          className="
-            fixed
-            inset-0
-            z-[280]
-            bg-black/70
-            backdrop-blur-sm
-            lg:hidden
-          "
+          className="fixed inset-0 z-40 bg-black/60 lg:hidden"
         />
       )}
 
-      {/* =====================================================
+      {/* ===================================================
           SIDEBAR
-      ===================================================== */}
+      =================================================== */}
 
       <aside
         className={`
           fixed
-          bottom-0
+          inset-y-0
           left-0
-          top-[76px]
-          z-[300]
+          z-50
           flex
           w-[285px]
           flex-col
           border-r
           border-white/[0.07]
-          bg-[#111216]
+          bg-[#0d0e12]
           transition-transform
           duration-300
-
-          lg:static
+          lg:relative
           lg:z-auto
-          lg:h-full
           lg:translate-x-0
 
           ${
@@ -1157,436 +1225,276 @@ export default function AIChat() {
           }
         `}
       >
-        {/* SIDEBAR BRAND */}
-
-        <div
-          className="
-            flex
-            items-center
-            justify-between
-            border-b
-            border-white/[0.06]
-            px-4
-            py-4
-          "
-        >
-          <div className="flex items-center gap-3">
-            <div
-              className="
-                flex
-                h-9
-                w-9
-                items-center
-                justify-center
-                rounded-xl
-                bg-gradient-to-br
-                from-cyan-400/20
-                to-purple-500/20
-                text-lg
-              "
-            >
-              ✦
-            </div>
+        <div className="border-b border-white/[0.06] p-4">
+          <div className="mb-4 flex items-center justify-between">
 
             <div>
-              <p className="text-sm font-black">
-                AI Future Tamil
-              </p>
+              <div className="text-sm font-black">
+                ✦ AI Future Tamil
+              </div>
 
-              <p className="text-[10px] text-gray-600">
-                AI Assistant
-              </p>
+              <div className="mt-1 text-[10px] text-gray-600">
+                Your AI Assistant
+              </div>
             </div>
+
+            <button
+              type="button"
+              onClick={() =>
+                setSidebarOpen(
+                  false
+                )
+              }
+              className="rounded-lg px-2 py-1 text-gray-500 hover:bg-white/[0.05] hover:text-white lg:hidden"
+            >
+              ✕
+            </button>
           </div>
 
-          <button
-            type="button"
-            onClick={() =>
-              setSidebarOpen(false)
-            }
-            className="
-              rounded-lg
-              p-2
-              text-gray-500
-              hover:bg-white/[0.05]
-              hover:text-white
-              lg:hidden
-            "
-          >
-            ×
-          </button>
-        </div>
-
-        {/* NEW CHAT */}
-
-        <div className="p-3">
           <button
             type="button"
             onClick={newChat}
             className="
-              flex
               w-full
-              items-center
-              gap-3
               rounded-xl
               border
-              border-white/[0.09]
+              border-white/[0.08]
               bg-white/[0.04]
               px-4
               py-3
+              text-left
               text-sm
               font-bold
+              text-gray-200
               transition
               hover:border-cyan-400/20
-              hover:bg-white/[0.07]
+              hover:bg-cyan-400/[0.06]
+              hover:text-white
             "
           >
-            <span className="text-xl">
-              ＋
-            </span>
-
-            New chat
+            ＋ New Chat
           </button>
         </div>
 
-        <div
-          className="
-            px-4
-            pb-2
-            pt-3
-            text-[10px]
-            font-bold
-            uppercase
-            tracking-[0.18em]
-            text-gray-600
-          "
-        >
-          Recent
-        </div>
+        <div className="flex-1 overflow-y-auto p-3">
 
-        {/* HISTORY */}
+          <div className="mb-2 px-2 text-[10px] font-bold uppercase tracking-[0.16em] text-gray-700">
+            Recent Chats
+          </div>
 
-        <div
-          className="
-            flex-1
-            overflow-y-auto
-            px-2
-            pb-4
-          "
-        >
           <div className="space-y-1">
             {conversations.map(
-              (conversation) => {
-                const active =
-                  conversation.id ===
-                  activeId;
+              (
+                conversation
+              ) => (
+                <div
+                  key={
+                    conversation.id
+                  }
+                  className={`
+                    group
+                    flex
+                    items-center
+                    gap-2
+                    rounded-xl
+                    px-3
+                    py-2.5
+                    transition
 
-                return (
-                  <div
-                    key={
-                      conversation.id
+                    ${
+                      conversation.id ===
+                      activeId
+                        ? "bg-white/[0.07]"
+                        : "hover:bg-white/[0.04]"
                     }
-                    className={`
-                      group
-                      flex
-                      items-center
-                      rounded-xl
-                      transition
+                  `}
+                >
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setActiveId(
+                        conversation.id
+                      );
 
-                      ${
-                        active
-                          ? "bg-white/[0.075]"
-                          : "hover:bg-white/[0.04]"
-                      }
-                    `}
+                      setSidebarOpen(
+                        false
+                      );
+
+                      setError("");
+                    }}
+                    className="min-w-0 flex-1 text-left"
                   >
-                    <button
-                      type="button"
-                      onClick={() => {
-                        if (loading) {
-                          stopGenerating();
-                        }
-
-                        setActiveId(
-                          conversation.id
-                        );
-
-                        setSidebarOpen(
-                          false
-                        );
-
-                        setError("");
-                      }}
-                      className="
-                        min-w-0
-                        flex-1
-                        truncate
-                        px-3
-                        py-3
-                        text-left
-                        text-sm
-                        text-gray-300
-                      "
-                    >
+                    <div className="truncate text-xs font-semibold text-gray-300">
                       {
                         conversation.title
                       }
-                    </button>
+                    </div>
+                  </button>
 
-                    <button
-                      type="button"
-                      title="Delete chat"
-                      onClick={() =>
-                        deleteChat(
-                          conversation.id
-                        )
-                      }
-                      className="
-                        mr-2
-                        rounded-lg
-                        px-2
-                        py-1
-                        text-gray-600
-                        opacity-0
-                        transition
-                        hover:bg-red-500/10
-                        hover:text-red-400
-                        group-hover:opacity-100
-                      "
-                    >
-                      ×
-                    </button>
-                  </div>
-                );
-              }
+                  <button
+                    type="button"
+                    title="Delete chat"
+                    onClick={() =>
+                      deleteChat(
+                        conversation.id
+                      )
+                    }
+                    className="rounded-md px-1.5 py-1 text-xs text-gray-700 opacity-0 transition hover:bg-red-500/10 hover:text-red-400 group-hover:opacity-100"
+                  >
+                    🗑
+                  </button>
+                </div>
+              )
             )}
           </div>
         </div>
 
-        {/* SIDEBAR FOOTER */}
-
-        <div
-          className="
-            border-t
-            border-white/[0.07]
-            p-3
-          "
-        >
-          <Link
-            to="/ai-tools"
-            className="
-              flex
-              items-center
-              gap-3
-              rounded-xl
-              px-3
-              py-3
-              text-sm
-              text-gray-400
-              transition
-              hover:bg-white/[0.04]
-              hover:text-white
-            "
-          >
-            <span>🤖</span>
-            Explore AI Tools
-          </Link>
-
-          <Link
-            to="/"
-            className="
-              flex
-              items-center
-              gap-3
-              rounded-xl
-              px-3
-              py-3
-              text-sm
-              text-gray-400
-              transition
-              hover:bg-white/[0.04]
-              hover:text-white
-            "
-          >
-            <span>←</span>
-            Back to Home
-          </Link>
+        <div className="border-t border-white/[0.06] p-4 text-[10px] leading-5 text-gray-700">
+          AI can make mistakes.
+          <br />
+          Verify important information.
         </div>
       </aside>
 
-      {/* =====================================================
-          MAIN CHAT
-      ===================================================== */}
+      {/* ===================================================
+          MAIN
+      =================================================== */}
 
-      <section
-        className="
-          relative
-          flex
-          min-w-0
-          flex-1
-          flex-col
-          bg-[#090a0d]
-        "
-      >
-        {/* HEADER */}
+      <main className="flex min-w-0 flex-1 flex-col">
 
-        <header
-          className="
-            flex
-            h-[64px]
-            shrink-0
-            items-center
-            justify-between
-            border-b
-            border-white/[0.06]
-            bg-[#090a0d]/95
-            px-3
-            backdrop-blur-xl
-            sm:px-5
-          "
-        >
-          <div
-            className="
-              flex
-              min-w-0
-              items-center
-              gap-2
-            "
-          >
+        {/* TOP BAR */}
+
+        <header className="flex h-[62px] shrink-0 items-center justify-between border-b border-white/[0.06] bg-[#090a0d]/95 px-3 backdrop-blur-xl sm:px-5">
+
+          <div className="flex min-w-0 items-center gap-3">
+
             <button
               type="button"
               onClick={() =>
-                setSidebarOpen(true)
+                setSidebarOpen(
+                  true
+                )
               }
-              className="
-                flex
-                h-10
-                w-10
-                items-center
-                justify-center
-                rounded-xl
-                text-gray-400
-                transition
-                hover:bg-white/[0.06]
-                hover:text-white
-                lg:hidden
-              "
+              className="rounded-xl border border-white/[0.08] bg-white/[0.03] px-3 py-2 text-gray-400 hover:text-white lg:hidden"
             >
               ☰
             </button>
 
-            <div className="hidden sm:block">
-              <p className="text-sm font-black">
-                AI Future Tamil
-              </p>
+            <div className="min-w-0">
+              <div className="truncate text-sm font-bold text-gray-200">
+                {
+                  activeConversation
+                    ?.title
+                }
+              </div>
 
-              <p className="text-[10px] text-gray-600">
-                AI Chat
-              </p>
+              <div className="text-[10px] text-gray-600">
+                AI Future Tamil
+              </div>
             </div>
+          </div>
+
+          <div className="flex items-center gap-2">
 
             {/* MODEL */}
 
             <select
               value={model}
-              disabled={loading}
-              onChange={(event) =>
+              onChange={(
+                event
+              ) =>
                 setModel(
-                  event.target.value
+                  event.target
+                    .value
                 )
               }
+              disabled={
+                loading ||
+                generationMode !==
+                  "chat"
+              }
               className="
-                max-w-[190px]
-                cursor-pointer
+                max-w-[145px]
                 rounded-xl
                 border
                 border-white/[0.08]
                 bg-[#15161b]
-                px-3
+                px-2.5
                 py-2
-                text-xs
+                text-[11px]
                 font-semibold
-                text-gray-200
+                text-gray-300
                 outline-none
-                transition
-                hover:border-white/[0.15]
-                disabled:opacity-50
-                sm:text-sm
+                disabled:opacity-40
               "
             >
               {MODELS.map(
                 (item) => (
                   <option
-                    key={item.id}
-                    value={item.id}
+                    key={
+                      item.id
+                    }
+                    value={
+                      item.id
+                    }
                   >
-                    {item.name}
+                    {
+                      item.name
+                    }
                   </option>
                 )
               )}
             </select>
-          </div>
 
-          <div className="flex items-center gap-2">
             {/* LANGUAGE */}
 
             <select
               value={language}
-              disabled={loading}
-              onChange={(event) =>
+              onChange={(
+                event
+              ) =>
                 setLanguage(
-                  event.target.value
+                  event.target
+                    .value
                 )
               }
+              disabled={
+                loading
+              }
               className="
-                max-w-[105px]
-                cursor-pointer
+                max-w-[110px]
                 rounded-xl
                 border
                 border-white/[0.08]
                 bg-[#15161b]
-                px-3
+                px-2
                 py-2
-                text-xs
-                font-semibold
+                text-[11px]
                 text-gray-300
                 outline-none
-                disabled:opacity-50
+                disabled:opacity-40
               "
             >
               {LANGUAGES.map(
                 (item) => (
                   <option
-                    key={item.id}
-                    value={item.id}
+                    key={
+                      item.id
+                    }
+                    value={
+                      item.id
+                    }
                   >
-                    {item.label}
+                    {
+                      item.icon
+                    }{" "}
+                    {
+                      item.name
+                    }
                   </option>
                 )
               )}
             </select>
-
-            <button
-              type="button"
-              onClick={newChat}
-              title="New chat"
-              className="
-                flex
-                h-10
-                w-10
-                items-center
-                justify-center
-                rounded-xl
-                border
-                border-white/[0.07]
-                bg-white/[0.03]
-                text-lg
-                transition
-                hover:bg-white/[0.07]
-              "
-            >
-              ＋
-            </button>
           </div>
         </header>
 
@@ -1594,41 +1502,19 @@ export default function AIChat() {
             MESSAGES
         ================================================= */}
 
-        <div
-          className="
-            flex-1
-            overflow-y-auto
-            scroll-smooth
-          "
-        >
-          <div
-            className={`
-              mx-auto
-              w-full
-              max-w-[880px]
-              px-4
-              sm:px-6
+        <div className="flex-1 overflow-y-auto">
 
-              ${
-                messages.length === 0
-                  ? "flex min-h-full items-center justify-center"
-                  : "py-8 sm:py-10"
-              }
-            `}
-          >
-            {/* EMPTY SCREEN */}
+          <div className="mx-auto w-full max-w-[880px] px-4 pb-8 pt-8 sm:px-6">
 
-            {messages.length === 0 ? (
-              <div
-                className="
-                  w-full
-                  pb-16
-                  text-center
-                "
-              >
+            {messages.length ===
+            0 ? (
+              /* WELCOME */
+
+              <div className="flex min-h-[55vh] flex-col items-center justify-center">
+
                 <div
                   className="
-                    mx-auto
+                    mb-5
                     flex
                     h-16
                     w-16
@@ -1638,72 +1524,47 @@ export default function AIChat() {
                     border
                     border-cyan-400/20
                     bg-gradient-to-br
-                    from-cyan-400/[0.08]
-                    to-purple-500/[0.08]
-                    text-3xl
-                    shadow-2xl
+                    from-cyan-400/[0.10]
+                    to-purple-500/[0.10]
+                    text-2xl
+                    shadow-xl
                     shadow-cyan-500/5
                   "
                 >
                   ✦
                 </div>
 
-                <h1
-                  className="
-                    mt-6
-                    text-2xl
-                    font-black
-                    tracking-tight
-                    sm:text-4xl
-                  "
-                >
+                <h1 className="text-center text-2xl font-black tracking-tight text-white sm:text-3xl">
                   How can I help you?
                 </h1>
 
-                <p
-                  className="
-                    mx-auto
-                    mt-3
-                    max-w-lg
-                    text-sm
-                    leading-6
-                    text-gray-500
-                  "
-                >
-                  Ask questions, write
-                  code, create content,
-                  learn AI or chat in
-                  Tamil, Tanglish and
-                  English.
+                <p className="mt-3 max-w-md text-center text-sm leading-6 text-gray-600">
+                  Chat, learn, code or
+                  generate AI images with
+                  AI Future Tamil.
                 </p>
 
-                {/* STARTERS */}
+                <div className="mt-8 grid w-full grid-cols-1 gap-3 sm:grid-cols-2">
 
-                <div
-                  className="
-                    mx-auto
-                    mt-9
-                    grid
-                    max-w-2xl
-                    grid-cols-1
-                    gap-3
-                    sm:grid-cols-2
-                  "
-                >
                   {STARTERS.map(
-                    (starter) => (
+                    (
+                      starter
+                    ) => (
                       <button
                         key={
                           starter.title
                         }
                         type="button"
-                        onClick={() =>
+                        onClick={() => {
+                          setGenerationMode(
+                            "chat"
+                          );
+
                           sendMessage(
                             starter.prompt
-                          )
-                        }
+                          );
+                        }}
                         className="
-                          group
                           rounded-2xl
                           border
                           border-white/[0.07]
@@ -1711,25 +1572,13 @@ export default function AIChat() {
                           p-4
                           text-left
                           transition
-                          hover:-translate-y-0.5
                           hover:border-cyan-400/20
                           hover:bg-white/[0.05]
                         "
                       >
-                        <div className="flex items-start gap-3">
-                          <span
-                            className="
-                              flex
-                              h-10
-                              w-10
-                              shrink-0
-                              items-center
-                              justify-center
-                              rounded-xl
-                              bg-white/[0.05]
-                              text-xl
-                            "
-                          >
+                        <div className="flex gap-3">
+
+                          <span className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-white/[0.05] text-xl">
                             {
                               starter.icon
                             }
@@ -1757,11 +1606,14 @@ export default function AIChat() {
             ) : (
               /* CONVERSATION */
 
-              <div className="w-full space-y-9">
+              <div className="w-full space-y-8">
+
                 {messages.map(
                   (message) => (
                     <div
-                      key={message.id}
+                      key={
+                        message.id
+                      }
                       className={`
                         flex
                         w-full
@@ -1774,6 +1626,7 @@ export default function AIChat() {
                         }
                       `}
                     >
+
                       {/* USER */}
 
                       {message.role ===
@@ -1792,6 +1645,14 @@ export default function AIChat() {
                             sm:max-w-[75%]
                           "
                         >
+                          {message.type ===
+                            "image-prompt" && (
+                            <div className="mb-1.5 text-[10px] font-bold uppercase tracking-wider text-purple-400">
+                              🎨 Image
+                              Prompt
+                            </div>
+                          )}
+
                           <div className="whitespace-pre-wrap break-words">
                             {
                               message.text
@@ -1801,15 +1662,8 @@ export default function AIChat() {
                       ) : (
                         /* ASSISTANT */
 
-                        <div
-                          className="
-                            group
-                            flex
-                            w-full
-                            gap-3
-                            sm:gap-4
-                          "
-                        >
+                        <div className="group flex w-full gap-3 sm:gap-4">
+
                           <div
                             className="
                               mt-0.5
@@ -1832,120 +1686,186 @@ export default function AIChat() {
                           </div>
 
                           <div className="min-w-0 flex-1">
-                            <div
-                              className="
-                                mb-3
-                                flex
-                                items-center
-                                gap-2
-                              "
-                            >
+
+                            <div className="mb-3 flex items-center gap-2">
+
                               <span className="text-xs font-bold text-gray-400">
                                 AI Future
                                 Tamil
                               </span>
 
                               <span className="rounded-full bg-white/[0.04] px-2 py-0.5 text-[9px] text-gray-600">
-                                {
-                                  MODELS.find(
-                                    (
-                                      item
-                                    ) =>
-                                      item.id ===
-                                      message.model
-                                  )
-                                    ?.short ||
-                                  "AI"
-                                }
+                                {message.type ===
+                                "image"
+                                  ? "🎨 FLUX"
+                                  : MODELS.find(
+                                      (
+                                        item
+                                      ) =>
+                                        item.id ===
+                                        message.model
+                                    )
+                                      ?.short ||
+                                    "AI"}
                               </span>
                             </div>
 
-                            <div
-                              className="
-  text-[17px]
-  sm:text-[18px]
-  lg:text-[19px]
-  leading-8
-  text-gray-200
-"
-                            >
-                              <MessageContent
-                                text={
-                                  message.text
-                                }
-                                onCopy={
-                                  copyText
-                                }
-                              />
-                            </div>
+                            {/* IMAGE MESSAGE */}
 
-                            {/* ACTIONS */}
+                            {message.type ===
+                              "image" &&
+                            message.imageUrl ? (
+                              <div className="w-full">
 
-                            <div
-                              className="
-                                mt-4
-                                flex
-                                flex-wrap
-                                items-center
-                                gap-1
-                                opacity-70
-                                transition
-                                group-hover:opacity-100
-                              "
-                            >
-                              <button
-                                type="button"
-                                onClick={() =>
-                                  copyMessage(
-                                    message
-                                  )
-                                }
-                                className="
-                                  rounded-lg
-                                  px-2.5
-                                  py-1.5
-                                  text-xs
-                                  text-gray-500
-                                  transition
-                                  hover:bg-white/[0.05]
-                                  hover:text-white
-                                "
-                              >
-                                {copiedMessageId ===
-                                message.id
-                                  ? "✓ Copied"
-                                  : "📋 Copy"}
-                              </button>
-
-                              {message.id ===
-                                messages[
-                                  messages.length -
-                                    1
-                                ]?.id && (
-                                <button
-                                  type="button"
-                                  disabled={
-                                    loading
-                                  }
-                                  onClick={
-                                    regenerate
-                                  }
+                                <div
                                   className="
-                                    rounded-lg
-                                    px-2.5
-                                    py-1.5
-                                    text-xs
-                                    text-gray-500
-                                    transition
-                                    hover:bg-white/[0.05]
-                                    hover:text-white
-                                    disabled:opacity-30
+                                    overflow-hidden
+                                    rounded-2xl
+                                    border
+                                    border-white/[0.10]
+                                    bg-black/20
+                                    shadow-2xl
+                                    shadow-black/30
                                   "
                                 >
-                                  ↻ Regenerate
-                                </button>
-                              )}
-                            </div>
+                                  <img
+                                    src={
+                                      message.imageUrl
+                                    }
+                                    alt={
+                                      message.text ||
+                                      "AI generated image"
+                                    }
+                                    className="block h-auto max-h-[650px] w-full object-contain"
+                                  />
+                                </div>
+
+                                <div
+                                  className="
+                                    mt-3
+                                    rounded-xl
+                                    border
+                                    border-white/[0.06]
+                                    bg-white/[0.025]
+                                    px-4
+                                    py-3
+                                  "
+                                >
+                                  <div className="mb-1 text-[10px] font-bold uppercase tracking-wider text-gray-600">
+                                    Image
+                                    Prompt
+                                  </div>
+
+                                  <div className="text-sm leading-6 text-gray-300">
+                                    {
+                                      message.text
+                                    }
+                                  </div>
+                                </div>
+
+                                <div className="mt-3 flex flex-wrap gap-2">
+
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      downloadImage(
+                                        message
+                                      )
+                                    }
+                                    className="
+                                      rounded-xl
+                                      border
+                                      border-white/[0.08]
+                                      bg-white/[0.04]
+                                      px-3
+                                      py-2
+                                      text-xs
+                                      font-bold
+                                      text-gray-300
+                                      transition
+                                      hover:border-cyan-400/30
+                                      hover:bg-cyan-400/[0.08]
+                                      hover:text-white
+                                    "
+                                  >
+                                    ⬇ Download
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    disabled={
+                                      loading
+                                    }
+                                    onClick={() =>
+                                      regenerateImage(
+                                        message
+                                      )
+                                    }
+                                    className="
+                                      rounded-xl
+                                      border
+                                      border-white/[0.08]
+                                      bg-white/[0.04]
+                                      px-3
+                                      py-2
+                                      text-xs
+                                      font-bold
+                                      text-gray-300
+                                      transition
+                                      hover:border-purple-400/30
+                                      hover:bg-purple-400/[0.08]
+                                      hover:text-white
+                                      disabled:opacity-40
+                                    "
+                                  >
+                                    ↻ Regenerate
+                                  </button>
+                                </div>
+                              </div>
+                            ) : (
+                              /* TEXT MESSAGE */
+
+                              <div className="text-[17px] leading-8 text-gray-200 sm:text-[18px]">
+                                <MessageContent
+                                  text={
+                                    message.text
+                                  }
+                                />
+
+                                <div className="mt-4 flex flex-wrap items-center gap-1 opacity-70 transition group-hover:opacity-100">
+
+                                  <button
+                                    type="button"
+                                    onClick={() =>
+                                      copyMessage(
+                                        message
+                                      )
+                                    }
+                                    className="rounded-lg px-2.5 py-1.5 text-xs text-gray-500 transition hover:bg-white/[0.05] hover:text-white"
+                                  >
+                                    {copiedMessageId ===
+                                    message.id
+                                      ? "✓ Copied"
+                                      : "📋 Copy"}
+                                  </button>
+
+                                  <button
+                                    type="button"
+                                    disabled={
+                                      loading
+                                    }
+                                    onClick={() =>
+                                      regenerateText(
+                                        message
+                                      )
+                                    }
+                                    className="rounded-lg px-2.5 py-1.5 text-xs text-gray-500 transition hover:bg-white/[0.05] hover:text-white disabled:opacity-30"
+                                  >
+                                    ↻ Regenerate
+                                  </button>
+                                </div>
+                              </div>
+                            )}
                           </div>
                         </div>
                       )}
@@ -1957,26 +1877,17 @@ export default function AIChat() {
 
                 {loading && (
                   <div className="flex gap-4">
-                    <div
-                      className="
-                        flex
-                        h-9
-                        w-9
-                        shrink-0
-                        items-center
-                        justify-center
-                        rounded-xl
-                        border
-                        border-cyan-400/20
-                        bg-cyan-400/[0.06]
-                      "
-                    >
+
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-xl border border-cyan-400/20 bg-cyan-400/[0.06]">
                       ✦
                     </div>
 
                     <div>
                       <p className="mb-3 text-xs font-bold text-gray-500">
-                        AI Future Tamil
+                        {generationMode ===
+                        "image"
+                          ? "Creating your image..."
+                          : "AI Future Tamil is thinking..."}
                       </p>
 
                       <div className="flex items-center gap-1.5">
@@ -1992,20 +1903,7 @@ export default function AIChat() {
                         onClick={
                           stopGenerating
                         }
-                        className="
-                          mt-4
-                          rounded-lg
-                          border
-                          border-white/[0.08]
-                          bg-white/[0.03]
-                          px-3
-                          py-1.5
-                          text-xs
-                          text-gray-400
-                          transition
-                          hover:bg-white/[0.07]
-                          hover:text-white
-                        "
+                        className="mt-4 rounded-lg border border-white/[0.08] bg-white/[0.03] px-3 py-1.5 text-xs text-gray-400 transition hover:bg-white/[0.07] hover:text-white"
                       >
                         ■ Stop generating
                       </button>
@@ -2022,35 +1920,15 @@ export default function AIChat() {
           </div>
         </div>
 
-        {/* ERROR */}
+        {/* =================================================
+            ERROR
+        ================================================= */}
 
         {error && (
-          <div
-            className="
-              mx-auto
-              w-full
-              max-w-[880px]
-              px-4
-              sm:px-6
-            "
-          >
-            <div
-              className="
-                mb-2
-                flex
-                items-start
-                justify-between
-                gap-4
-                rounded-xl
-                border
-                border-red-400/20
-                bg-red-500/[0.06]
-                px-4
-                py-3
-                text-sm
-                text-red-300
-              "
-            >
+          <div className="mx-auto w-full max-w-[880px] px-4 sm:px-6">
+
+            <div className="mb-2 flex items-start justify-between gap-4 rounded-xl border border-red-400/20 bg-red-500/[0.06] px-4 py-3 text-sm text-red-300">
+
               <span>
                 ⚠️ {error}
               </span>
@@ -2072,27 +1950,102 @@ export default function AIChat() {
             COMPOSER
         ================================================= */}
 
-        <div
-          className="
-            shrink-0
-            bg-gradient-to-t
-            from-[#090a0d]
-            via-[#090a0d]
-            to-transparent
-            px-3
-            pb-3
-            pt-2
-            sm:px-6
-            sm:pb-5
-          "
-        >
-          <div
-            className="
-              mx-auto
-              w-full
-              max-w-[880px]
-            "
-          >
+        <div className="shrink-0 bg-gradient-to-t from-[#090a0d] via-[#090a0d] to-transparent px-3 pb-3 pt-2 sm:px-6 sm:pb-5">
+
+          <div className="mx-auto w-full max-w-[880px]">
+
+            {/* MODE SELECTOR */}
+
+            <div
+              className="
+                mb-2
+                flex
+                items-center
+                gap-1.5
+                overflow-x-auto
+                rounded-2xl
+                border
+                border-white/[0.07]
+                bg-[#111217]
+                p-1.5
+              "
+            >
+              {MODES.map(
+                (modeItem) => {
+                  const active =
+                    generationMode ===
+                    modeItem.id;
+
+                  return (
+                    <button
+                      key={
+                        modeItem.id
+                      }
+                      type="button"
+                      disabled={
+                        loading
+                      }
+                      onClick={() => {
+                        setGenerationMode(
+                          modeItem.id
+                        );
+
+                        setError("");
+
+                        setTimeout(
+                          () =>
+                            textareaRef.current
+                              ?.focus(),
+                          50
+                        );
+                      }}
+                      className={`
+                        flex
+                        shrink-0
+                        items-center
+                        gap-2
+                        rounded-xl
+                        border
+                        px-4
+                        py-2
+                        text-xs
+                        font-bold
+                        transition
+
+                        ${
+                          active
+                            ? modeItem.id ===
+                              "image"
+                              ? "border-purple-400/25 bg-purple-500/[0.12] text-purple-200"
+                              : modeItem.id ===
+                                "video"
+                              ? "border-pink-400/25 bg-pink-500/[0.12] text-pink-200"
+                              : "border-cyan-400/25 bg-cyan-500/[0.12] text-cyan-200"
+                            : "border-transparent text-gray-500 hover:bg-white/[0.05] hover:text-gray-200"
+                        }
+
+                        disabled:opacity-40
+                      `}
+                    >
+                      <span>
+                        {
+                          modeItem.icon
+                        }
+                      </span>
+
+                      <span>
+                        {
+                          modeItem.name
+                        }
+                      </span>
+                    </button>
+                  );
+                }
+              )}
+            </div>
+
+            {/* INPUT BOX */}
+
             <div
               className="
                 rounded-[26px]
@@ -2104,14 +2057,23 @@ export default function AIChat() {
                 shadow-black/30
                 transition
                 focus-within:border-cyan-400/20
-                focus-within:shadow-cyan-500/5
               "
             >
               <textarea
-                ref={textareaRef}
+                ref={
+                  textareaRef
+                }
                 value={input}
                 rows={1}
-                placeholder="Message AI Future Tamil..."
+                placeholder={
+                  generationMode ===
+                  "image"
+                    ? "Describe the image you want to create..."
+                    : generationMode ===
+                      "video"
+                    ? "Describe the video you want to create..."
+                    : "Message AI Future Tamil..."
+                }
                 onChange={
                   handleInputChange
                 }
@@ -2134,68 +2096,64 @@ export default function AIChat() {
                 "
               />
 
-              <div
-                className="
-                  flex
-                  items-center
-                  justify-between
-                  gap-3
-                  px-1
-                  pb-1
-                "
-              >
+              <div className="flex items-center justify-between gap-3 px-1 pb-1">
+
                 {/* STATUS */}
 
-                <div
-                  className="
-                    flex
-                    min-w-0
-                    items-center
-                    gap-2
-                  "
-                >
+                <div className="flex min-w-0 items-center gap-2">
+
                   <div
-                    className="
+                    className={`
                       truncate
                       rounded-lg
-                      bg-white/[0.04]
                       px-2.5
                       py-1.5
                       text-[10px]
-                      font-semibold
-                      text-gray-500
-                      sm:text-[11px]
-                    "
+                      font-bold
+
+                      ${
+                        generationMode ===
+                        "image"
+                          ? "bg-purple-500/[0.10] text-purple-300"
+                          : generationMode ===
+                            "video"
+                          ? "bg-pink-500/[0.10] text-pink-300"
+                          : "bg-cyan-500/[0.10] text-cyan-300"
+                      }
+                    `}
                   >
-                    {
-                      selectedModel.icon
-                    }{" "}
-                    {
-                      selectedModel.short
-                    }
+                    {generationMode ===
+                    "image"
+                      ? "🎨 Image"
+                      : generationMode ===
+                        "video"
+                      ? "🎬 Video"
+                      : "💬 Chat"}
                   </div>
 
-                  <div
-                    className="
-                      hidden
-                      rounded-lg
-                      bg-white/[0.04]
-                      px-2.5
-                      py-1.5
-                      text-[11px]
-                      font-semibold
-                      text-gray-500
-                      sm:block
-                    "
-                  >
-                    🌐{" "}
+                  {generationMode ===
+                    "chat" && (
+                    <div className="hidden truncate rounded-lg bg-white/[0.04] px-2.5 py-1.5 text-[10px] font-semibold text-gray-500 sm:block">
+                      {
+                        selectedModel.icon
+                      }{" "}
+                      {
+                        selectedModel.short
+                      }
+                    </div>
+                  )}
+
+                  <div className="hidden truncate rounded-lg bg-white/[0.04] px-2.5 py-1.5 text-[10px] text-gray-600 md:block">
                     {
-                      selectedLanguage.label
+                      selectedLanguage.icon
+                    }{" "}
+                    {
+                      selectedLanguage.name
                     }
                   </div>
                 </div>
 
-                {/* SEND / STOP */}
+                {/* SEND */}
 
                 {loading ? (
                   <button
@@ -2203,7 +2161,6 @@ export default function AIChat() {
                     onClick={
                       stopGenerating
                     }
-                    title="Stop generating"
                     className="
                       flex
                       h-10
@@ -2211,25 +2168,27 @@ export default function AIChat() {
                       shrink-0
                       items-center
                       justify-center
-                      rounded-full
+                      rounded-xl
                       bg-white
+                      text-sm
+                      font-black
                       text-black
                       transition
                       hover:bg-gray-200
                     "
+                    title="Stop"
                   >
-                    <span className="h-3 w-3 rounded-[2px] bg-black" />
+                    ■
                   </button>
                 ) : (
                   <button
                     type="button"
-                    disabled={
-                      !input.trim()
-                    }
                     onClick={() =>
                       sendMessage()
                     }
-                    title="Send message"
+                    disabled={
+                      !input.trim()
+                    }
                     className="
                       flex
                       h-10
@@ -2237,19 +2196,26 @@ export default function AIChat() {
                       shrink-0
                       items-center
                       justify-center
-                      rounded-full
+                      rounded-xl
                       bg-white
                       text-lg
                       font-black
                       text-black
                       transition
-                      hover:scale-105
-                      hover:bg-gray-200
+                      hover:bg-cyan-100
                       disabled:cursor-not-allowed
                       disabled:bg-white/10
                       disabled:text-gray-700
-                      disabled:hover:scale-100
                     "
+                    title={
+                      generationMode ===
+                      "image"
+                        ? "Generate Image"
+                        : generationMode ===
+                          "video"
+                        ? "Generate Video"
+                        : "Send"
+                    }
                   >
                     ↑
                   </button>
@@ -2257,49 +2223,18 @@ export default function AIChat() {
               </div>
             </div>
 
-            {/* BOTTOM INFO */}
-
-            <div
-              className="
-                mt-2
-                flex
-                items-center
-                justify-center
-                gap-2
-                text-center
-                text-[10px]
-                text-gray-700
-              "
-            >
-              <span>
-                AI can make mistakes.
-                Check important info.
-              </span>
-
-              {messages.length >
-                0 &&
-                !loading && (
-                  <>
-                    <span>•</span>
-
-                    <button
-                      type="button"
-                      onClick={
-                        regenerate
-                      }
-                      className="
-                        transition
-                        hover:text-gray-400
-                      "
-                    >
-                      Regenerate
-                    </button>
-                  </>
-                )}
-            </div>
+            <p className="mt-2 text-center text-[10px] text-gray-700">
+              {generationMode ===
+              "image"
+                ? "AI images are generated using the connected image provider."
+                : generationMode ===
+                  "video"
+                ? "Video generation will be connected next."
+                : "AI Future Tamil can make mistakes. Check important information."}
+            </p>
           </div>
         </div>
-      </section>
+      </main>
     </div>
   );
 }
