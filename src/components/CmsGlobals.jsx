@@ -5,7 +5,6 @@ import {
 } from "react";
 
 import {
-  Link,
   useLocation,
 } from "react-router-dom";
 
@@ -13,60 +12,45 @@ import {
   supabase,
 } from "../supabase/client";
 
-function getPageKey(
-  pathname
-) {
+/* =========================================================
+   PAGE KEY
+========================================================= */
+
+function getPageKey(pathname) {
   if (pathname === "/") {
     return "home";
   }
 
-  if (
-    pathname.startsWith(
-      "/ai-tools"
-    )
-  ) {
+  if (pathname.startsWith("/ai-tools")) {
     return "ai-tools";
   }
 
-  if (
-    pathname.startsWith(
-      "/ai-news"
-    )
-  ) {
+  if (pathname.startsWith("/ai-news")) {
     return "ai-news";
   }
 
-  if (
-    pathname.startsWith(
-      "/prompts"
-    )
-  ) {
+  if (pathname.startsWith("/prompts")) {
     return "prompts";
   }
 
-  if (
-    pathname.startsWith(
-      "/pricing"
-    )
-  ) {
+  if (pathname.startsWith("/pricing")) {
     return "pricing";
   }
 
-  if (
-    pathname.startsWith(
-      "/courses"
-    )
-  ) {
+  if (pathname.startsWith("/courses")) {
     return "courses";
   }
 
   return (
     pathname
       .split("/")
-      .filter(Boolean)[0] ||
-    "home"
+      .filter(Boolean)[0] || "home"
   );
 }
+
+/* =========================================================
+   META HELPER
+========================================================= */
 
 function setMeta(
   attribute,
@@ -108,78 +92,46 @@ function setMeta(
   );
 }
 
+/* =========================================================
+   CMS GLOBALS
+========================================================= */
+
 function CmsGlobals() {
   const location =
     useLocation();
-
-  const [
-    announcement,
-    setAnnouncement,
-  ] = useState(null);
 
   const [
     siteSettings,
     setSiteSettings,
   ] = useState({});
 
+  /* =========================================================
+     LOAD SITE SETTINGS
+
+     Announcement banner intentionally removed.
+     SEO + site settings + favicon continue working.
+  ========================================================= */
+
   const loadGlobals =
     useCallback(async () => {
       try {
-        const [
-          announcementResult,
-          settingsResult,
-        ] =
-          await Promise.all([
-            supabase
-              .from(
-                "announcements"
-              )
-              .select("*")
-              .eq(
-                "active",
-                true
-              )
-              .order("id", {
-                ascending:
-                  false,
-              })
-              .limit(1),
+        const {
+          data,
+          error,
+        } =
+          await supabase
+            .from("site_settings")
+            .select(
+              "setting_key, setting_value"
+            );
 
-            supabase
-              .from(
-                "site_settings"
-              )
-              .select(
-                "setting_key, setting_value"
-              ),
-          ]);
-
-        if (
-          announcementResult
-            .error
-        ) {
-          throw announcementResult
-            .error;
+        if (error) {
+          throw error;
         }
-
-        if (
-          settingsResult.error
-        ) {
-          throw settingsResult
-            .error;
-        }
-
-        setAnnouncement(
-          announcementResult
-            .data?.[0] || null
-        );
 
         setSiteSettings(
           Object.fromEntries(
-            (
-              settingsResult.data ||
-              []
-            ).map(
+            (data || []).map(
               (item) => [
                 item.setting_key,
                 item.setting_value,
@@ -187,7 +139,6 @@ function CmsGlobals() {
             )
           )
         );
-
       } catch (error) {
         console.error(
           "Global CMS error:",
@@ -195,6 +146,10 @@ function CmsGlobals() {
         );
       }
     }, []);
+
+  /* =========================================================
+     SEO
+  ========================================================= */
 
   const loadSeo =
     useCallback(async () => {
@@ -209,9 +164,7 @@ function CmsGlobals() {
           error,
         } =
           await supabase
-            .from(
-              "seo_settings"
-            )
+            .from("seo_settings")
             .select("*")
             .eq(
               "page_key",
@@ -224,8 +177,7 @@ function CmsGlobals() {
         }
 
         const siteName =
-          siteSettings
-            .site_name ||
+          siteSettings.site_name ||
           "AI Future Tamil";
 
         document.title =
@@ -235,15 +187,13 @@ function CmsGlobals() {
         setMeta(
           "name",
           "description",
-          data?.description ||
-            ""
+          data?.description || ""
         );
 
         setMeta(
           "name",
           "keywords",
-          data?.keywords ||
-            ""
+          data?.keywords || ""
         );
 
         setMeta(
@@ -256,19 +206,16 @@ function CmsGlobals() {
         setMeta(
           "property",
           "og:description",
-          data?.description ||
-            ""
+          data?.description || ""
         );
 
         setMeta(
           "property",
           "og:image",
           data?.image_url ||
-            siteSettings
-              .logo_url ||
+            siteSettings.logo_url ||
             ""
         );
-
       } catch (error) {
         console.error(
           "SEO CMS error:",
@@ -280,25 +227,12 @@ function CmsGlobals() {
       siteSettings,
     ]);
 
+  /* =========================================================
+     SITE SETTINGS REALTIME
+  ========================================================= */
+
   useEffect(() => {
     loadGlobals();
-
-    const announcementChannel =
-      supabase
-        .channel(
-          "global-announcement-cms"
-        )
-        .on(
-          "postgres_changes",
-          {
-            event: "*",
-            schema: "public",
-            table:
-              "announcements",
-          },
-          loadGlobals
-        )
-        .subscribe();
 
     const settingsChannel =
       supabase
@@ -319,14 +253,14 @@ function CmsGlobals() {
 
     return () => {
       supabase.removeChannel(
-        announcementChannel
-      );
-
-      supabase.removeChannel(
         settingsChannel
       );
     };
   }, [loadGlobals]);
+
+  /* =========================================================
+     SEO REALTIME
+  ========================================================= */
 
   useEffect(() => {
     loadSeo();
@@ -355,10 +289,13 @@ function CmsGlobals() {
     };
   }, [loadSeo]);
 
+  /* =========================================================
+     FAVICON
+  ========================================================= */
+
   useEffect(() => {
     const favicon =
-      siteSettings
-        .favicon_url ||
+      siteSettings.favicon_url ||
       siteSettings.logo_url;
 
     if (!favicon) {
@@ -384,63 +321,15 @@ function CmsGlobals() {
     }
 
     link.href = favicon;
-
   }, [siteSettings]);
 
-  if (!announcement) {
-    return null;
-  }
+  /* =========================================================
+     NO ANNOUNCEMENT UI
 
-  const buttonUrl =
-    announcement.button_url ||
-    "";
+     CmsGlobals handles background CMS tasks only.
+  ========================================================= */
 
-  const external =
-    /^https?:\/\//i.test(
-      buttonUrl
-    );
-
-  return (
-    <div className="relative z-[9400] border-b border-cyan-400/20 bg-gradient-to-r from-cyan-500/10 via-purple-500/10 to-pink-500/10 px-4 py-2.5 text-center text-sm text-white backdrop-blur-xl">
-
-      <span className="font-semibold">
-        📢{" "}
-        {announcement.message}
-      </span>
-
-      {buttonUrl &&
-        announcement.button_text && (
-          <>
-            {" "}
-
-            {external ? (
-              <a
-                href={buttonUrl}
-                target="_blank"
-                rel="noreferrer"
-                className="ml-2 font-black text-cyan-300 hover:text-white"
-              >
-                {
-                  announcement.button_text
-                }{" "}
-                →
-              </a>
-            ) : (
-              <Link
-                to={buttonUrl}
-                className="ml-2 font-black text-cyan-300 hover:text-white"
-              >
-                {
-                  announcement.button_text
-                }{" "}
-                →
-              </Link>
-            )}
-          </>
-        )}
-
-    </div>
-  );
+  return null;
 }
 
 export default CmsGlobals;
