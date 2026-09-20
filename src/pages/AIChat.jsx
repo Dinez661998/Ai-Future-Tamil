@@ -1862,10 +1862,12 @@ export default function AIChat() {
 
                             <div
                               className="
-                                text-[15px]
-                                leading-7
-                                text-gray-200
-                              "
+  text-[17px]
+  sm:text-[18px]
+  lg:text-[19px]
+  leading-8
+  text-gray-200
+"
                             >
                               <MessageContent
                                 text={
