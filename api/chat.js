@@ -1,56 +1,43 @@
 // ============================================================
-// AI FUTURE TAMIL - GEMINI CHAT API
-// File: /api/chat.js
-// Full replacement
+// AI FUTURE TAMIL - CHAT API
+// Gemini Primary + Hugging Face Automatic Fallback
+// FILE: /api/chat.js
 // ============================================================
 
-const DEFAULT_MODEL = "gemini-3.6-flash";
+const DEFAULT_GEMINI_MODEL = "gemini-3.6-flash";
 
-// UI-la currently use pannura models
-const ALLOWED_MODELS = new Set([
+const ALLOWED_GEMINI_MODELS = new Set([
   "gemini-3.6-flash",
   "gemini-3.5-flash-lite",
 ]);
 
-// Retry settings
-const MAX_RETRIES = 3;
-const BASE_DELAY = 1000;
+// Hugging Face fallback.
+// HF will automatically choose an available provider.
+const HF_FALLBACK_MODEL = "openai/gpt-oss-120b";
+
+// Don't make the user wait too long.
+const GEMINI_MAX_RETRIES = 1;
+const GEMINI_TIMEOUT = 30000;
+const HF_TIMEOUT = 45000;
+
 
 // ============================================================
-// HELPERS
+// SMALL HELPERS
 // ============================================================
 
 function sleep(ms) {
-  return new Promise((resolve) => setTimeout(resolve, ms));
+  return new Promise((resolve) => {
+    setTimeout(resolve, ms);
+  });
 }
 
-function cleanHistory(history) {
-  if (!Array.isArray(history)) {
-    return [];
-  }
 
-  return history
-    .filter(
-      (item) =>
-        item &&
-        typeof item.text === "string" &&
-        (item.role === "user" ||
-          item.role === "assistant")
-    )
-    .slice(-12)
-    .map((item) => ({
-      role:
-        item.role === "assistant"
-          ? "model"
-          : "user",
-
-      parts: [
-        {
-          text: item.text.slice(0, 12000),
-        },
-      ],
-    }));
+function safeString(value) {
+  return typeof value === "string"
+    ? value.trim()
+    : "";
 }
+
 
 // ============================================================
 // LANGUAGE
@@ -60,20 +47,22 @@ function languageInstruction(language) {
   switch (language) {
     case "tamil":
       return `
-Respond mainly in clear Tamil.
+Respond mainly in simple Tamil.
 
-Technical English terms may be used when needed.
+Technical English words may be used when useful.
 
-Keep the explanation natural, simple and easy to understand.
+Explain everything clearly for a beginner.
 `;
 
     case "tanglish":
       return `
-Respond in natural Tanglish.
+Respond naturally in Tanglish.
 
-Use Tamil meaning written mostly using English letters mixed with simple English.
+Use Tamil meaning mostly written using English letters.
 
-Keep the tone friendly, simple and practical.
+Mix simple English where useful.
+
+Keep the tone friendly, practical and easy to understand.
 
 Avoid difficult literary Tamil.
 `;
@@ -82,80 +71,201 @@ Avoid difficult literary Tamil.
       return `
 Respond in clear and simple English.
 
-Use practical real-world examples when useful.
+Use practical examples when useful.
 `;
 
     default:
       return `
 Automatically match the user's language.
 
-If the user writes Tanglish, reply in Tanglish.
+If the user writes Tanglish, respond in Tanglish.
 
-If the user writes Tamil, reply in Tamil.
+If the user writes Tamil, respond in Tamil.
 
-If the user writes English, reply in English.
+If the user writes English, respond in English.
+
+Keep explanations simple and beginner friendly.
 `;
   }
 }
 
+
 // ============================================================
-// SYSTEM INSTRUCTION
+// SYSTEM PROMPT
 // ============================================================
 
-function systemInstruction(language) {
+function getSystemPrompt(language) {
   return `
 You are AI Future Tamil Assistant.
 
 You are the AI assistant built into the AI Future Tamil website.
 
-Your job is to help users with:
+You help users with:
 
 - Artificial Intelligence
 - Machine Learning
 - Technology
 - Programming
 - Website Development
+- Mobile Technology
 - Content Creation
 - YouTube
 - Social Media
 - Prompt Engineering
 - Education
+- Productivity
 - General Questions
 
-STYLE:
+BEHAVIOUR:
 
-Be friendly, accurate, practical and easy to understand.
+Be friendly, accurate, useful and practical.
 
-Explain complicated concepts in a beginner-friendly way.
+Explain difficult topics in a beginner-friendly way.
 
-When useful, give examples.
+Use examples when they improve understanding.
 
-Do not pretend that you performed actions that you cannot perform.
+Never claim that you performed an action that you did not perform.
+
+If information is uncertain, clearly say that it may be uncertain.
+
+Do not pretend to have live internet information unless live information
+was actually supplied to you.
 
 CODING:
 
-When the user asks coding questions:
+When users ask coding questions:
 
 - Give clean working code.
-- Explain important steps simply.
+- Keep explanations simple.
 - Avoid unnecessary complexity.
-- Never invent APIs, packages or functions.
-
-FACTUAL QUESTIONS:
-
-If information is uncertain, clearly say so.
-
-Do not pretend to have live information unless live information was actually provided.
+- Do not invent APIs, libraries, packages or functions.
 
 ${languageInstruction(language)}
 `;
 }
 
+
 // ============================================================
-// PARSE GEMINI RESPONSE
+// NORMALIZE FRONTEND HISTORY
 // ============================================================
 
-function getReply(data) {
+function cleanFrontendHistory(history) {
+  if (!Array.isArray(history)) {
+    return [];
+  }
+
+  return history
+    .filter((item) => {
+      return (
+        item &&
+        typeof item.text === "string" &&
+        (
+          item.role === "user" ||
+          item.role === "assistant"
+        )
+      );
+    })
+    .slice(-12)
+    .map((item) => ({
+      role: item.role,
+      text: item.text.slice(0, 12000),
+    }));
+}
+
+
+// ============================================================
+// GEMINI HISTORY
+// ============================================================
+
+function createGeminiContents(history, currentMessage) {
+  const contents = history.map((item) => ({
+    role:
+      item.role === "assistant"
+        ? "model"
+        : "user",
+
+    parts: [
+      {
+        text: item.text,
+      },
+    ],
+  }));
+
+  const last = contents[contents.length - 1];
+
+  const alreadyIncluded =
+    last?.role === "user" &&
+    safeString(last?.parts?.[0]?.text) === currentMessage;
+
+  if (!alreadyIncluded) {
+    contents.push({
+      role: "user",
+
+      parts: [
+        {
+          text: currentMessage,
+        },
+      ],
+    });
+  }
+
+  // Gemini history should start with user.
+  while (
+    contents.length > 0 &&
+    contents[0].role !== "user"
+  ) {
+    contents.shift();
+  }
+
+  return contents;
+}
+
+
+// ============================================================
+// HUGGING FACE HISTORY
+// ============================================================
+
+function createHFMessages(
+  history,
+  currentMessage,
+  language
+) {
+  const messages = [
+    {
+      role: "system",
+      content: getSystemPrompt(language),
+    },
+  ];
+
+  for (const item of history) {
+    messages.push({
+      role: item.role,
+      content: item.text,
+    });
+  }
+
+  const last = messages[messages.length - 1];
+
+  const alreadyIncluded =
+    last?.role === "user" &&
+    safeString(last?.content) === currentMessage;
+
+  if (!alreadyIncluded) {
+    messages.push({
+      role: "user",
+      content: currentMessage,
+    });
+  }
+
+  return messages;
+}
+
+
+// ============================================================
+// PARSE GEMINI
+// ============================================================
+
+function extractGeminiReply(data) {
   const parts =
     data?.candidates?.[0]?.content?.parts;
 
@@ -164,17 +274,18 @@ function getReply(data) {
   }
 
   return parts
-    .map((part) =>
-      typeof part?.text === "string"
+    .map((part) => {
+      return typeof part?.text === "string"
         ? part.text
-        : ""
-    )
+        : "";
+    })
     .join("")
     .trim();
 }
 
+
 // ============================================================
-// CALL GEMINI
+// GEMINI REQUEST
 // ============================================================
 
 async function callGemini({
@@ -189,242 +300,277 @@ async function callGemini({
     encodeURIComponent(model) +
     ":generateContent";
 
-  const controller =
-    new AbortController();
+  const controller = new AbortController();
 
-  const timeout =
-    setTimeout(() => {
-      controller.abort();
-    }, 45000);
+  const timer = setTimeout(() => {
+    controller.abort();
+  }, GEMINI_TIMEOUT);
 
   try {
-    const response =
-      await fetch(url, {
-        method: "POST",
+    const response = await fetch(url, {
+      method: "POST",
 
-        signal:
-          controller.signal,
+      signal: controller.signal,
 
-        headers: {
-          "Content-Type":
-            "application/json",
+      headers: {
+        "Content-Type": "application/json",
+        "x-goog-api-key": apiKey,
+      },
 
-          "x-goog-api-key":
-            apiKey,
+      body: JSON.stringify({
+        systemInstruction: {
+          parts: [
+            {
+              text: getSystemPrompt(language),
+            },
+          ],
         },
 
-        body:
-          JSON.stringify({
-            systemInstruction: {
-              parts: [
-                {
-                  text:
-                    systemInstruction(
-                      language
-                    ),
-                },
-              ],
-            },
+        contents,
 
-            contents,
+        generationConfig: {
+          maxOutputTokens: 4096,
+          temperature: 0.7,
+        },
+      }),
+    });
 
-            generationConfig: {
-              maxOutputTokens: 4096,
-              temperature: 0.7,
-            },
-          }),
-      });
+    const raw = await response.text();
+
+    let data = {};
+
+    try {
+      data = raw
+        ? JSON.parse(raw)
+        : {};
+    } catch {
+      data = {};
+    }
+
+    return {
+      ok: response.ok,
+
+      status: response.status,
+
+      reply: response.ok
+        ? extractGeminiReply(data)
+        : "",
+
+      error:
+        data?.error?.message ||
+        "",
+    };
+  } catch (error) {
+    return {
+      ok: false,
+
+      status:
+        error?.name === "AbortError"
+          ? 504
+          : 500,
+
+      reply: "",
+
+      error:
+        error?.name === "AbortError"
+          ? "Gemini request timed out."
+          : error?.message ||
+            "Gemini request failed.",
+    };
+  } finally {
+    clearTimeout(timer);
+  }
+}
+
+
+// ============================================================
+// GEMINI RETRY
+// ============================================================
+
+function isTemporaryGeminiError(status) {
+  return (
+    status === 408 ||
+    status === 429 ||
+    status === 500 ||
+    status === 502 ||
+    status === 503 ||
+    status === 504
+  );
+}
+
+
+async function callGeminiWithRetry(options) {
+  let result = null;
+
+  for (
+    let attempt = 0;
+    attempt <= GEMINI_MAX_RETRIES;
+    attempt += 1
+  ) {
+    result = await callGemini(options);
+
+    if (
+      result.ok &&
+      result.reply
+    ) {
+      return result;
+    }
+
+    if (
+      !isTemporaryGeminiError(
+        result.status
+      )
+    ) {
+      return result;
+    }
+
+    if (
+      attempt <
+      GEMINI_MAX_RETRIES
+    ) {
+      const delay =
+        700 +
+        Math.floor(
+          Math.random() * 500
+        );
+
+      await sleep(delay);
+    }
+  }
+
+  return result;
+}
+
+
+// ============================================================
+// HUGGING FACE FALLBACK
+// ============================================================
+
+async function callHuggingFace({
+  token,
+  history,
+  currentMessage,
+  language,
+}) {
+  const controller = new AbortController();
+
+  const timer = setTimeout(() => {
+    controller.abort();
+  }, HF_TIMEOUT);
+
+  try {
+    const messages =
+      createHFMessages(
+        history,
+        currentMessage,
+        language
+      );
+
+    const response = await fetch(
+      "https://router.huggingface.co/v1/chat/completions",
+      {
+        method: "POST",
+
+        signal: controller.signal,
+
+        headers: {
+          Authorization:
+            `Bearer ${token}`,
+
+          "Content-Type":
+            "application/json",
+        },
+
+        body: JSON.stringify({
+          model:
+            HF_FALLBACK_MODEL,
+
+          messages,
+
+          max_tokens: 2048,
+
+          temperature: 0.7,
+
+          stream: false,
+        }),
+      }
+    );
 
     const raw =
       await response.text();
 
     let data = {};
 
-    if (raw) {
-      try {
-        data =
-          JSON.parse(raw);
-      } catch {
-        data = {};
-      }
+    try {
+      data = raw
+        ? JSON.parse(raw)
+        : {};
+    } catch {
+      data = {};
     }
+
+    const reply =
+      safeString(
+        data?.choices?.[0]
+          ?.message?.content
+      );
 
     return {
       ok:
-        response.ok,
+        response.ok &&
+        Boolean(reply),
 
       status:
         response.status,
 
-      data,
+      reply,
 
-      reply:
-        response.ok
-          ? getReply(data)
-          : "",
+      error:
+        data?.error?.message ||
+        (
+          typeof data?.error === "string"
+            ? data.error
+            : ""
+        ),
+    };
+  } catch (error) {
+    return {
+      ok: false,
+
+      status:
+        error?.name === "AbortError"
+          ? 504
+          : 500,
+
+      reply: "",
+
+      error:
+        error?.name === "AbortError"
+          ? "Fallback AI timed out."
+          : error?.message ||
+            "Fallback AI failed.",
     };
   } finally {
-    clearTimeout(timeout);
+    clearTimeout(timer);
   }
 }
 
-// ============================================================
-// RETRY LOGIC
-// ============================================================
-
-function shouldRetry(status) {
-  return (
-    status === 408 ||
-    status === 429 ||
-    status >= 500
-  );
-}
-
-async function generateWithRetry({
-  apiKey,
-  model,
-  contents,
-  language,
-}) {
-  let lastResult = null;
-
-  for (
-    let attempt = 0;
-    attempt <= MAX_RETRIES;
-    attempt += 1
-  ) {
-    try {
-      const result =
-        await callGemini({
-          apiKey,
-          model,
-          contents,
-          language,
-        });
-
-      lastResult = result;
-
-      // SUCCESS
-      if (
-        result.ok &&
-        result.reply
-      ) {
-        return result;
-      }
-
-      // Don't retry permanent errors
-      if (
-        !shouldRetry(
-          result.status
-        )
-      ) {
-        return result;
-      }
-
-      // Last retry reached
-      if (
-        attempt ===
-        MAX_RETRIES
-      ) {
-        break;
-      }
-
-      // Exponential backoff + jitter
-      const exponential =
-        BASE_DELAY *
-        Math.pow(
-          2,
-          attempt
-        );
-
-      const jitter =
-        Math.floor(
-          Math.random() *
-            500
-        );
-
-      const delay =
-        exponential +
-        jitter;
-
-      console.log(
-        `Gemini temporary error ${result.status}. ` +
-          `Retry ${attempt + 1}/${MAX_RETRIES} ` +
-          `after ${delay}ms.`
-      );
-
-      await sleep(delay);
-    } catch (error) {
-      lastResult = {
-        ok: false,
-        status:
-          error?.name ===
-          "AbortError"
-            ? 504
-            : 500,
-
-        data: {
-          error: {
-            message:
-              error?.message ||
-              "Gemini request failed.",
-          },
-        },
-
-        reply: "",
-      };
-
-      if (
-        attempt ===
-        MAX_RETRIES
-      ) {
-        break;
-      }
-
-      const exponential =
-        BASE_DELAY *
-        Math.pow(
-          2,
-          attempt
-        );
-
-      const jitter =
-        Math.floor(
-          Math.random() *
-            500
-        );
-
-      await sleep(
-        exponential +
-          jitter
-      );
-    }
-  }
-
-  return lastResult;
-}
 
 // ============================================================
-// MAIN API HANDLER
+// MAIN API
 // ============================================================
 
-export default async function handler(
-  req,
-  res
-) {
+export default async function handler(req, res) {
   res.setHeader(
     "Content-Type",
     "application/json"
   );
 
   // ----------------------------------------------------------
-  // METHOD CHECK
+  // METHOD
   // ----------------------------------------------------------
 
-  if (
-    req.method !==
-    "POST"
-  ) {
+  if (req.method !== "POST") {
     return res
       .status(405)
       .json({
@@ -433,34 +579,41 @@ export default async function handler(
       });
   }
 
+
   try {
     // --------------------------------------------------------
-    // API KEY
+    // ENVIRONMENT VARIABLES
     // --------------------------------------------------------
 
-    const apiKey =
-      process.env
-        .GEMINI_API_KEY;
+    const geminiApiKey =
+      process.env.GEMINI_API_KEY;
 
-    if (!apiKey) {
+    const hfToken =
+      process.env.HF_TOKEN;
+
+
+    if (
+      !geminiApiKey &&
+      !hfToken
+    ) {
       return res
         .status(500)
         .json({
           error:
-            "Gemini API key is not configured.",
+            "AI API keys are not configured.",
         });
     }
 
+
     // --------------------------------------------------------
-    // MESSAGE
+    // USER MESSAGE
     // --------------------------------------------------------
 
     const message =
-      typeof req.body
-        ?.message ===
-      "string"
-        ? req.body.message.trim()
-        : "";
+      safeString(
+        req.body?.message
+      );
+
 
     if (!message) {
       return res
@@ -470,6 +623,7 @@ export default async function handler(
             "Message is required.",
         });
     }
+
 
     if (
       message.length >
@@ -483,244 +637,281 @@ export default async function handler(
         });
     }
 
-    // --------------------------------------------------------
-    // MODEL
-    // --------------------------------------------------------
-
-    const requestedModel =
-      typeof req.body
-        ?.model ===
-      "string"
-        ? req.body.model
-        : "";
-
-    const model =
-      ALLOWED_MODELS.has(
-        requestedModel
-      )
-        ? requestedModel
-        : DEFAULT_MODEL;
 
     // --------------------------------------------------------
     // LANGUAGE
     // --------------------------------------------------------
 
     const language =
-      typeof req.body
-        ?.language ===
-      "string"
-        ? req.body.language
-        : "auto";
+      safeString(
+        req.body?.language
+      ) || "auto";
+
+
+    // --------------------------------------------------------
+    // MODEL
+    // --------------------------------------------------------
+
+    const requestedModel =
+      safeString(
+        req.body?.model
+      );
+
+
+    const geminiModel =
+      ALLOWED_GEMINI_MODELS.has(
+        requestedModel
+      )
+        ? requestedModel
+        : DEFAULT_GEMINI_MODEL;
+
 
     // --------------------------------------------------------
     // HISTORY
     // --------------------------------------------------------
 
-    let contents =
-      cleanHistory(
+    const history =
+      cleanFrontendHistory(
         req.body?.history
       );
 
-    // Current message already history-la irukka check
-    const lastContent =
-      contents[
-        contents.length - 1
-      ];
 
-    const alreadyIncluded =
-      lastContent?.role ===
-        "user" &&
-      lastContent
-        ?.parts?.[0]
-        ?.text?.trim() ===
-        message;
+    // ========================================================
+    // 1. TRY GEMINI FIRST
+    // ========================================================
 
-    if (
-      !alreadyIncluded
-    ) {
-      contents.push({
-        role: "user",
+    let geminiResult = null;
 
-        parts: [
-          {
-            text:
-              message,
-          },
-        ],
-      });
-    }
 
-    // Gemini conversation user message-la start aaganum
-    while (
-      contents.length >
-        0 &&
-      contents[0]
-        .role !== "user"
-    ) {
-      contents.shift();
-    }
+    if (geminiApiKey) {
+      const contents =
+        createGeminiContents(
+          history,
+          message
+        );
 
-    // --------------------------------------------------------
-    // GEMINI REQUEST + AUTO RETRY
-    // --------------------------------------------------------
 
-    const result =
-      await generateWithRetry({
-        apiKey,
-        model,
-        contents,
-        language,
-      });
+      geminiResult =
+        await callGeminiWithRetry({
+          apiKey:
+            geminiApiKey,
 
-    // --------------------------------------------------------
-    // SUCCESS
-    // --------------------------------------------------------
+          model:
+            geminiModel,
 
-    if (
-      result?.ok &&
-      result?.reply
-    ) {
-      return res
-        .status(200)
-        .json({
-          reply:
-            result.reply,
+          contents,
 
-          model,
-
-          provider:
-            "Google Gemini",
+          language,
         });
-    }
 
-    // --------------------------------------------------------
-    // ERROR HANDLING
-    // --------------------------------------------------------
 
-    const status =
-      result?.status ||
-      500;
+      if (
+        geminiResult?.ok &&
+        geminiResult?.reply
+      ) {
+        return res
+          .status(200)
+          .json({
+            reply:
+              geminiResult.reply,
 
-    const geminiMessage =
-      result?.data
-        ?.error?.message ||
-      "";
+            model:
+              geminiModel,
 
-    console.error(
-      "Gemini final error:",
-      {
-        status,
-        model,
-        error:
-          result?.data,
+            provider:
+              "Google Gemini",
+
+            fallback:
+              false,
+          });
       }
-    );
 
-    // RATE LIMIT
-    if (
-      status === 429
-    ) {
-      return res
-        .status(429)
-        .json({
+
+      console.warn(
+        "Gemini unavailable:",
+        {
+          status:
+            geminiResult?.status,
+
           error:
-            "AI free limit is busy right now. Please wait a little and try again.",
-        });
+            geminiResult?.error,
+        }
+      );
     }
 
-    // HIGH DEMAND / SERVICE BUSY
+
+    // ========================================================
+    // 2. HUGGING FACE FALLBACK
+    // ========================================================
+
+    if (hfToken) {
+      console.log(
+        "Trying Hugging Face fallback..."
+      );
+
+
+      const hfResult =
+        await callHuggingFace({
+          token:
+            hfToken,
+
+          history,
+
+          currentMessage:
+            message,
+
+          language,
+        });
+
+
+      if (
+        hfResult?.ok &&
+        hfResult?.reply
+      ) {
+        return res
+          .status(200)
+          .json({
+            reply:
+              hfResult.reply,
+
+            model:
+              HF_FALLBACK_MODEL,
+
+            provider:
+              "Hugging Face",
+
+            fallback:
+              true,
+          });
+      }
+
+
+      console.error(
+        "Hugging Face fallback failed:",
+        {
+          status:
+            hfResult?.status,
+
+          error:
+            hfResult?.error,
+        }
+      );
+
+
+      // HF token permission problem
+      if (
+        hfResult?.status ===
+          401 ||
+        hfResult?.status ===
+          403
+      ) {
+        return res
+          .status(503)
+          .json({
+            error:
+              "Primary AI is busy and the backup AI token does not have Inference Provider permission.",
+          });
+      }
+
+
+      // HF credits/rate limit
+      if (
+        hfResult?.status ===
+        402
+      ) {
+        return res
+          .status(503)
+          .json({
+            error:
+              "Primary AI is busy and the backup AI has no remaining inference credits.",
+          });
+      }
+
+
+      if (
+        hfResult?.status ===
+        429
+      ) {
+        return res
+          .status(503)
+          .json({
+            error:
+              "Both AI services are temporarily busy. Please try again shortly.",
+          });
+      }
+    }
+
+
+    // ========================================================
+    // 3. BOTH FAILED
+    // ========================================================
+
     if (
-      status === 503
+      geminiResult?.status ===
+      429
     ) {
       return res
         .status(503)
         .json({
           error:
-            "AI is temporarily busy because of high demand. Automatic retries were attempted. Please try again shortly.",
+            "AI usage limit is temporarily busy and the backup AI is unavailable. Please try again shortly.",
         });
     }
 
-    // TIMEOUT
+
     if (
-      status === 504
+      geminiResult?.status ===
+        503 ||
+      geminiResult?.status ===
+        504 ||
+      geminiResult?.status >=
+        500
     ) {
       return res
-        .status(504)
+        .status(503)
         .json({
           error:
-            "AI took too long to respond. Please try again.",
+            "Both primary and backup AI services are temporarily unavailable. Please try again shortly.",
         });
     }
 
-    // INVALID API KEY / ACCESS
+
+    // Gemini permanent error
     if (
-      status === 401 ||
-      status === 403
-    ) {
-      return res
-        .status(status)
-        .json({
-          error:
-            "Gemini API authentication failed. Please check the server API key.",
-        });
-    }
-
-    // MODEL NOT FOUND
-    if (
-      status === 404
-    ) {
-      return res
-        .status(404)
-        .json({
-          error:
-            geminiMessage ||
-            `Gemini model "${model}" is not available for this API key.`,
-        });
-    }
-
-    // BAD REQUEST
-    if (
-      status === 400
-    ) {
-      return res
-        .status(400)
-        .json({
-          error:
-            geminiMessage ||
-            "Gemini rejected the request.",
-        });
-    }
-
-    // GENERIC
-    return res
-      .status(
-        status >= 400 &&
-          status < 600
-          ? status
-          : 500
+      geminiResult &&
+      !isTemporaryGeminiError(
+        geminiResult.status
       )
+    ) {
+      return res
+        .status(
+          geminiResult.status >= 400 &&
+          geminiResult.status < 600
+            ? geminiResult.status
+            : 500
+        )
+        .json({
+          error:
+            geminiResult.error ||
+            "Gemini request failed.",
+        });
+    }
+
+
+    return res
+      .status(503)
       .json({
         error:
-          geminiMessage ||
           "AI service is temporarily unavailable.",
       });
+
+
   } catch (error) {
     console.error(
-      "AI Future Tamil /api/chat error:",
+      "AI Future Tamil chat error:",
       error
     );
 
-    if (
-      error?.name ===
-      "AbortError"
-    ) {
-      return res
-        .status(504)
-        .json({
-          error:
-            "AI took too long to respond. Please try again.",
-        });
-    }
 
     return res
       .status(500)
