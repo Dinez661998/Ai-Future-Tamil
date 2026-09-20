@@ -1,239 +1,136 @@
 // ============================================================
 // AI FUTURE TAMIL - CHAT API
-// Gemini Primary + Hugging Face Automatic Fallback
+// Gemini Primary -> Gemini fallback -> Hugging Face fallback
 // FILE: /api/chat.js
 // ============================================================
 
-const DEFAULT_GEMINI_MODEL = "gemini-3.6-flash";
-
-const ALLOWED_GEMINI_MODELS = new Set([
+const GEMINI_MODELS = [
   "gemini-3.6-flash",
   "gemini-3.5-flash-lite",
-]);
+];
 
-// Hugging Face fallback.
-// HF will automatically choose an available provider.
-const HF_FALLBACK_MODEL = "openai/gpt-oss-120b";
+const HF_FALLBACK_MODEL = "openai/gpt-oss-120b:fastest";
 
-// Don't make the user wait too long.
-const GEMINI_MAX_RETRIES = 1;
-const GEMINI_TIMEOUT = 30000;
-const HF_TIMEOUT = 45000;
-
-
-// ============================================================
-// SMALL HELPERS
-// ============================================================
-
-function sleep(ms) {
-  return new Promise((resolve) => {
-    setTimeout(resolve, ms);
-  });
-}
-
+const GEMINI_TIMEOUT = 20000;
+const HF_TIMEOUT = 40000;
 
 function safeString(value) {
-  return typeof value === "string"
-    ? value.trim()
-    : "";
+  return typeof value === "string" ? value.trim() : "";
 }
 
+function cleanHistory(history) {
+  if (!Array.isArray(history)) return [];
 
-// ============================================================
-// LANGUAGE
-// ============================================================
+  return history
+    .filter(
+      (item) =>
+        item &&
+        typeof item.text === "string" &&
+        (item.role === "user" || item.role === "assistant")
+    )
+    .slice(-10)
+    .map((item) => ({
+      role: item.role,
+      text: item.text.slice(0, 10000),
+    }));
+}
 
 function languageInstruction(language) {
-  switch (language) {
-    case "tamil":
-      return `
+  if (language === "tamil") {
+    return `
 Respond mainly in simple Tamil.
-
-Technical English words may be used when useful.
-
-Explain everything clearly for a beginner.
-`;
-
-    case "tanglish":
-      return `
-Respond naturally in Tanglish.
-
-Use Tamil meaning mostly written using English letters.
-
-Mix simple English where useful.
-
-Keep the tone friendly, practical and easy to understand.
-
-Avoid difficult literary Tamil.
-`;
-
-    case "english":
-      return `
-Respond in clear and simple English.
-
-Use practical examples when useful.
-`;
-
-    default:
-      return `
-Automatically match the user's language.
-
-If the user writes Tanglish, respond in Tanglish.
-
-If the user writes Tamil, respond in Tamil.
-
-If the user writes English, respond in English.
-
-Keep explanations simple and beginner friendly.
+Technical English terms may be used.
+Keep everything beginner friendly.
 `;
   }
+
+  if (language === "tanglish") {
+    return `
+Respond naturally in Tanglish.
+Use Tamil meaning mostly written in English letters.
+Mix simple English where useful.
+Keep the tone friendly and practical.
+`;
+  }
+
+  if (language === "english") {
+    return `
+Respond in clear simple English.
+Use practical examples when useful.
+`;
+  }
+
+  return `
+Automatically match the user's language.
+Tanglish question -> Tanglish answer.
+Tamil question -> Tamil answer.
+English question -> English answer.
+Keep explanations simple.
+`;
 }
 
-
-// ============================================================
-// SYSTEM PROMPT
-// ============================================================
-
-function getSystemPrompt(language) {
+function systemPrompt(language) {
   return `
 You are AI Future Tamil Assistant.
 
-You are the AI assistant built into the AI Future Tamil website.
-
 You help users with:
-
 - Artificial Intelligence
 - Machine Learning
 - Technology
 - Programming
 - Website Development
-- Mobile Technology
 - Content Creation
 - YouTube
-- Social Media
 - Prompt Engineering
 - Education
-- Productivity
 - General Questions
 
-BEHAVIOUR:
+Be friendly, accurate and practical.
 
-Be friendly, accurate, useful and practical.
+Explain difficult concepts simply.
 
-Explain difficult topics in a beginner-friendly way.
+For coding questions:
+- Give working code.
+- Explain important steps simply.
+- Never invent APIs or packages.
 
-Use examples when they improve understanding.
-
-Never claim that you performed an action that you did not perform.
-
-If information is uncertain, clearly say that it may be uncertain.
-
-Do not pretend to have live internet information unless live information
-was actually supplied to you.
-
-CODING:
-
-When users ask coding questions:
-
-- Give clean working code.
-- Keep explanations simple.
-- Avoid unnecessary complexity.
-- Do not invent APIs, libraries, packages or functions.
+If information is uncertain, say so.
 
 ${languageInstruction(language)}
 `;
 }
 
-
-// ============================================================
-// NORMALIZE FRONTEND HISTORY
-// ============================================================
-
-function cleanFrontendHistory(history) {
-  if (!Array.isArray(history)) {
-    return [];
-  }
-
-  return history
-    .filter((item) => {
-      return (
-        item &&
-        typeof item.text === "string" &&
-        (
-          item.role === "user" ||
-          item.role === "assistant"
-        )
-      );
-    })
-    .slice(-12)
-    .map((item) => ({
-      role: item.role,
-      text: item.text.slice(0, 12000),
-    }));
-}
-
-
-// ============================================================
-// GEMINI HISTORY
-// ============================================================
-
-function createGeminiContents(history, currentMessage) {
+function createGeminiContents(history, message) {
   const contents = history.map((item) => ({
-    role:
-      item.role === "assistant"
-        ? "model"
-        : "user",
-
-    parts: [
-      {
-        text: item.text,
-      },
-    ],
+    role: item.role === "assistant" ? "model" : "user",
+    parts: [{ text: item.text }],
   }));
 
   const last = contents[contents.length - 1];
 
-  const alreadyIncluded =
-    last?.role === "user" &&
-    safeString(last?.parts?.[0]?.text) === currentMessage;
-
-  if (!alreadyIncluded) {
+  if (
+    !last ||
+    last.role !== "user" ||
+    safeString(last.parts?.[0]?.text) !== message
+  ) {
     contents.push({
       role: "user",
-
-      parts: [
-        {
-          text: currentMessage,
-        },
-      ],
+      parts: [{ text: message }],
     });
   }
 
-  // Gemini history should start with user.
-  while (
-    contents.length > 0 &&
-    contents[0].role !== "user"
-  ) {
+  while (contents.length && contents[0].role !== "user") {
     contents.shift();
   }
 
   return contents;
 }
 
-
-// ============================================================
-// HUGGING FACE HISTORY
-// ============================================================
-
-function createHFMessages(
-  history,
-  currentMessage,
-  language
-) {
+function createHFMessages(history, message, language) {
   const messages = [
     {
       role: "system",
-      content: getSystemPrompt(language),
+      content: systemPrompt(language),
     },
   ];
 
@@ -246,67 +143,38 @@ function createHFMessages(
 
   const last = messages[messages.length - 1];
 
-  const alreadyIncluded =
-    last?.role === "user" &&
-    safeString(last?.content) === currentMessage;
-
-  if (!alreadyIncluded) {
+  if (
+    last?.role !== "user" ||
+    safeString(last?.content) !== message
+  ) {
     messages.push({
       role: "user",
-      content: currentMessage,
+      content: message,
     });
   }
 
   return messages;
 }
 
-
-// ============================================================
-// PARSE GEMINI
-// ============================================================
-
-function extractGeminiReply(data) {
-  const parts =
-    data?.candidates?.[0]?.content?.parts;
-
-  if (!Array.isArray(parts)) {
-    return "";
-  }
-
-  return parts
-    .map((part) => {
-      return typeof part?.text === "string"
-        ? part.text
-        : "";
-    })
-    .join("")
-    .trim();
-}
-
-
-// ============================================================
-// GEMINI REQUEST
-// ============================================================
-
 async function callGemini({
   apiKey,
   model,
-  contents,
+  history,
+  message,
   language,
 }) {
-  const url =
-    "https://generativelanguage.googleapis.com/" +
-    "v1beta/models/" +
-    encodeURIComponent(model) +
-    ":generateContent";
-
   const controller = new AbortController();
 
-  const timer = setTimeout(() => {
-    controller.abort();
-  }, GEMINI_TIMEOUT);
+  const timer = setTimeout(
+    () => controller.abort(),
+    GEMINI_TIMEOUT
+  );
 
   try {
+    const url =
+      `https://generativelanguage.googleapis.com/v1beta/models/` +
+      `${encodeURIComponent(model)}:generateContent`;
+
     const response = await fetch(url, {
       method: "POST",
 
@@ -321,12 +189,15 @@ async function callGemini({
         systemInstruction: {
           parts: [
             {
-              text: getSystemPrompt(language),
+              text: systemPrompt(language),
             },
           ],
         },
 
-        contents,
+        contents: createGeminiContents(
+          history,
+          message
+        ),
 
         generationConfig: {
           maxOutputTokens: 4096,
@@ -340,25 +211,48 @@ async function callGemini({
     let data = {};
 
     try {
-      data = raw
-        ? JSON.parse(raw)
-        : {};
+      data = raw ? JSON.parse(raw) : {};
     } catch {
       data = {};
     }
 
+    if (!response.ok) {
+      return {
+        ok: false,
+        status: response.status,
+        error:
+          data?.error?.message ||
+          `Gemini ${model} failed.`,
+      };
+    }
+
+    const parts =
+      data?.candidates?.[0]?.content?.parts;
+
+    const reply = Array.isArray(parts)
+      ? parts
+          .map((part) =>
+            typeof part?.text === "string"
+              ? part.text
+              : ""
+          )
+          .join("")
+          .trim()
+      : "";
+
+    if (!reply) {
+      return {
+        ok: false,
+        status: 502,
+        error: "Gemini returned empty response.",
+      };
+    }
+
     return {
-      ok: response.ok,
-
-      status: response.status,
-
-      reply: response.ok
-        ? extractGeminiReply(data)
-        : "",
-
-      error:
-        data?.error?.message ||
-        "",
+      ok: true,
+      status: 200,
+      reply,
+      model,
     };
   } catch (error) {
     return {
@@ -369,103 +263,31 @@ async function callGemini({
           ? 504
           : 500,
 
-      reply: "",
-
       error:
         error?.name === "AbortError"
-          ? "Gemini request timed out."
+          ? `${model} timed out.`
           : error?.message ||
-            "Gemini request failed.",
+            `${model} failed.`,
     };
   } finally {
     clearTimeout(timer);
   }
 }
 
-
-// ============================================================
-// GEMINI RETRY
-// ============================================================
-
-function isTemporaryGeminiError(status) {
-  return (
-    status === 408 ||
-    status === 429 ||
-    status === 500 ||
-    status === 502 ||
-    status === 503 ||
-    status === 504
-  );
-}
-
-
-async function callGeminiWithRetry(options) {
-  let result = null;
-
-  for (
-    let attempt = 0;
-    attempt <= GEMINI_MAX_RETRIES;
-    attempt += 1
-  ) {
-    result = await callGemini(options);
-
-    if (
-      result.ok &&
-      result.reply
-    ) {
-      return result;
-    }
-
-    if (
-      !isTemporaryGeminiError(
-        result.status
-      )
-    ) {
-      return result;
-    }
-
-    if (
-      attempt <
-      GEMINI_MAX_RETRIES
-    ) {
-      const delay =
-        700 +
-        Math.floor(
-          Math.random() * 500
-        );
-
-      await sleep(delay);
-    }
-  }
-
-  return result;
-}
-
-
-// ============================================================
-// HUGGING FACE FALLBACK
-// ============================================================
-
 async function callHuggingFace({
   token,
   history,
-  currentMessage,
+  message,
   language,
 }) {
   const controller = new AbortController();
 
-  const timer = setTimeout(() => {
-    controller.abort();
-  }, HF_TIMEOUT);
+  const timer = setTimeout(
+    () => controller.abort(),
+    HF_TIMEOUT
+  );
 
   try {
-    const messages =
-      createHFMessages(
-        history,
-        currentMessage,
-        language
-      );
-
     const response = await fetch(
       "https://router.huggingface.co/v1/chat/completions",
       {
@@ -474,18 +296,18 @@ async function callHuggingFace({
         signal: controller.signal,
 
         headers: {
-          Authorization:
-            `Bearer ${token}`,
-
-          "Content-Type":
-            "application/json",
+          Authorization: `Bearer ${token}`,
+          "Content-Type": "application/json",
         },
 
         body: JSON.stringify({
-          model:
-            HF_FALLBACK_MODEL,
+          model: HF_FALLBACK_MODEL,
 
-          messages,
+          messages: createHFMessages(
+            history,
+            message,
+            language
+          ),
 
           max_tokens: 2048,
 
@@ -496,42 +318,47 @@ async function callHuggingFace({
       }
     );
 
-    const raw =
-      await response.text();
+    const raw = await response.text();
 
     let data = {};
 
     try {
-      data = raw
-        ? JSON.parse(raw)
-        : {};
+      data = raw ? JSON.parse(raw) : {};
     } catch {
       data = {};
     }
 
-    const reply =
-      safeString(
-        data?.choices?.[0]
-          ?.message?.content
-      );
+    if (!response.ok) {
+      return {
+        ok: false,
+
+        status: response.status,
+
+        error:
+          data?.error?.message ||
+          data?.error ||
+          data?.message ||
+          `Hugging Face failed (${response.status}).`,
+      };
+    }
+
+    const reply = safeString(
+      data?.choices?.[0]?.message?.content
+    );
+
+    if (!reply) {
+      return {
+        ok: false,
+        status: 502,
+        error:
+          "Hugging Face returned an empty response.",
+      };
+    }
 
     return {
-      ok:
-        response.ok &&
-        Boolean(reply),
-
-      status:
-        response.status,
-
+      ok: true,
+      status: 200,
       reply,
-
-      error:
-        data?.error?.message ||
-        (
-          typeof data?.error === "string"
-            ? data.error
-            : ""
-        ),
     };
   } catch (error) {
     return {
@@ -542,23 +369,16 @@ async function callHuggingFace({
           ? 504
           : 500,
 
-      reply: "",
-
       error:
         error?.name === "AbortError"
-          ? "Fallback AI timed out."
+          ? "Hugging Face timed out."
           : error?.message ||
-            "Fallback AI failed.",
+            "Hugging Face failed.",
     };
   } finally {
     clearTimeout(timer);
   }
 }
-
-
-// ============================================================
-// MAIN API
-// ============================================================
 
 export default async function handler(req, res) {
   res.setHeader(
@@ -566,358 +386,201 @@ export default async function handler(req, res) {
     "application/json"
   );
 
-  // ----------------------------------------------------------
-  // METHOD
-  // ----------------------------------------------------------
-
   if (req.method !== "POST") {
-    return res
-      .status(405)
-      .json({
-        error:
-          "Method not allowed. Use POST.",
-      });
+    return res.status(405).json({
+      error: "Method not allowed. Use POST.",
+    });
   }
 
-
   try {
-    // --------------------------------------------------------
-    // ENVIRONMENT VARIABLES
-    // --------------------------------------------------------
-
     const geminiApiKey =
       process.env.GEMINI_API_KEY;
 
     const hfToken =
       process.env.HF_TOKEN;
 
-
-    if (
-      !geminiApiKey &&
-      !hfToken
-    ) {
-      return res
-        .status(500)
-        .json({
-          error:
-            "AI API keys are not configured.",
-        });
+    if (!geminiApiKey && !hfToken) {
+      return res.status(500).json({
+        error:
+          "AI API keys are not configured.",
+      });
     }
 
-
-    // --------------------------------------------------------
-    // USER MESSAGE
-    // --------------------------------------------------------
-
-    const message =
-      safeString(
-        req.body?.message
-      );
-
+    const message = safeString(
+      req.body?.message
+    );
 
     if (!message) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "Message is required.",
-        });
+      return res.status(400).json({
+        error: "Message is required.",
+      });
     }
 
-
-    if (
-      message.length >
-      12000
-    ) {
-      return res
-        .status(400)
-        .json({
-          error:
-            "Message is too long.",
-        });
+    if (message.length > 12000) {
+      return res.status(400).json({
+        error: "Message is too long.",
+      });
     }
-
-
-    // --------------------------------------------------------
-    // LANGUAGE
-    // --------------------------------------------------------
 
     const language =
-      safeString(
-        req.body?.language
-      ) || "auto";
-
-
-    // --------------------------------------------------------
-    // MODEL
-    // --------------------------------------------------------
-
-    const requestedModel =
-      safeString(
-        req.body?.model
-      );
-
-
-    const geminiModel =
-      ALLOWED_GEMINI_MODELS.has(
-        requestedModel
-      )
-        ? requestedModel
-        : DEFAULT_GEMINI_MODEL;
-
-
-    // --------------------------------------------------------
-    // HISTORY
-    // --------------------------------------------------------
+      safeString(req.body?.language) ||
+      "auto";
 
     const history =
-      cleanFrontendHistory(
-        req.body?.history
-      );
+      cleanHistory(req.body?.history);
 
-
-    // ========================================================
-    // 1. TRY GEMINI FIRST
-    // ========================================================
-
-    let geminiResult = null;
-
+    // ==========================================
+    // 1. GEMINI MODEL CHAIN
+    // ==========================================
 
     if (geminiApiKey) {
-      const contents =
-        createGeminiContents(
-          history,
-          message
+      const requestedModel =
+        safeString(req.body?.model);
+
+      const models = [
+        requestedModel,
+        ...GEMINI_MODELS,
+      ].filter(
+        (model, index, array) =>
+          model &&
+          array.indexOf(model) === index
+      );
+
+      for (const model of models) {
+        console.log(
+          `Trying Gemini model: ${model}`
         );
 
-
-      geminiResult =
-        await callGeminiWithRetry({
-          apiKey:
-            geminiApiKey,
-
-          model:
-            geminiModel,
-
-          contents,
-
+        const result = await callGemini({
+          apiKey: geminiApiKey,
+          model,
+          history,
+          message,
           language,
         });
 
+        if (result.ok && result.reply) {
+          console.log(
+            `Gemini success: ${model}`
+          );
 
-      if (
-        geminiResult?.ok &&
-        geminiResult?.reply
-      ) {
-        return res
-          .status(200)
-          .json({
-            reply:
-              geminiResult.reply,
-
-            model:
-              geminiModel,
-
-            provider:
-              "Google Gemini",
-
+          return res.status(200).json({
+            reply: result.reply,
+            model,
+            provider: "Google Gemini",
             fallback:
-              false,
+              model !== requestedModel,
           });
-      }
-
-
-      console.warn(
-        "Gemini unavailable:",
-        {
-          status:
-            geminiResult?.status,
-
-          error:
-            geminiResult?.error,
         }
-      );
+
+        console.warn(
+          `Gemini failed: ${model}`,
+          {
+            status: result.status,
+            error: result.error,
+          }
+        );
+
+        // Authentication / bad request:
+        // trying another Gemini model usually
+        // won't solve it.
+        if (
+          result.status === 400 ||
+          result.status === 401 ||
+          result.status === 403
+        ) {
+          break;
+        }
+      }
     }
 
-
-    // ========================================================
+    // ==========================================
     // 2. HUGGING FACE FALLBACK
-    // ========================================================
+    // ==========================================
 
     if (hfToken) {
       console.log(
-        "Trying Hugging Face fallback..."
+        `Trying Hugging Face: ${HF_FALLBACK_MODEL}`
       );
-
 
       const hfResult =
         await callHuggingFace({
-          token:
-            hfToken,
-
+          token: hfToken,
           history,
-
-          currentMessage:
-            message,
-
+          message,
           language,
         });
 
-
       if (
-        hfResult?.ok &&
-        hfResult?.reply
+        hfResult.ok &&
+        hfResult.reply
       ) {
-        return res
-          .status(200)
-          .json({
-            reply:
-              hfResult.reply,
+        console.log(
+          "Hugging Face fallback success."
+        );
 
-            model:
-              HF_FALLBACK_MODEL,
+        return res.status(200).json({
+          reply: hfResult.reply,
 
-            provider:
-              "Hugging Face",
+          model:
+            HF_FALLBACK_MODEL,
 
-            fallback:
-              true,
-          });
+          provider:
+            "Hugging Face",
+
+          fallback: true,
+        });
       }
-
 
       console.error(
         "Hugging Face fallback failed:",
         {
           status:
-            hfResult?.status,
+            hfResult.status,
 
           error:
-            hfResult?.error,
+            hfResult.error,
         }
       );
 
-
-      // HF token permission problem
       if (
-        hfResult?.status ===
-          401 ||
-        hfResult?.status ===
-          403
+        hfResult.status === 401 ||
+        hfResult.status === 403
       ) {
-        return res
-          .status(503)
-          .json({
-            error:
-              "Primary AI is busy and the backup AI token does not have Inference Provider permission.",
-          });
+        return res.status(503).json({
+          error:
+            "Backup AI token permission problem. Check HF_TOKEN Inference Providers permission.",
+        });
       }
 
-
-      // HF credits/rate limit
-      if (
-        hfResult?.status ===
-        402
-      ) {
-        return res
-          .status(503)
-          .json({
-            error:
-              "Primary AI is busy and the backup AI has no remaining inference credits.",
-          });
+      if (hfResult.status === 402) {
+        return res.status(503).json({
+          error:
+            "Hugging Face inference credits are unavailable.",
+        });
       }
 
-
-      if (
-        hfResult?.status ===
-        429
-      ) {
-        return res
-          .status(503)
-          .json({
-            error:
-              "Both AI services are temporarily busy. Please try again shortly.",
-          });
+      if (hfResult.status === 429) {
+        return res.status(503).json({
+          error:
+            "AI services are temporarily rate limited. Please try again shortly.",
+        });
       }
     }
 
-
-    // ========================================================
-    // 3. BOTH FAILED
-    // ========================================================
-
-    if (
-      geminiResult?.status ===
-      429
-    ) {
-      return res
-        .status(503)
-        .json({
-          error:
-            "AI usage limit is temporarily busy and the backup AI is unavailable. Please try again shortly.",
-        });
-    }
-
-
-    if (
-      geminiResult?.status ===
-        503 ||
-      geminiResult?.status ===
-        504 ||
-      geminiResult?.status >=
-        500
-    ) {
-      return res
-        .status(503)
-        .json({
-          error:
-            "Both primary and backup AI services are temporarily unavailable. Please try again shortly.",
-        });
-    }
-
-
-    // Gemini permanent error
-    if (
-      geminiResult &&
-      !isTemporaryGeminiError(
-        geminiResult.status
-      )
-    ) {
-      return res
-        .status(
-          geminiResult.status >= 400 &&
-          geminiResult.status < 600
-            ? geminiResult.status
-            : 500
-        )
-        .json({
-          error:
-            geminiResult.error ||
-            "Gemini request failed.",
-        });
-    }
-
-
-    return res
-      .status(503)
-      .json({
-        error:
-          "AI service is temporarily unavailable.",
-      });
-
-
+    return res.status(503).json({
+      error:
+        "AI services are temporarily unavailable. Please try again shortly.",
+    });
   } catch (error) {
     console.error(
-      "AI Future Tamil chat error:",
+      "AI Future Tamil API error:",
       error
     );
 
-
-    return res
-      .status(500)
-      .json({
-        error:
-          "AI service is temporarily unavailable.",
-      });
+    return res.status(500).json({
+      error:
+        "AI service is temporarily unavailable.",
+    });
   }
 }
