@@ -1,4 +1,4 @@
-import { Link, useParams } from "react-router-dom";
+import { Link, Navigate, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 
 import AIChat from "./AIChat";
@@ -131,6 +131,13 @@ function ToolDetails() {
   const tool = tools.find(
     (item) => item.id === id
   );
+
+    // =========================================================
+  // GEMINI -> OPEN FULL AI CHAT PAGE
+  // =========================================================
+  if (id === "gemini") {
+    return <Navigate to="/ai-chat" replace />;
+  }
 
   /* =========================================================
      FAVORITE

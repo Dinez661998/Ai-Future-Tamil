@@ -556,6 +556,32 @@ export default function AITools() {
     fetchTools();
   }, []);
 
+  useEffect(() => {
+  const channel =
+    supabase
+      .channel(
+        "public-ai-tools-cms"
+      )
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "ai_tools",
+        },
+        () => {
+          fetchTools();
+        }
+      )
+      .subscribe();
+
+  return () => {
+    supabase.removeChannel(
+      channel
+    );
+  };
+}, []);
+
   async function fetchTools() {
     setLoading(true);
     setError("");
@@ -829,19 +855,41 @@ export default function AITools() {
   ======================================================= */
 
   function openTool(tool) {
-    if (tool.websiteUrl) {
-      window.open(
-        tool.websiteUrl,
-        "_blank",
-        "noopener,noreferrer"
-      );
+  const slug = String(tool?.slug || tool?.id || "")
+    .trim()
+    .toLowerCase();
 
-      return;
-    }
-
-    window.location.href =
-      `/ai-tools/${tool.slug}`;
+  // Gemini → AI Future Tamil internal Gemini Chat
+  if (slug === "gemini") {
+    window.location.href = "/ai-tools/gemini";
+    return;
   }
+
+  // ChatGPT → internal tool details page
+  if (
+    slug === "chatgpt" ||
+    slug === "chat-gpt" ||
+    slug === "chat-gpt-5"
+  ) {
+    window.location.href = `/ai-tools/${slug}`;
+    return;
+  }
+
+  // All other AI tools → internal AI Future Tamil tool page
+  if (slug) {
+    window.location.href = `/ai-tools/${slug}`;
+    return;
+  }
+
+  // Only fallback when no slug exists
+  if (tool?.websiteUrl) {
+    window.open(
+      tool.websiteUrl,
+      "_blank",
+      "noopener,noreferrer"
+    );
+  }
+}
 
   /* =======================================================
      CATEGORY ICON
