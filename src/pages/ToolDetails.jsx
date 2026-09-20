@@ -1,6 +1,8 @@
 import { Link, useParams } from "react-router-dom";
 import { useEffect, useState } from "react";
 
+import AIChat from "./AIChat";
+
 import {
   getFavoriteTools,
   toggleFavoriteTool,
@@ -42,10 +44,6 @@ const tools = [
       "Powerful AI assistant for writing, analysis and coding.",
     website: "https://claude.ai/",
   },
-
-  /* =======================================================
-     AI FUTURE TAMIL OWN AI WRITER
-  ======================================================= */
 
   {
     id: "ai-writer",
@@ -89,6 +87,41 @@ const tools = [
 ];
 
 /* =========================================================
+   AI WRITER QUICK EXAMPLES
+========================================================= */
+
+const writerExamples = [
+  {
+    icon: "🎥",
+    title: "YouTube Script",
+    prompt:
+      "Create a YouTube video script explaining Artificial Intelligence for beginners.",
+    type: "YouTube Script",
+  },
+  {
+    icon: "📧",
+    title: "Professional Email",
+    prompt:
+      "Write a professional leave request email to my manager.",
+    type: "Email",
+  },
+  {
+    icon: "📱",
+    title: "Social Caption",
+    prompt:
+      "Create an attractive Instagram caption about learning AI.",
+    type: "Social Media Caption",
+  },
+  {
+    icon: "📝",
+    title: "Blog Article",
+    prompt:
+      "Write an article about how AI can improve productivity.",
+    type: "Blog / Article",
+  },
+];
+
+/* =========================================================
    MAIN COMPONENT
 ========================================================= */
 
@@ -99,32 +132,16 @@ function ToolDetails() {
     (item) => item.id === id
   );
 
-  /* =======================================================
+  /* =========================================================
      FAVORITE
-  ======================================================= */
+  ========================================================= */
 
   const [favorite, setFavorite] =
     useState(false);
 
-  /* =======================================================
-     GEMINI CHAT
-  ======================================================= */
-
-  const [message, setMessage] =
-    useState("");
-
-  const [reply, setReply] =
-    useState("");
-
-  const [loading, setLoading] =
-    useState(false);
-
-  const [error, setError] =
-    useState("");
-
-  /* =======================================================
-     AI WRITER
-  ======================================================= */
+  /* =========================================================
+     AI WRITER STATES
+  ========================================================= */
 
   const [writerTopic, setWriterTopic] =
     useState("");
@@ -132,20 +149,26 @@ function ToolDetails() {
   const [contentType, setContentType] =
     useState("Blog / Article");
 
-  const [writerLanguage, setWriterLanguage] =
-    useState("English");
+  const [
+    writerLanguage,
+    setWriterLanguage,
+  ] = useState("English");
 
   const [writerTone, setWriterTone] =
     useState("Professional");
 
-  const [writerLength, setWriterLength] =
-    useState("Medium");
+  const [
+    writerLength,
+    setWriterLength,
+  ] = useState("Medium");
 
   const [writerResult, setWriterResult] =
     useState("");
 
-  const [writerLoading, setWriterLoading] =
-    useState(false);
+  const [
+    writerLoading,
+    setWriterLoading,
+  ] = useState(false);
 
   const [writerError, setWriterError] =
     useState("");
@@ -153,9 +176,9 @@ function ToolDetails() {
   const [copied, setCopied] =
     useState(false);
 
-  /* =======================================================
+  /* =========================================================
      LOAD FAVORITE
-  ======================================================= */
+  ========================================================= */
 
   useEffect(() => {
     if (!tool) return;
@@ -182,19 +205,16 @@ function ToolDetails() {
     }
   }, [tool]);
 
-  /* =======================================================
+  /* =========================================================
      TRACK TOOL VISIT
-  ======================================================= */
+  ========================================================= */
 
   useEffect(() => {
     if (!tool) return;
 
     try {
       trackToolVisit(tool);
-
-      markToolExplored(
-        tool.id
-      );
+      markToolExplored(tool.id);
     } catch (error) {
       console.error(
         "Tool visit error:",
@@ -203,9 +223,9 @@ function ToolDetails() {
     }
   }, [tool]);
 
-  /* =======================================================
+  /* =========================================================
      FAVORITE BUTTON
-  ======================================================= */
+  ========================================================= */
 
   const handleFavorite = () => {
     if (!tool) return;
@@ -225,126 +245,9 @@ function ToolDetails() {
     }
   };
 
-  /* =======================================================
-     GEMINI SEND MESSAGE
-  ======================================================= */
-
-  const handleSendMessage =
-    async () => {
-      const cleanMessage =
-        message.trim();
-
-      if (!cleanMessage) {
-        setError(
-          "Please type a message first."
-        );
-
-        return;
-      }
-
-      try {
-        setLoading(true);
-
-        setError("");
-
-        setReply("");
-
-        const response =
-          await fetch(
-            "/api/chat",
-            {
-              method: "POST",
-
-              headers: {
-                "Content-Type":
-                  "application/json",
-              },
-
-              body: JSON.stringify({
-                message:
-                  cleanMessage,
-              }),
-            }
-          );
-
-        const data =
-          await response.json();
-
-        if (!response.ok) {
-          throw new Error(
-            data?.error ||
-              "AI request failed."
-          );
-        }
-
-        setReply(
-          data?.reply ||
-            "No response received."
-        );
-      } catch (error) {
-        console.error(
-          "Gemini Chat Error:",
-          error
-        );
-
-        setError(
-          error?.message ||
-            "Something went wrong. Please try again."
-        );
-      } finally {
-        setLoading(false);
-      }
-    };
-
-  /* =======================================================
-     GEMINI ENTER TO SEND
-  ======================================================= */
-
-  const handleKeyDown = (
-    event
-  ) => {
-    if (
-      event.key === "Enter" &&
-      !event.shiftKey
-    ) {
-      event.preventDefault();
-
-      if (!loading) {
-        handleSendMessage();
-      }
-    }
-  };
-
-  /* =======================================================
-     CLEAR GEMINI
-  ======================================================= */
-
-  const handleClearChat =
-    () => {
-      setMessage("");
-
-      setReply("");
-
-      setError("");
-    };
-
-  /* =======================================================
-     GEMINI EXAMPLE PROMPTS
-  ======================================================= */
-
-  const examplePrompts = [
-    "Explain Artificial Intelligence in simple Tamil.",
-
-    "Give me 5 YouTube video ideas about AI.",
-
-    "Create a professional email for requesting leave.",
-
-    "Explain JavaScript functions with a simple example.",
-  ];
-
-  /* =======================================================
+  /* =========================================================
      AI WRITER GENERATE
-  ======================================================= */
+  ========================================================= */
 
   const handleGenerateWriter =
     async () => {
@@ -358,13 +261,6 @@ function ToolDetails() {
 
         return;
       }
-
-      /*
-        This prompt converts the normal Gemini API
-        into a dedicated AI Writer.
-
-        User only sees the simple writer controls.
-      */
 
       const writerPrompt = `
 You are the professional AI Writer inside a website called "AI Future Tamil".
@@ -415,30 +311,23 @@ Now generate the final content.
 
       try {
         setWriterLoading(true);
-
         setWriterError("");
-
         setWriterResult("");
-
         setCopied(false);
 
         const response =
-          await fetch(
-            "/api/chat",
-            {
-              method: "POST",
+          await fetch("/api/chat", {
+            method: "POST",
 
-              headers: {
-                "Content-Type":
-                  "application/json",
-              },
+            headers: {
+              "Content-Type":
+                "application/json",
+            },
 
-              body: JSON.stringify({
-                message:
-                  writerPrompt,
-              }),
-            }
-          );
+            body: JSON.stringify({
+              message: writerPrompt,
+            }),
+          });
 
         const data =
           await response.json();
@@ -469,40 +358,24 @@ Now generate the final content.
       }
     };
 
-  /* =======================================================
+  /* =========================================================
      AI WRITER CLEAR
-  ======================================================= */
+  ========================================================= */
 
-  const handleClearWriter =
-    () => {
-      setWriterTopic("");
+  const handleClearWriter = () => {
+    setWriterTopic("");
+    setContentType("Blog / Article");
+    setWriterLanguage("English");
+    setWriterTone("Professional");
+    setWriterLength("Medium");
+    setWriterResult("");
+    setWriterError("");
+    setCopied(false);
+  };
 
-      setContentType(
-        "Blog / Article"
-      );
-
-      setWriterLanguage(
-        "English"
-      );
-
-      setWriterTone(
-        "Professional"
-      );
-
-      setWriterLength(
-        "Medium"
-      );
-
-      setWriterResult("");
-
-      setWriterError("");
-
-      setCopied(false);
-    };
-
-  /* =======================================================
+  /* =========================================================
      AI WRITER COPY
-  ======================================================= */
+  ========================================================= */
 
   const handleCopyWriter =
     async () => {
@@ -526,104 +399,51 @@ Now generate the final content.
       }
     };
 
-  /* =======================================================
-     AI WRITER EXAMPLES
-  ======================================================= */
-
-  const writerExamples = [
-    {
-      icon: "🎥",
-      title: "YouTube Script",
-      prompt:
-        "Create a YouTube video script explaining Artificial Intelligence for beginners.",
-      type: "YouTube Script",
-    },
-
-    {
-      icon: "📧",
-      title: "Professional Email",
-      prompt:
-        "Write a professional leave request email to my manager.",
-      type: "Email",
-    },
-
-    {
-      icon: "📱",
-      title: "Social Caption",
-      prompt:
-        "Create an attractive Instagram caption about learning AI.",
-      type: "Social Media Caption",
-    },
-
-    {
-      icon: "📝",
-      title: "Blog Article",
-      prompt:
-        "Write an article about how AI can improve productivity.",
-      type: "Blog / Article",
-    },
-  ];
-
-  /* =======================================================
+  /* =========================================================
      TOOL NOT FOUND
-  ======================================================= */
+  ========================================================= */
 
   if (!tool) {
     return (
-      <main className="min-h-screen bg-transparent text-white flex items-center justify-center px-6">
-
+      <main className="flex min-h-screen items-center justify-center bg-transparent px-6 text-white">
         <div className="text-center">
-
-          <div className="text-6xl mb-6">
+          <div className="mb-6 text-6xl">
             😕
           </div>
 
-          <h1 className="text-4xl font-bold mb-6">
+          <h1 className="mb-6 text-4xl font-bold">
             Tool Not Found
           </h1>
 
           <Link
             to="/ai-tools"
-            className="
-              inline-block
-              rounded-lg
-              bg-white
-              px-6
-              py-3
-              font-semibold
-              text-black
-            "
+            className="inline-block rounded-lg bg-white px-6 py-3 font-semibold text-black"
           >
             ← Back to AI Tools
           </Link>
-
         </div>
-
       </main>
     );
   }
 
-  /* =======================================================
+  /* =========================================================
      PAGE
-  ======================================================= */
+  ========================================================= */
 
   return (
-    <main
-      className="
-        min-h-screen
-        bg-transparent
-        px-4
-        py-10
-        text-white
-        sm:px-6
-      "
-    >
+    <main className="min-h-screen bg-transparent px-4 py-10 text-white sm:px-6">
 
-      <div className="mx-auto max-w-5xl">
+      <div
+        className={
+          tool.id === "gemini"
+            ? "mx-auto max-w-[1500px]"
+            : "mx-auto max-w-5xl"
+        }
+      >
 
-        {/* =================================================
-            MAIN TOOL CARD
-        ================================================= */}
+        {/* =====================================================
+            TOOL INFORMATION
+        ===================================================== */}
 
         <div
           className="
@@ -659,13 +479,9 @@ Now generate the final content.
               {tool.icon}
             </div>
 
-            {/* HEART */}
-
             <button
               type="button"
-              onClick={
-                handleFavorite
-              }
+              onClick={handleFavorite}
               aria-label="Favorite tool"
               className="
                 flex
@@ -678,63 +494,39 @@ Now generate the final content.
                 border-gray-700
                 bg-black
                 text-3xl
-                transition-colors
+                transition
+                hover:scale-105
                 hover:border-pink-500
               "
             >
-              {favorite
-                ? "❤️"
-                : "♡"}
+              {favorite ? "❤️" : "♡"}
             </button>
 
           </div>
 
           {/* CATEGORY */}
 
-          <p
-            className="
-              mb-3
-              mt-8
-              font-medium
-              text-blue-400
-            "
-          >
+          <p className="mb-3 mt-8 font-medium text-blue-400">
             {tool.category}
           </p>
 
           {/* TITLE */}
 
-          <h1
-            className="
-              mb-6
-              text-4xl
-              font-black
-              sm:text-5xl
-            "
-          >
+          <h1 className="mb-6 text-4xl font-black sm:text-5xl">
             {tool.name}
           </h1>
 
           {/* DESCRIPTION */}
 
-          <p
-            className="
-              text-lg
-              leading-8
-              text-gray-400
-              sm:text-xl
-            "
-          >
+          <p className="text-lg leading-8 text-gray-400 sm:text-xl">
             {tool.description}
           </p>
 
-          {/* =================================================
-              GEMINI CHAT
-          ================================================= */}
+          {/* =====================================================
+              GEMINI = FULL EXISTING AI CHAT
+          ===================================================== */}
 
-          {tool.id ===
-            "gemini" && (
-
+          {tool.id === "gemini" && (
             <div className="mt-10">
 
               <div
@@ -744,450 +536,83 @@ Now generate the final content.
                   w-full
                   bg-gradient-to-r
                   from-transparent
-                  via-blue-400/30
+                  via-cyan-400/40
                   to-transparent
                 "
               />
 
-              {/* HEADER */}
-
               <div className="mb-6">
 
-                <div className="flex items-center gap-3">
+                <div className="flex items-center gap-4">
 
                   <div
                     className="
                       flex
-                      h-11
-                      w-11
+                      h-14
+                      w-14
                       items-center
                       justify-center
-                      rounded-xl
+                      rounded-2xl
                       border
-                      border-blue-400/20
-                      bg-blue-500/[0.08]
-                      text-xl
+                      border-cyan-400/20
+                      bg-cyan-500/[0.08]
+                      text-2xl
                     "
                   >
                     ✨
                   </div>
 
                   <div>
-
-                    <h2 className="text-2xl font-black text-white">
-                      Ask Gemini
+                    <h2 className="text-2xl font-black sm:text-3xl">
+                      AI Future Tamil Chat
                     </h2>
 
-                    <p className="mt-1 text-sm text-gray-500">
+                    <p className="mt-1 text-sm text-cyan-300">
                       Powered by Gemini AI
                     </p>
-
                   </div>
 
                 </div>
 
-                <p
-                  className="
-                    mt-4
-                    text-sm
-                    leading-6
-                    text-gray-400
-                  "
-                >
-                  Ask questions, create content,
-                  learn concepts, write code and
-                  explore ideas directly inside
-                  AI Future Tamil.
+                <p className="mt-5 max-w-3xl text-sm leading-7 text-gray-400">
+                  Chat with Gemini directly inside
+                  AI Future Tamil. Model selection,
+                  language modes, chat history,
+                  regenerate, copy and your existing
+                  AI Chat features are available here.
                 </p>
 
               </div>
 
-              {/* EXAMPLES */}
-
-              <div className="mb-5">
-
-                <p
-                  className="
-                    mb-3
-                    text-xs
-                    font-bold
-                    uppercase
-                    tracking-[0.12em]
-                    text-gray-500
-                  "
-                >
-                  Try an example
-                </p>
-
-                <div className="flex flex-wrap gap-2">
-
-                  {examplePrompts.map(
-                    (
-                      prompt,
-                      index
-                    ) => (
-
-                      <button
-                        key={
-                          index
-                        }
-                        type="button"
-                        onClick={() => {
-                          setMessage(
-                            prompt
-                          );
-
-                          setReply("");
-
-                          setError("");
-                        }}
-                        className="
-                          rounded-full
-                          border
-                          border-white/10
-                          bg-white/[0.035]
-                          px-4
-                          py-2
-                          text-left
-                          text-xs
-                          text-gray-300
-                          transition-colors
-                          hover:border-blue-400/30
-                          hover:bg-blue-500/[0.07]
-                          hover:text-white
-                        "
-                      >
-                        {prompt}
-                      </button>
-
-                    )
-                  )}
-
-                </div>
-
-              </div>
-
-              {/* INPUT */}
+              {/* IMPORTANT:
+                  This is your SAME existing AIChat.jsx.
+                  No second Gemini API/chat code is created.
+              */}
 
               <div
                 className="
+                  relative
+                  w-full
                   overflow-hidden
-                  rounded-[24px]
+                  rounded-[28px]
                   border
-                  border-blue-400/20
-                  bg-[#080b12]
+                  border-white/[0.09]
+                  bg-[#07090f]
+                  shadow-[0_25px_80px_rgba(0,0,0,.35)]
                 "
               >
-
-                <textarea
-                  value={
-                    message
-                  }
-                  onChange={(
-                    event
-                  ) =>
-                    setMessage(
-                      event.target.value
-                    )
-                  }
-                  onKeyDown={
-                    handleKeyDown
-                  }
-                  placeholder="Ask Gemini anything..."
-                  rows={6}
-                  maxLength={
-                    6000
-                  }
-                  className="
-                    min-h-[150px]
-                    w-full
-                    resize-none
-                    bg-transparent
-                    px-5
-                    py-5
-                    text-base
-                    leading-7
-                    text-white
-                    outline-none
-                    placeholder:text-gray-600
-                  "
-                />
-
-                <div
-                  className="
-                    flex
-                    flex-col
-                    gap-3
-                    border-t
-                    border-white/[0.07]
-                    p-4
-                    sm:flex-row
-                    sm:items-center
-                    sm:justify-between
-                  "
-                >
-
-                  <div className="text-xs text-gray-600">
-
-                    {message.length}
-                    /6000
-
-                    {" • "}
-
-                    Enter to send
-
-                    {" • "}
-
-                    Shift + Enter for new line
-
-                  </div>
-
-                  <div className="flex gap-2">
-
-                    <button
-                      type="button"
-                      onClick={
-                        handleClearChat
-                      }
-                      disabled={
-                        loading
-                      }
-                      className="
-                        rounded-xl
-                        border
-                        border-white/10
-                        bg-white/[0.03]
-                        px-5
-                        py-3
-                        text-sm
-                        font-bold
-                        text-gray-300
-                        disabled:cursor-not-allowed
-                        disabled:opacity-40
-                      "
-                    >
-                      Clear
-                    </button>
-
-                    <button
-                      type="button"
-                      onClick={
-                        handleSendMessage
-                      }
-                      disabled={
-                        loading ||
-                        !message.trim()
-                      }
-                      className="
-                        min-w-[135px]
-                        rounded-xl
-                        bg-gradient-to-r
-                        from-cyan-400
-                        to-blue-500
-                        px-5
-                        py-3
-                        text-sm
-                        font-black
-                        text-[#020711]
-                        disabled:cursor-not-allowed
-                        disabled:opacity-40
-                      "
-                    >
-                      {loading
-                        ? "Thinking..."
-                        : "✨ Ask Gemini"}
-                    </button>
-
-                  </div>
-
-                </div>
-
+                <AIChat />
               </div>
 
-              {/* ERROR */}
-
-              {error && (
-
-                <div
-                  className="
-                    mt-5
-                    rounded-2xl
-                    border
-                    border-red-500/25
-                    bg-red-500/[0.07]
-                    p-4
-                    text-sm
-                    leading-6
-                    text-red-300
-                  "
-                >
-                  ⚠️ {error}
-                </div>
-
-              )}
-
-              {/* LOADING */}
-
-              {loading && (
-
-                <div
-                  className="
-                    mt-6
-                    rounded-[24px]
-                    border
-                    border-blue-400/15
-                    bg-blue-500/[0.04]
-                    p-6
-                  "
-                >
-
-                  <div className="flex items-center gap-3">
-
-                    <span className="text-xl">
-                      💎
-                    </span>
-
-                    <div>
-
-                      <p className="font-bold text-white">
-                        Gemini is thinking...
-                      </p>
-
-                      <p className="mt-1 text-sm text-gray-500">
-                        Creating your response.
-                      </p>
-
-                    </div>
-
-                  </div>
-
-                </div>
-
-              )}
-
-              {/* RESPONSE */}
-
-              {reply &&
-                !loading && (
-
-                <div
-                  className="
-                    mt-6
-                    overflow-hidden
-                    rounded-[24px]
-                    border
-                    border-cyan-400/20
-                    bg-gradient-to-br
-                    from-cyan-500/[0.06]
-                    via-blue-500/[0.04]
-                    to-purple-500/[0.05]
-                  "
-                >
-
-                  <div
-                    className="
-                      flex
-                      items-center
-                      justify-between
-                      gap-3
-                      border-b
-                      border-white/[0.07]
-                      px-5
-                      py-4
-                    "
-                  >
-
-                    <div className="flex items-center gap-3">
-
-                      <span className="text-xl">
-                        💎
-                      </span>
-
-                      <div>
-
-                        <p className="font-black text-white">
-                          Gemini Response
-                        </p>
-
-                        <p className="text-xs text-gray-500">
-                          AI generated answer
-                        </p>
-
-                      </div>
-
-                    </div>
-
-                    <button
-                      type="button"
-                      onClick={() => {
-                        navigator.clipboard.writeText(
-                          reply
-                        );
-                      }}
-                      className="
-                        rounded-lg
-                        border
-                        border-white/10
-                        bg-black/20
-                        px-3
-                        py-2
-                        text-xs
-                        font-bold
-                        text-gray-300
-                      "
-                    >
-                      📋 Copy
-                    </button>
-
-                  </div>
-
-                  <div className="p-5 sm:p-6">
-
-                    <div
-                      className="
-                        whitespace-pre-wrap
-                        break-words
-                        text-[15px]
-                        leading-8
-                        text-gray-200
-                      "
-                    >
-                      {reply}
-                    </div>
-
-                  </div>
-
-                </div>
-
-              )}
-
-              <p
-                className="
-                  mt-4
-                  text-xs
-                  leading-5
-                  text-gray-600
-                "
-              >
-                AI responses can contain mistakes.
-                Verify important information before
-                using it.
-              </p>
-
             </div>
-
           )}
 
-          {/* =================================================
+          {/* =====================================================
               AI WRITER
-          ================================================= */}
+          ===================================================== */}
 
-          {tool.id ===
-            "ai-writer" && (
-
+          {tool.id === "ai-writer" && (
             <div className="mt-10">
-
-              {/* DIVIDER */}
 
               <div
                 className="
@@ -1201,7 +626,7 @@ Now generate the final content.
                 "
               />
 
-              {/* WRITER HEADER */}
+              {/* HEADER */}
 
               <div className="mb-8">
 
@@ -1226,13 +651,7 @@ Now generate the final content.
 
                   <div>
 
-                    <h2
-                      className="
-                        text-2xl
-                        font-black
-                        sm:text-3xl
-                      "
-                    >
+                    <h2 className="text-2xl font-black sm:text-3xl">
                       AI Content Generator
                     </h2>
 
@@ -1244,15 +663,7 @@ Now generate the final content.
 
                 </div>
 
-                <p
-                  className="
-                    mt-5
-                    max-w-3xl
-                    text-sm
-                    leading-7
-                    text-gray-400
-                  "
-                >
+                <p className="mt-5 max-w-3xl text-sm leading-7 text-gray-400">
                   Tell AI Writer what you need,
                   choose your content style and
                   generate ready-to-use content
@@ -1287,17 +698,10 @@ Now generate the final content.
                     lg:grid-cols-4
                   "
                 >
-
                   {writerExamples.map(
-                    (
-                      example,
-                      index
-                    ) => (
-
+                    (example, index) => (
                       <button
-                        key={
-                          index
-                        }
+                        key={index}
                         type="button"
                         onClick={() => {
                           setWriterTopic(
@@ -1309,9 +713,7 @@ Now generate the final content.
                           );
 
                           setWriterResult("");
-
                           setWriterError("");
-
                           setCopied(false);
                         }}
                         className="
@@ -1321,32 +723,21 @@ Now generate the final content.
                           bg-white/[0.025]
                           p-4
                           text-left
-                          transition-colors
+                          transition
                           hover:border-purple-400/30
                           hover:bg-purple-500/[0.06]
                         "
                       >
-
                         <div className="text-2xl">
                           {example.icon}
                         </div>
 
-                        <p
-                          className="
-                            mt-3
-                            text-sm
-                            font-bold
-                            text-gray-200
-                          "
-                        >
+                        <p className="mt-3 text-sm font-bold text-gray-200">
                           {example.title}
                         </p>
-
                       </button>
-
                     )
                   )}
-
                 </div>
 
               </div>
@@ -1368,23 +759,9 @@ Now generate the final content.
 
                 <div>
 
-                  <div
-                    className="
-                      mb-3
-                      flex
-                      items-center
-                      justify-between
-                      gap-3
-                    "
-                  >
+                  <div className="mb-3 flex items-center justify-between gap-3">
 
-                    <label
-                      className="
-                        text-sm
-                        font-bold
-                        text-gray-200
-                      "
-                    >
+                    <label className="text-sm font-bold text-gray-200">
                       ✍️ What do you want to write?
                     </label>
 
@@ -1395,19 +772,13 @@ Now generate the final content.
                   </div>
 
                   <textarea
-                    value={
-                      writerTopic
-                    }
-                    onChange={(
-                      event
-                    ) =>
+                    value={writerTopic}
+                    onChange={(event) =>
                       setWriterTopic(
                         event.target.value
                       )
                     }
-                    maxLength={
-                      3000
-                    }
+                    maxLength={3000}
                     rows={5}
                     placeholder="Example: Create a YouTube script about Artificial Intelligence for beginners..."
                     className="
@@ -1424,7 +795,7 @@ Now generate the final content.
                       leading-7
                       text-white
                       outline-none
-                      transition-colors
+                      transition
                       placeholder:text-gray-600
                       focus:border-purple-400/40
                     "
@@ -1449,27 +820,13 @@ Now generate the final content.
 
                   <div>
 
-                    <label
-                      className="
-                        mb-2
-                        block
-                        text-xs
-                        font-bold
-                        uppercase
-                        tracking-wider
-                        text-gray-500
-                      "
-                    >
+                    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-gray-500">
                       📄 Content Type
                     </label>
 
                     <select
-                      value={
-                        contentType
-                      }
-                      onChange={(
-                        event
-                      ) =>
+                      value={contentType}
+                      onChange={(event) =>
                         setContentType(
                           event.target.value
                         )
@@ -1488,7 +845,6 @@ Now generate the final content.
                         focus:border-purple-400/40
                       "
                     >
-
                       <option>
                         Blog / Article
                       </option>
@@ -1497,9 +853,7 @@ Now generate the final content.
                         YouTube Script
                       </option>
 
-                      <option>
-                        Email
-                      </option>
+                      <option>Email</option>
 
                       <option>
                         Social Media Caption
@@ -1509,9 +863,7 @@ Now generate the final content.
                         Product Description
                       </option>
 
-                      <option>
-                        Story
-                      </option>
+                      <option>Story</option>
 
                       <option>
                         Advertisement Copy
@@ -1520,7 +872,6 @@ Now generate the final content.
                       <option>
                         Resume Summary
                       </option>
-
                     </select>
 
                   </div>
@@ -1529,27 +880,13 @@ Now generate the final content.
 
                   <div>
 
-                    <label
-                      className="
-                        mb-2
-                        block
-                        text-xs
-                        font-bold
-                        uppercase
-                        tracking-wider
-                        text-gray-500
-                      "
-                    >
+                    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-gray-500">
                       🌐 Language
                     </label>
 
                     <select
-                      value={
-                        writerLanguage
-                      }
-                      onChange={(
-                        event
-                      ) =>
+                      value={writerLanguage}
+                      onChange={(event) =>
                         setWriterLanguage(
                           event.target.value
                         )
@@ -1568,19 +905,9 @@ Now generate the final content.
                         focus:border-cyan-400/40
                       "
                     >
-
-                      <option>
-                        English
-                      </option>
-
-                      <option>
-                        Tamil
-                      </option>
-
-                      <option>
-                        Tanglish
-                      </option>
-
+                      <option>English</option>
+                      <option>Tamil</option>
+                      <option>Tanglish</option>
                     </select>
 
                   </div>
@@ -1589,27 +916,13 @@ Now generate the final content.
 
                   <div>
 
-                    <label
-                      className="
-                        mb-2
-                        block
-                        text-xs
-                        font-bold
-                        uppercase
-                        tracking-wider
-                        text-gray-500
-                      "
-                    >
+                    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-gray-500">
                       🎭 Tone
                     </label>
 
                     <select
-                      value={
-                        writerTone
-                      }
-                      onChange={(
-                        event
-                      ) =>
+                      value={writerTone}
+                      onChange={(event) =>
                         setWriterTone(
                           event.target.value
                         )
@@ -1628,7 +941,6 @@ Now generate the final content.
                         focus:border-pink-400/40
                       "
                     >
-
                       <option>
                         Professional
                       </option>
@@ -1656,7 +968,6 @@ Now generate the final content.
                       <option>
                         Funny
                       </option>
-
                     </select>
 
                   </div>
@@ -1665,27 +976,13 @@ Now generate the final content.
 
                   <div>
 
-                    <label
-                      className="
-                        mb-2
-                        block
-                        text-xs
-                        font-bold
-                        uppercase
-                        tracking-wider
-                        text-gray-500
-                      "
-                    >
+                    <label className="mb-2 block text-xs font-bold uppercase tracking-wider text-gray-500">
                       📏 Length
                     </label>
 
                     <select
-                      value={
-                        writerLength
-                      }
-                      onChange={(
-                        event
-                      ) =>
+                      value={writerLength}
+                      onChange={(event) =>
                         setWriterLength(
                           event.target.value
                         )
@@ -1704,19 +1001,9 @@ Now generate the final content.
                         focus:border-green-400/40
                       "
                     >
-
-                      <option>
-                        Short
-                      </option>
-
-                      <option>
-                        Medium
-                      </option>
-
-                      <option>
-                        Long
-                      </option>
-
+                      <option>Short</option>
+                      <option>Medium</option>
+                      <option>Long</option>
                     </select>
 
                   </div>
@@ -1737,25 +1024,12 @@ Now generate the final content.
                   "
                 >
 
-                  <p
-                    className="
-                      text-xs
-                      leading-5
-                      text-gray-600
-                    "
-                  >
+                  <p className="text-xs leading-5 text-gray-600">
                     Choose your settings and
                     generate your content.
                   </p>
 
-                  <div
-                    className="
-                      flex
-                      flex-col
-                      gap-2
-                      sm:flex-row
-                    "
-                  >
+                  <div className="flex flex-col gap-2 sm:flex-row">
 
                     <button
                       type="button"
@@ -1822,7 +1096,6 @@ Now generate the final content.
               {/* ERROR */}
 
               {writerError && (
-
                 <div
                   className="
                     mt-5
@@ -1838,13 +1111,11 @@ Now generate the final content.
                 >
                   ⚠️ {writerError}
                 </div>
-
               )}
 
               {/* LOADING */}
 
               {writerLoading && (
-
                 <div
                   className="
                     mt-6
@@ -1855,7 +1126,6 @@ Now generate the final content.
                     p-6
                   "
                 >
-
                   <div className="flex items-center gap-4">
 
                     <div
@@ -1874,82 +1144,56 @@ Now generate the final content.
                     </div>
 
                     <div>
-
                       <p className="font-black text-white">
                         AI Writer is creating...
                       </p>
 
                       <p className="mt-1 text-sm text-gray-500">
-                        Preparing your {contentType}.
+                        Preparing your{" "}
+                        {contentType}.
                       </p>
-
                     </div>
 
                   </div>
-
                 </div>
-
               )}
 
               {/* RESULT */}
 
               {writerResult &&
                 !writerLoading && (
-
-                <div
-                  className="
-                    mt-6
-                    overflow-hidden
-                    rounded-[28px]
-                    border
-                    border-purple-400/20
-                    bg-gradient-to-br
-                    from-purple-500/[0.07]
-                    via-pink-500/[0.035]
-                    to-cyan-500/[0.05]
-                  "
-                >
-
-                  {/* RESULT HEADER */}
-
                   <div
                     className="
-                      flex
-                      flex-col
-                      gap-4
-                      border-b
-                      border-white/[0.07]
-                      px-5
-                      py-5
-                      sm:flex-row
-                      sm:items-center
-                      sm:justify-between
+                      mt-6
+                      overflow-hidden
+                      rounded-[26px]
+                      border
+                      border-purple-400/20
+                      bg-gradient-to-br
+                      from-purple-500/[0.06]
+                      via-pink-500/[0.03]
+                      to-cyan-500/[0.04]
                     "
                   >
 
-                    <div className="flex items-center gap-3">
-
-                      <div
-                        className="
-                          flex
-                          h-11
-                          w-11
-                          items-center
-                          justify-center
-                          rounded-xl
-                          border
-                          border-purple-400/20
-                          bg-purple-500/[0.08]
-                          text-xl
-                        "
-                      >
-                        ✍️
-                      </div>
+                    <div
+                      className="
+                        flex
+                        flex-col
+                        gap-4
+                        border-b
+                        border-white/[0.07]
+                        px-5
+                        py-4
+                        sm:flex-row
+                        sm:items-center
+                        sm:justify-between
+                      "
+                    >
 
                       <div>
-
                         <p className="font-black text-white">
-                          Your AI Content
+                          ✨ Generated Content
                         </p>
 
                         <p className="mt-1 text-xs text-gray-500">
@@ -1961,125 +1205,105 @@ Now generate the final content.
                           {" • "}
                           {writerLength}
                         </p>
+                      </div>
+
+                      <div className="flex gap-2">
+
+                        <button
+                          type="button"
+                          onClick={
+                            handleCopyWriter
+                          }
+                          className="
+                            rounded-xl
+                            border
+                            border-white/10
+                            bg-black/20
+                            px-4
+                            py-2.5
+                            text-xs
+                            font-bold
+                            text-gray-200
+                            transition
+                            hover:border-cyan-400/30
+                          "
+                        >
+                          {copied
+                            ? "✓ Copied"
+                            : "📋 Copy"}
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={
+                            handleGenerateWriter
+                          }
+                          disabled={
+                            writerLoading
+                          }
+                          className="
+                            rounded-xl
+                            border
+                            border-purple-400/25
+                            bg-purple-500/[0.08]
+                            px-4
+                            py-2.5
+                            text-xs
+                            font-bold
+                            text-purple-200
+                            disabled:opacity-40
+                          "
+                        >
+                          🔄 Regenerate
+                        </button>
 
                       </div>
 
                     </div>
 
-                    <div className="flex gap-2">
+                    <div className="p-5 sm:p-7">
 
-                      <button
-                        type="button"
-                        onClick={
-                          handleCopyWriter
-                        }
+                      <div
                         className="
-                          rounded-xl
-                          border
-                          border-white/10
-                          bg-black/20
-                          px-4
-                          py-2.5
-                          text-xs
-                          font-bold
+                          whitespace-pre-wrap
+                          break-words
+                          text-[17px]
+                          leading-8
                           text-gray-200
-                          transition-colors
-                          hover:border-cyan-400/30
                         "
                       >
-                        {copied
-                          ? "✓ Copied"
-                          : "📋 Copy"}
-                      </button>
-
-                      <button
-                        type="button"
-                        onClick={
-                          handleGenerateWriter
-                        }
-                        disabled={
-                          writerLoading
-                        }
-                        className="
-                          rounded-xl
-                          border
-                          border-purple-400/25
-                          bg-purple-500/[0.08]
-                          px-4
-                          py-2.5
-                          text-xs
-                          font-bold
-                          text-purple-200
-                          disabled:opacity-40
-                        "
-                      >
-                        🔄 Regenerate
-                      </button>
+                        {writerResult}
+                      </div>
 
                     </div>
 
                   </div>
+                )}
 
-                  {/* CONTENT */}
-
-                  <div className="p-5 sm:p-7">
-
-                    <div
-                      className="
-                        whitespace-pre-wrap
-                        break-words
-                        text-[15px]
-                        leading-8
-                        text-gray-200
-                      "
-                    >
-                      {writerResult}
-                    </div>
-
-                  </div>
-
-                </div>
-
-              )}
-
-              {/* NOTE */}
-
-              <p
-                className="
-                  mt-4
-                  text-xs
-                  leading-5
-                  text-gray-600
-                "
-              >
-                ✨ AI generated content may need
-                editing before publishing. Review
-                important information before using it.
+              <p className="mt-4 text-xs leading-5 text-gray-600">
+                ✨ AI generated content may
+                need editing before publishing.
+                Review important information
+                before using it.
               </p>
 
             </div>
-
           )}
 
-          {/* =================================================
-              WEBSITE BUTTON
-          ================================================= */}
+          {/* =====================================================
+              OFFICIAL WEBSITE BUTTON
+          ===================================================== */}
 
           {tool.website && (
-
             <div
               className={
-                tool.id ===
-                "gemini"
+                tool.id === "gemini"
                   ? "mt-10 border-t border-white/[0.07] pt-7"
                   : "mt-8"
               }
             >
-
               <a
-                href={
-                  tool.website
-                }
+                href={tool.website}
                 target="_blank"
                 rel="noopener noreferrer"
                 className="
@@ -2092,15 +1316,13 @@ Now generate the final content.
                   py-4
                   font-bold
                   text-black
-                  transition-colors
+                  transition
                   hover:bg-gray-200
                 "
               >
                 Visit Official Website →
               </a>
-
             </div>
-
           )}
 
         </div>
