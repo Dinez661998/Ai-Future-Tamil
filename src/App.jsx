@@ -153,9 +153,6 @@ const NextGenHub = lazy(() =>
   import("./pages/NextGenHub")
 );
 
-const SMEHub = lazy(() =>
-  import("./pages/SMEHub")
-);
 /* =========================================================
    INFO PAGE COMPONENT
 ========================================================= */
@@ -713,10 +710,7 @@ function WebsiteRoutes() {
         element={<NextGenHub />}
       />
 
-      <Route
-  path="/sme"
-  element={<SMEHub />}
-/>
+  
 
       {/* ================= AI HUB ================= */}
 
