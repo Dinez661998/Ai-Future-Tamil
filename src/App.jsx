@@ -119,6 +119,8 @@ const PromotionHub = lazy(() =>
   import("./pages/PromotionHub")
 );
 
+const SMEHub = lazy(() => import("./pages/SMEHub"));
+
 const InnovationLab = lazy(() =>
   import("./pages/InnovationLab/InnovationLab")
 );
@@ -151,6 +153,9 @@ const NextGenHub = lazy(() =>
   import("./pages/NextGenHub")
 );
 
+const SMEHub = lazy(() =>
+  import("./pages/SMEHub")
+);
 /* =========================================================
    INFO PAGE COMPONENT
 ========================================================= */
@@ -699,12 +704,19 @@ function WebsiteRoutes() {
         element={<ExperienceZone />}
       />
 
+      <Route path="/sme" element={<SMEHub />} />
+
       {/* ================= NEXT GEN ================= */}
 
       <Route
         path="/next-gen"
         element={<NextGenHub />}
       />
+
+      <Route
+  path="/sme"
+  element={<SMEHub />}
+/>
 
       {/* ================= AI HUB ================= */}
 
