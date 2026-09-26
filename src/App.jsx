@@ -149,6 +149,8 @@ const VisualLibrary = lazy(() =>
   import("./pages/VisualLibrary")
 );
 
+const ContentStudio = lazy(() => import("./pages/ContentStudio"));
+
 const NextGenHub = lazy(() =>
   import("./pages/NextGenHub")
 );
@@ -1076,6 +1078,11 @@ function WebsiteRoutes() {
         path="/utility-hub/:toolId"
         element={<UtilityTool />}
       />
+
+      <Route
+  path="/content-studio"
+  element={<ContentStudio />}
+/>
 
       {/* ================= 404 ================= */}
 

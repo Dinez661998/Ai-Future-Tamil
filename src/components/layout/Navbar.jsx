@@ -512,6 +512,10 @@ function Navbar() {
       );
     }
 
+    <Link to="/content-studio">
+  AI Content Studio
+</Link>
+
     /* EXPERIENCE */
 
     if (
